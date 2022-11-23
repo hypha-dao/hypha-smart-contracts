@@ -2,9 +2,9 @@
 #include <eosio/asset.hpp>
 #include <eosio/transaction.hpp>
 #include <eosio/singleton.hpp>
-#include <contracts.hpp>
-#include <tables.hpp>
-#include <tables/price_history_table.hpp>
+// #include <contracts.hpp>
+// #include <tables.hpp>
+// #include <tables/price_history_table.hpp>
 #include <cmath>
 
 using namespace eosio;
@@ -28,7 +28,8 @@ CONTRACT sale : public contract {
       
     ACTION onperiod();
     
-    ACTION ontransfer(name buyer, name contract, asset tlos_quantity, string memo);
+    // removed
+    // ACTION ontransfer(name buyer, name contract, asset tlos_quantity, string memo);
 
     ACTION onhusd(name from, name to, asset quantity, string memo);
     
@@ -221,9 +222,7 @@ CONTRACT sale : public contract {
 };
 
 extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-  if (action == name("transfer").value && code == contracts::tlostoken.value) {
-      execute_action<sale>(name(receiver), name(code), &sale::ontransfer);
-  } else if (action == name("transfer").value && code == "husd.hypha"_n.value) {
+  if (action == name("transfer").value && code == "husd.hypha"_n.value) {
       execute_action<sale>(name(receiver), name(code), &sale::onhusd);
   } else if (code == receiver) {
       switch (action) {

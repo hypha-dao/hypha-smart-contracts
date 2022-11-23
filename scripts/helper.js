@@ -149,16 +149,16 @@ const accountsMetadata = (network) => {
   if (network == networks.local) {
     return {
       owner: account(owner),
+      hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA'),
 
-      firstuser: account('seedsuseraaa', '10000000.0000 SEEDS'),
-      seconduser: account('seedsuserbbb', '10000000.0000 SEEDS'),
-      thirduser: account('seedsuserccc', '5000000.0000 SEEDS'),
-      fourthuser: account('seedsuserxxx', '10000000.0000 SEEDS'),
-      fifthuser: account('seedsuseryyy', '10000000.0000 SEEDS'),
-      sixthuser: account('seedsuserzzz', '5000.0000 SEEDS'),
+      firstuser: account('seedsuseraaa', '10.00 HYPHA'),
+      seconduser: account('seedsuserbbb', '10.00 HYPHA'),
+      thirduser: account('seedsuserccc', '50.00 HYPHA'),
+      fourthuser: account('seedsuserxxx', '100.00 HYPHA'),
+      fifthuser: account('seedsuseryyy', '100.00 HYPHA'),
+      sixthuser: account('seedsuserzzz', '5.00 HYPHA'),
       
       // for testing..
-      hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA'),
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
     }

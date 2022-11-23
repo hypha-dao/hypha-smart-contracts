@@ -1,11 +1,11 @@
 #include <eosio/eosio.hpp>
-#include <contracts.hpp>
+// #include <contracts.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/multi_index.hpp>
 #include <eosio/permission.hpp>
 #include <eosio/asset.hpp>
 #include <abieos_numeric.hpp>
-#include <tables.hpp>
+// #include <tables.hpp>
 
 using std::string;
 using namespace eosio;

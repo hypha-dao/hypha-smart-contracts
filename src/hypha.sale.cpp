@@ -117,11 +117,6 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
 
   check(usd_quantity.symbol.precision() == 4, "expected precision 4 for USD");
 
-  eosio::multi_index<"users"_n, tables::user_table> users(contracts::accounts, contracts::accounts.value);
-
-  auto uitr = users.find(buyer.value);
-  check(uitr != users.end(), "not a seeds user " + buyer.to_string());
-
   configtable c = config.get();
 
   asset hypha_usd = c.hypha_usd;
@@ -172,45 +167,46 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
   ).send();    
 }
 
-void sale::ontransfer(name buyer, name contract, asset tlos_quantity, string memo) {
-  if (
-    get_first_receiver() == contracts::tlostoken  &&    // from eosio token account
-    contract == get_self() &&                           // received
-    tlos_quantity.symbol == tlos_symbol                 // TLOS symbol
-  ) {
+// removed - handles TLOS transfers
+// void sale::ontransfer(name buyer, name contract, asset tlos_quantity, string memo) {
+//   if (
+//     get_first_receiver() == contracts::tlostoken  &&    // from eosio token account
+//     contract == get_self() &&                           // received
+//     tlos_quantity.symbol == tlos_symbol                 // TLOS symbol
+//   ) {
 
-    check(false, "TLOS sale disabled - need to implement use of oracle for price");
+//     check(false, "TLOS sale disabled - need to implement use of oracle for price");
 
-    check(!is_set(tlos_paused_flag), "TLOS purchase is paused.");
+//     check(!is_set(tlos_paused_flag), "TLOS purchase is paused.");
 
-    configtable c = config.get();
+//     configtable c = config.get();
   
-    asset tlos_usd = c.tlos_usd;
+//     asset tlos_usd = c.tlos_usd;
 
-    double tlos_q_double = tlos_quantity.amount / 10000.0;
-    double tlos_usd_double = tlos_usd.amount / 10000.0;
+//     double tlos_q_double = tlos_quantity.amount / 10000.0;
+//     double tlos_usd_double = tlos_usd.amount / 10000.0;
 
-    uint64_t usd_amount = (tlos_q_double * tlos_usd_double) * 10000;
+//     uint64_t usd_amount = (tlos_q_double * tlos_usd_double) * 10000;
 
-    asset usd_asset = asset(usd_amount, usd_symbol);
+//     asset usd_asset = asset(usd_amount, usd_symbol);
 
-    purchase_usd(buyer, usd_asset, "TLOS", memo);
+//     purchase_usd(buyer, usd_asset, "TLOS", memo);
 
-    auto now = eosio::current_time_point().sec_since_epoch();
+//     auto now = eosio::current_time_point().sec_since_epoch();
 
-    string paymentId = buyer.to_string() + ": "+tlos_quantity.to_string() + " time: " + std::to_string(now);
+//     string paymentId = buyer.to_string() + ": "+tlos_quantity.to_string() + " time: " + std::to_string(now);
 
-    payhistory.emplace(_self, [&](auto& item) {
-      item.id = payhistory.available_primary_key();
-      item.recipientAccount = buyer;
-      item.paymentSymbol = "TLOS";
-      item.paymentQuantity = tlos_quantity.to_string();
-      item.paymentId = paymentId;
-      item.multipliedUsdValue = usd_asset.amount;
-    });
+//     payhistory.emplace(_self, [&](auto& item) {
+//       item.id = payhistory.available_primary_key();
+//       item.recipientAccount = buyer;
+//       item.paymentSymbol = "TLOS";
+//       item.paymentQuantity = tlos_quantity.to_string();
+//       item.paymentId = paymentId;
+//       item.multipliedUsdValue = usd_asset.amount;
+//     });
 
-  }
-}
+//   }
+// }
 
 void sale::onhusd(name from, name to, asset quantity, string memo) {
   if (
