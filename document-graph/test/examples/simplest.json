@@ -1,0 +1,13 @@
+{
+    "content_groups": [
+        [
+            {
+                "label": "simplest_label",
+                "value": [
+                    "string",
+                    "Simplest"
+                ]
+            }
+        ]
+    ]
+}
