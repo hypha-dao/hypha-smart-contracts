@@ -34,11 +34,7 @@ CONTRACT sale : public contract {
     ACTION onhusd(name from, name to, asset quantity, string memo);
     
     ACTION newpayment(name recipientAccount, string paymentSymbol, string paymentQuantity, string paymentId, uint64_t multipliedUsdValue);
-
-    ACTION updatetlos(asset tlos_usd);
     
-    ACTION updatelimit(asset citizen_limit, asset resident_limit, asset visitor_limit);
-
     ACTION addround(uint64_t volume, asset token_per_usd);
 
     ACTION initrounds(uint64_t volume_per_round, asset initial_token_per_usd, asset linear_increment, uint64_t num_rounds);
@@ -110,10 +106,10 @@ CONTRACT sale : public contract {
 
     TABLE configtable {
       asset hypha_usd;
-      asset tlos_usd;
-      asset citizen_limit;
-      asset resident_limit;
-      asset visitor_limit;
+      asset tlos_usd;       // legacy
+      asset citizen_limit;  // legacy
+      asset resident_limit; // legacy
+      asset visitor_limit;  // legacy
       uint64_t timestamp;
     };
 
@@ -227,7 +223,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
   } else if (code == receiver) {
       switch (action) {
           EOSIO_DISPATCH_HELPER(sale, 
-          (reset)(onperiod)(updatetlos)(updatelimit)(newpayment)
+          (reset)(onperiod)(newpayment)
           (addround)(initsale)(initrounds)(priceupdate)
           (pause)(unpause)(setflag)
           (incprice)

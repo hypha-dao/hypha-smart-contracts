@@ -5,16 +5,6 @@ void sale::reset() {
 
   config.remove();
 
-  // legacy code
-  // asset citizen_limit =  asset(uint64_t(2500000000), hypha_symbol);
-  // asset resident_limit =  asset(uint64_t(2500000000), hypha_symbol);
-  // asset visitor_limit =  asset(26000 * 10000, hypha_symbol);
-  // updatelimit(citizen_limit, resident_limit, visitor_limit);
-
-  asset tlos_usd =  asset(0.03 * 10000, tlos_symbol);
-
-  updatetlos(tlos_usd);
-
   unpause();
   setflag(tlos_paused_flag, 1);
 
@@ -167,47 +157,6 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
   ).send();    
 }
 
-// removed - handles TLOS transfers
-// void sale::ontransfer(name buyer, name contract, asset tlos_quantity, string memo) {
-//   if (
-//     get_first_receiver() == contracts::tlostoken  &&    // from eosio token account
-//     contract == get_self() &&                           // received
-//     tlos_quantity.symbol == tlos_symbol                 // TLOS symbol
-//   ) {
-
-//     check(false, "TLOS sale disabled - need to implement use of oracle for price");
-
-//     check(!is_set(tlos_paused_flag), "TLOS purchase is paused.");
-
-//     configtable c = config.get();
-  
-//     asset tlos_usd = c.tlos_usd;
-
-//     double tlos_q_double = tlos_quantity.amount / 10000.0;
-//     double tlos_usd_double = tlos_usd.amount / 10000.0;
-
-//     uint64_t usd_amount = (tlos_q_double * tlos_usd_double) * 10000;
-
-//     asset usd_asset = asset(usd_amount, usd_symbol);
-
-//     purchase_usd(buyer, usd_asset, "TLOS", memo);
-
-//     auto now = eosio::current_time_point().sec_since_epoch();
-
-//     string paymentId = buyer.to_string() + ": "+tlos_quantity.to_string() + " time: " + std::to_string(now);
-
-//     payhistory.emplace(_self, [&](auto& item) {
-//       item.id = payhistory.available_primary_key();
-//       item.recipientAccount = buyer;
-//       item.paymentSymbol = "TLOS";
-//       item.paymentQuantity = tlos_quantity.to_string();
-//       item.paymentId = paymentId;
-//       item.multipliedUsdValue = usd_asset.amount;
-//     });
-
-//   }
-// }
-
 void sale::onhusd(name from, name to, asset quantity, string memo) {
   if (
     get_first_receiver() == husd_contract  &&
@@ -296,32 +245,6 @@ void sale::onperiod() {
   }
 
 
-}
-
-void sale::updatelimit(asset citizen_limit, asset resident_limit, asset visitor_limit) {
-  require_auth(get_self());
-
-  check(false, "update limit is disabled");
-  
-  configtable c = config.get_or_create(get_self(), configtable());
-  
-  c.citizen_limit = citizen_limit;
-  c.resident_limit = resident_limit;
-  c.visitor_limit = visitor_limit;
-  c.timestamp = current_time_point().sec_since_epoch();
-
-  config.set(c, get_self());
-}
-
-void sale::updatetlos(asset tlos_usd) {
-  require_auth(get_self());
-
-  configtable c = config.get_or_create(get_self(), configtable());
-  
-  c.tlos_usd = tlos_usd;
-  c.timestamp = current_time_point().sec_since_epoch();
-  
-  config.set(c, get_self());
 }
 
 void sale::update_price() {
