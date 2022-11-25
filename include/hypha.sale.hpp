@@ -23,7 +23,8 @@ CONTRACT sale : public contract {
         dailystats(receiver, receiver.value),
         payhistory(receiver, receiver.value),
         flags(receiver, receiver.value),
-        whitelist(receiver, receiver.value)
+        whitelist(receiver, receiver.value),
+        approvers(receiver, receiver.value)
         {}
       
     ACTION onperiod();
@@ -58,6 +59,11 @@ CONTRACT sale : public contract {
     ACTION addwhitelist(name account);
 
     ACTION remwhitelist(name account);
+
+    ACTION approvewlist(name approver);
+
+    ACTION addapprover(name approver);
+    ACTION remapprover(name approver);
 
     //ACTION testhusd(name from, name to, asset quantity);
 
@@ -175,10 +181,16 @@ CONTRACT sale : public contract {
 
     TABLE whitelist_table { 
         name account; 
-        uint64_t value; 
+        name approver; 
         uint64_t primary_key()const { return account.value; } 
       }; 
     typedef eosio::multi_index<"whitelist"_n, whitelist_table> whitelist_tables; 
+
+    TABLE approvers_table { 
+        name approver; 
+        uint64_t primary_key()const { return approver.value; } 
+      }; 
+    typedef eosio::multi_index<"approvers"_n, approvers_table> approvers_tables; 
 
     typedef singleton<"config"_n, configtable> configtables;
     typedef eosio::multi_index<"config"_n, configtable> dump_for_config;
@@ -215,6 +227,8 @@ CONTRACT sale : public contract {
 
     whitelist_tables whitelist;
 
+    approvers_tables approvers;
+
 };
 
 extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
@@ -228,7 +242,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
           (pause)(unpause)(setflag)
           (incprice)
           (updatevol)
-          (addwhitelist)(remwhitelist)
+          (addwhitelist)(remwhitelist)(approvewlist)
           //(testhusd)
           )
       }

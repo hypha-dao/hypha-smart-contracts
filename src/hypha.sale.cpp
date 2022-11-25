@@ -533,3 +533,31 @@ ACTION sale::remwhitelist(name account) {
 
 }
 
+ACTION sale::approvewlist(name approver) {
+    require_auth(approver);
+
+}
+
+ACTION sale::addapprover(name approver) {
+  require_auth(get_self());
+
+  auto aitr = approver.find(account.value);
+  check(witr == whitelist.end, "approver exists.");
+  if (witr != whitelist.end()) {
+    whitelist.modify(witr, get_self(), [&](auto& item) {
+      item.value = 0;
+    });
+  } 
+
+}
+ACTION sale::remapprover(name approver) {
+  require_auth(get_self());
+
+  auto witr = whitelist.find(account.value);
+  if (witr != whitelist.end()) {
+    whitelist.modify(witr, get_self(), [&](auto& item) {
+      item.value = 0;
+    });
+  } 
+
+}
