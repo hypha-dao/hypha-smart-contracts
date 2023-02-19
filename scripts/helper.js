@@ -12,6 +12,7 @@ const networks = {
   telosTestnet: '1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f',
   telosMainnet: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
   eosMainnet: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
+  eosTestnet: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
 }
 
 const networkDisplayName = {
@@ -19,6 +20,7 @@ const networkDisplayName = {
   telosTestnet: 'Telos Testnet',
   telosMainnet: 'Telos Mainnet',
   eosMainnet: 'EOS Mainnet',
+  eosTestnet: 'EOS Testnet Jungle 4',
 }
 
 const endpoints = {
@@ -26,6 +28,7 @@ const endpoints = {
   telosTestnet: 'https://api-test.telosfoundation.io',
   telosMainnet: 'https://api.telosfoundation.io',
   eosMainnet: 'http://eos.greymass.com',
+  eosTestnet: 'https://jungle4.dfuse.eosnation.io',
 }
 
 const ownerAccounts = {
@@ -33,6 +36,7 @@ const ownerAccounts = {
   telosTestnet: 'seeds',
   telosMainnet: 'seed.seeds',
   eosMainnet: 'hypha',
+  eosTestnet: 'hyphadaotest',
 }
 
 const {
@@ -56,61 +60,16 @@ const publicKeys = {
 }
 const [ ownerPublicKey, activePublicKey ] = publicKeys[chainId]
 
-/// API key not used remove - unused
-// const apiKeys = {
-//   [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV',
-//   [networks.telosMainnet]: 'EOS7YXUpe1EyMAqmuFWUheuMaJoVuY3qTD33WN4TrXbEt8xSKrdH9',
-//   [networks.telosTestnet]: 'EOS7YXUpe1EyMAqmuFWUheuMaJoVuY3qTD33WN4TrXbEt8xSKrdH9',
-//   [networks.eosMainnet]: []
-// }
-// const apiPublicKey = apiKeys[chainId]
-
-// Note: unused..
-// const inviteApiKeys = {
-//   [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV',
-//   [networks.telosMainnet]: 'EOS87Wy26MWLJgQYPCzb8aRe9ezjXRDrigkKZMvhHJy27td5F7nZ5',
-//   [networks.telosTestnet]: 'EOS8PC16tnMUkUxeuQHWmEWkAtoz6GvvHVWnehk1HPQSYBV4ujT6v',
-//   [networks.eosMainnet]: []
-// }
-// const inviteApiKey = inviteApiKeys[chainId]
-
-
-const payForCPUKeys = {
-  [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV',
-  [networks.telosMainnet]: 'EOS8gu3qzDsieAC7ni7o9vdKKnUjQXMEXN1NQNjFFs6M2u2kEyTvz',
-  [networks.telosTestnet]: 'EOS8CE5iqFh5XNfJygGZjm7FtKRSLEHFHfioXF6VLmoQSAMSrzzXE',
-  [networks.eosMainnet]: []
-}
-
-const payForCPUPublicKey = payForCPUKeys[chainId]
-
-const applicationKeys = {
-  [networks.local]: 'EOS7HXZn1yhQJAiHbUXeEnPTVHoZLgAScNNELAyvWxoqQJzcLbbjq',
-  [networks.telosMainnet]: 'EOS7HXZn1yhQJAiHbUXeEnPTVHoZLgAScNNELAyvWxoqQJzcLbbjq',
-  [networks.telosTestnet]: 'EOS7HXZn1yhQJAiHbUXeEnPTVHoZLgAScNNELAyvWxoqQJzcLbbjq',
-  [networks.eosMainnet]: []
-}
-const applicationPublicKey = applicationKeys[chainId]
-
-const exchangeKeys = {
-  [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', // normal dev key
-  [networks.telosMainnet]: 'EOS75DmTxcnpvhjNekfKQzLrfwo44muPN6YPPX49vYPot4Qmo5cTo', 
-  [networks.telosTestnet]: 'EOS8C9tXuPMkmB6EA7vDgGtzA99k1BN6UxjkGisC1QKpQ6YV7MFqm',
-  [networks.eosMainnet]: []
-}
-
-const exchangePublicKey = exchangeKeys[chainId]
-
 const saleKeys = {
   [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', // normal dev key
   [networks.telosTestnet]: 'EOS7yHExhTMu1m23vAXHzMSBG632ry7yeas73TwBvFf13bEZCXfPP',
   [networks.telosMainnet]: 'EOS6qQjjYCoTmFha6rUk9ciE9NLTK1pvM7YgG6rnX2BLcRYzb9FWg', 
-  [networks.eosMainnet]: []
+  [networks.eosMainnet]: [],
+  [networks.eosTestnet]: ['EOS6qQjjYCoTmFha6rUk9ciE9NLTK1pvM7YgG6rnX2BLcRYzb9FWg'],
 }
 
 const salePublicKey = saleKeys[chainId]
 
-const freePublicKey = 'EOS8UAPG5qSWetotJjZizQKbXm8dkRF2BGFyZdub8GbeRbeXeDrt9'
 
 const account = (accountName, quantity = '0.0000 SEEDS', pubkey = activePublicKey) => ({
   type: 'account',
@@ -188,6 +147,11 @@ const accountsMetadata = (network) => {
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
     }
+  } else if (network == networks.eosMainnet) {
+    return {
+      // EOS mainnet doesn't have most of the accounts
+      joinhypha: contract('join.hypha', 'joinhypha'),
+    }
   } else {
     throw new Error(`${network} deployment not supported`)
   }
@@ -258,6 +222,9 @@ const keyProviders = {
   ],
   [networks.eosMainnet]: [
     // process.env.EOS_MAINNET_ACTIVE_KEY, 
+  ],
+  [networks.eosTestnet]: [
+    process.env.EOS_TESTNET_ACTIVE_KEY, 
   ]
 
 }
