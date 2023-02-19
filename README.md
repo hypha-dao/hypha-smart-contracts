@@ -73,16 +73,16 @@ have been added or have been changed.
 ### Compile, deploy, or test a contract
 
 ```
-./scripts/do.js compile harvest => compiles seeds.harvest.cpp
+./scripts/do.js compile harvest => compiles harvest.cpp
 ```
 ```
-./scripts/do.js deploy accounts => deploys accounts contract
+./scripts/do.js deploy joinhypha => deploys account creator contract
 ```
 ```
-./scripts/do.js test accounts => run unit tests on accounts contract
+./scripts/do.js test harvest => run unit tests on harvest contract
 ```
 ```
-./scripts/do.js run accounts => compile, deploy, and run unit tests
+./scripts/do.js run harvest => compile, deploy, and run unit tests
 ```
 ### Specify more than one contract - 
 
@@ -92,13 +92,29 @@ Contract is a varadic parameter
 ./scripts/do.js run accounts onboarding organization
 ```
 
-### Deploy on testnet
+### Deploy on Telos testnet
 ```
-EOSIO_NETWORK=telosTestnet ./scripts/do.js deploy accounts
+EOSIO_NETWORK=telosTestnet ./scripts/do.js deploy joinhypha
 ```
-### Deploy on mainnet
+### Deploy on Telos mainnet
 ```
-EOSIO_NETWORK=telosMainnet ./scripts/do.js deploy accounts
+EOSIO_NETWORK=telosMainnet ./scripts/do.js deploy joinhypha
+```
+### Deploy on EOS mainnet
+
+Note: For EOS deployment, make sure to call powerup on the contract that will
+be deployed, so it has enough CPU and NET. 
+
+```
+EOSIO_NETWORK=eosMainnet ./scripts/do.js deploy joinhypha
+```
+### Deploy on EOS Jungle 4 testnet 
+Note: For EOS test deployment, make sure to call powerup on the contract that will
+be deployed, so it has enough CPU and NET. 
+Use faucet and powerup on EOS jungle 4 website: https://monitor4.jungletestnet.io/#home
+
+```
+EOSIO_NETWORK=eosTestnet ./scripts/do.js deploy joinhypha
 ```
 
 ### usage do.js 
