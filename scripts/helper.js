@@ -56,7 +56,8 @@ const publicKeys = {
   [networks.local]: ['EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV'],
   [networks.telosMainnet]: ['EOS6kp3dm9Ug5D3LddB8kCMqmHg2gxKpmRvTNJ6bDFPiop93sGyLR', 'EOS6kp3dm9Ug5D3LddB8kCMqmHg2gxKpmRvTNJ6bDFPiop93sGyLR'],
   [networks.telosTestnet]: ['EOS8MHrY9xo9HZP4LvZcWEpzMVv1cqSLxiN2QMVNy8naSi1xWZH29', 'EOS8C9tXuPMkmB6EA7vDgGtzA99k1BN6UxjkGisC1QKpQ6YV7MFqm'],
-  [networks.eosMainnet]: []
+  [networks.eosMainnet]: [],
+  [networks.eosTestnet]: ['EOS8dTpsSqM7r8TpaK4j5GasMgzocK4qKeKtsa1cYaWcWAth3EVxi', 'EOS8dTpsSqM7r8TpaK4j5GasMgzocK4qKeKtsa1cYaWcWAth3EVxi'],
 }
 const [ ownerPublicKey, activePublicKey ] = publicKeys[chainId]
 
@@ -147,10 +148,13 @@ const accountsMetadata = (network) => {
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
     }
-  } else if (network == networks.eosMainnet) {
+  } else if (network == networks.eosTestnet) {
     return {
+      // we don't deploy sale contract on EOS, but defining it here
+      sale: contract('sale.hypha', 'sale'),
+
       // EOS mainnet doesn't have most of the accounts
-      joinhypha: contract('join.hypha', 'joinhypha'),
+      joinhypha: contract('joinxhypha11', 'joinhypha'),
     }
   } else {
     throw new Error(`${network} deployment not supported`)
@@ -198,7 +202,7 @@ var permissions = [{
   actor: `${accounts.joinhypha.account}@eosio.code`
 }]
 
-const isTestnet = chainId == networks.telosTestnet
+const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)
 const isLocalNet = chainId == networks.local
 
 // KEY PROVIDERS 

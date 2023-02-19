@@ -200,7 +200,7 @@ class Eos {
     },
     {
       blocksBehind: 3,
-      expireSeconds: 30,
+      expireSeconds: 120,
     }, 3)
 
     await sleep(100)
@@ -231,7 +231,7 @@ class Eos {
     },
     {
       blocksBehind: 3,
-      expireSeconds: 30,
+      expireSeconds: 120,
     }, 3)
 
     await sleep(100)
