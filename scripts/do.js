@@ -210,7 +210,7 @@ program
 
   program
   .command('propose_deploy <proposer_account> <proposal_name> <contract>')
-  .description('Propose contract deployment: ./scripts/seeds.js propose_deploy seedsuseraaa ab policy')
+  .description('Propose contract deployment: ./scripts/do.js propose_deploy seedsuseraaa ab policy')
   .action(async function (proposer_account, proposal_name, contract) {
     await proposeDeploy(proposer_account, proposal_name, contract)
   })

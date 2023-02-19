@@ -15,7 +15,7 @@ It can be called by another contract, the oracle. Oracle contract can be configu
 
 Compile contract and ABI
 
-```./scripts/seeds.js run joinhypha```
+```./scripts/do.js run joinhypha```
 
 Deploy using cleos
 

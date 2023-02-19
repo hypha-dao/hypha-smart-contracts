@@ -51,12 +51,12 @@ cleos create account eosio owner EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5
 
 # Deploy Tools
 
-Use the seeds.js script to 
+Use the do.js script to 
 
 ### init all contracts and deploy them on local network
 
 ```
-./scripts/seeds.js init
+./scripts/do.js init
 ```
 
 ### update contract permissions
@@ -67,43 +67,43 @@ It will check if a permission is already set and only set permissions that
 have been added or have been changed.
 
 ```
-./scripts/seeds.js updatePermissions
+./scripts/do.js updatePermissions
 ```
 
 ### Compile, deploy, or test a contract
 
 ```
-./scripts/seeds.js compile harvest => compiles seeds.harvest.cpp
+./scripts/do.js compile harvest => compiles seeds.harvest.cpp
 ```
 ```
-./scripts/seeds.js deploy accounts => deploys accounts contract
+./scripts/do.js deploy accounts => deploys accounts contract
 ```
 ```
-./scripts/seeds.js test accounts => run unit tests on accounts contract
+./scripts/do.js test accounts => run unit tests on accounts contract
 ```
 ```
-./scripts/seeds.js run accounts => compile, deploy, and run unit tests
+./scripts/do.js run accounts => compile, deploy, and run unit tests
 ```
 ### Specify more than one contract - 
 
 Contract is a varadic parameter
 
 ```
-./scripts/seeds.js run accounts onboarding organization
+./scripts/do.js run accounts onboarding organization
 ```
 
 ### Deploy on testnet
 ```
-EOSIO_NETWORK=telosTestnet ./scripts/seeds.js deploy accounts
+EOSIO_NETWORK=telosTestnet ./scripts/do.js deploy accounts
 ```
 ### Deploy on mainnet
 ```
-EOSIO_NETWORK=telosMainnet ./scripts/seeds.js deploy accounts
+EOSIO_NETWORK=telosMainnet ./scripts/do.js deploy accounts
 ```
 
-### usage seeds.js 
+### usage do.js 
 ```
-./scripts/seeds.js <command> <contract name> [additional contract names...]
+./scripts/do.js <command> <contract name> [additional contract names...]
 command = compile | deploy | test | run
 ```
 
@@ -112,7 +112,7 @@ command = compile | deploy | test | run
 
 ```
 example: 
-./scripts/seeds.js run harvest => compiles seeds.harvest.cpp, deploys it, runs unit tests
+./scripts/do.js run harvest => compiles seeds.harvest.cpp, deploys it, runs unit tests
 ```
 
 ### generate contract documentation
@@ -124,15 +124,15 @@ The <comment> tags inside the documents will be left untouched, even when they a
 
 This will generate docs only for the `accounts` contract.
 ```
-./scripts/seeds.js docsgen accounts:
+./scripts/do.js docsgen accounts:
 ```
 
 This will generate all contracts:
 ```
-./scripts/seeds.js docsgen all
+./scripts/do.js docsgen all
 ```
 
 This will regenerate the index.html file:
 ```
-./scripts/seeds.js docsgen index
+./scripts/do.js docsgen index
 ```
