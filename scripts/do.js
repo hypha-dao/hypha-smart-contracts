@@ -38,7 +38,7 @@ const getContractLocation = (contract) => {
       }  
     }
     return {
-      source: `./src/seeds.${contract}.cpp`,
+      source: `./src/${contract}.cpp`,
       include: ""
     }
   

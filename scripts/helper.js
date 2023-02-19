@@ -119,6 +119,7 @@ const accountsMetadata = (network) => {
       sixthuser: account('seedsuserzzz', '5.00 HYPHA'),
       
       // for testing..
+      login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
     }
@@ -140,6 +141,7 @@ const accountsMetadata = (network) => {
       fifthuser: account('seedsuseryyy', '10000000.0000 SEEDS', testnetUserPubkey),
       sixthuser: account('seedsuserzzz', '5000.0000 SEEDS', testnetUserPubkey),
 
+      login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
     }
@@ -147,13 +149,13 @@ const accountsMetadata = (network) => {
     return {
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
+      login: contract('logintohypha', 'login'),
     }
   } else if (network == networks.eosTestnet) {
     return {
       // we don't deploy sale contract on EOS, but defining it here
       sale: contract('sale.hypha', 'sale'),
-
-      // EOS mainnet doesn't have most of the accounts
+      login: contract('logintohypha', 'login'),
       joinhypha: contract('joinxhypha11', 'joinhypha'),
     }
   } else {
