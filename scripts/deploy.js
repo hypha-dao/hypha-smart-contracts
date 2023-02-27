@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const R = require('ramda')
 const { eos, isLocal, getBalance, accounts, permissions, sleep } = require('./helper')
+const createAccount = require('./createAccount')
 
 const debug = process.env.DEBUG || false
 
@@ -43,93 +44,6 @@ const source = async (name) => {
   return Promise.all([code, abi]).then(([code, abi]) => ({ code, abi }))
 }
 
-// const createAccount = async ({ account, publicKey, stakes, creator } = {}) => {
-//   if (!account) return
-
-//   try {
-
-//     await eos.transaction({
-//       actions: [
-//         {
-//           account: 'eosio',
-//           name: 'newaccount',
-//           authorization: [{
-//             actor: creator,
-//             permission: 'active',
-//           }],
-//           data: {
-//             creator,
-//             name: account,
-//             owner: {
-//               threshold: 1,
-//               keys: [{
-//                 key: publicKey,
-//                 weight: 1
-//               }],
-//               accounts: [],
-//               waits: []
-//             },
-//             active: {
-//               threshold: 1,
-//               keys: [{
-//                 key: publicKey,
-//                 weight: 1
-//               }],
-//               accounts: [],
-//               waits: []
-//             },
-//           }
-//         }
-//       ]
-//     })
-
-//     try {
-//       await eos.transaction({
-//         actions: [
-//           {
-//             account: 'eosio',
-//             name: 'buyrambytes',
-//             authorization: [{
-//               actor: creator,
-//               permission: 'active',
-//             }],
-//             data: {
-//               payer: creator,
-//               receiver: account,
-//               bytes: stakes.ram,
-//             },
-//           },
-//           {
-//             account: 'eosio',
-//             name: 'delegatebw',
-//             authorization: [{
-//               actor: creator,
-//               permission: 'active',
-//             }],
-//             data: {
-//               from: creator,
-//               receiver: account,
-//               stake_net_quantity: stakes.net,
-//               stake_cpu_quantity: stakes.cpu,
-//               transfer: false,
-//             }
-//           }
-//         ]
-//       })
-//     } catch (error) {
-//       console.error("unknown delegatebw action"+error)
-//     }
-
-//     console.log(`${account} created`)
-//   } catch (err) {
-//     let errStr = err + ""
-//     if (errStr.includes("as that name is already taken")) {
-//       console.log(`${account} created already`)
-//     } else {
-//       console.error(`create account error for: ${account} \n* error: ` + err + `\n`)
-//     }
-//   }
-// }
 
 const deploy = async ({ name, account }) => {
   try {

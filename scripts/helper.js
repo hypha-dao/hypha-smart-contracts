@@ -117,6 +117,7 @@ const accountsMetadata = (network) => {
       fourthuser: account('seedsuserxxx', '100.00 HYPHA'),
       fifthuser: account('seedsuseryyy', '100.00 HYPHA'),
       sixthuser: account('seedsuserzzz', '5.00 HYPHA'),
+      oracleuser: account('hyphaoracle1', '10.00 HYPHA'),
       
       // for testing..
       login: contract('logintohypha', 'login'),
