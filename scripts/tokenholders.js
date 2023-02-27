@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 const program = require('commander')
 const fs = require('fs')
 
-const host = "https://api.telosfoundation.io"
+const host = "https://mainnet.telos.net"
 
 const { eos, sendTransaction } = require("./helper");
 
@@ -292,7 +292,7 @@ const allPayments = async () => {
     limit,
 ) => {
 
-  const url = "http://api.telosfoundation.io" + `/v2/history/get_actions?skip=${skip}&limit=${limit}&act.account=token.seeds`
+  const url = "http://mainnet.telos.net" + `/v2/history/get_actions?skip=${skip}&limit=${limit}&act.account=token.seeds`
 
   const rawResponse = await fetch(url, {
       method: 'GET',

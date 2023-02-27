@@ -7,10 +7,15 @@ const deploy = async (name) => {
     const { code, abi } = await source(name)
 
     let account = accounts[name]
-    console.log(`deploy ${account.name}`)
-    let contractName = account.name
+    console.log(`deploy ${account.name} to ${account.account}`)
     
-    await createAccount(account)
+    const accountExists = await eos.getAccount(account.account)
+
+    if (!accountExists) {
+      await createAccount(account)
+    } else {
+      console.log("Account " + account.account + " exists")
+    }
 
     if (!code)
       throw new Error('code not found')

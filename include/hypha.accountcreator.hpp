@@ -16,10 +16,9 @@ using std::make_tuple;
 CONTRACT joinhypha : public contract {
    public:
       using contract::contract;
-    //   joinhypha(name receiver, name code, datastream<const char*> ds)
-    //     : contract(receiver, code, ds)
-    //       {}
 
+      // Note" This needs to be manually set before deploying to a different chain
+      // symbol network_symbol = symbol("TLOS", 4);
       symbol network_symbol = symbol("EOS", 4);
 
       struct [[eosio::table ]] config {

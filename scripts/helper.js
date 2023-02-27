@@ -25,16 +25,16 @@ const networkDisplayName = {
 
 const endpoints = {
   local: 'http://127.0.0.1:8888',
-  telosTestnet: 'https://api-test.telosfoundation.io',
-  telosMainnet: 'https://api.telosfoundation.io',
+  telosTestnet: 'https://testnet.telos.net',
+  telosMainnet: 'https://mainnet.telos.net',
   eosMainnet: 'http://eos.greymass.com',
   eosTestnet: 'https://jungle4.dfuse.eosnation.io',
 }
 
 const ownerAccounts = {
   local: 'owner',
-  telosTestnet: 'seeds',
-  telosMainnet: 'seed.seeds',
+  telosTestnet: 'hypha',
+  telosMainnet: 'hypha',
   eosMainnet: 'hypha',
   eosTestnet: 'hyphadaotest',
 }
@@ -121,14 +121,14 @@ const accountsMetadata = (network) => {
       // for testing..
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
-      joinhypha: contract('joinhypha111', 'joinhypha'),
+      joinhypha: contract('join.hypha', 'joinhypha'),
     }
   } else if (network == networks.telosMainnet) {
     return {
       owner: account(owner),
 
       sale: contract('sale.hypha', 'sale'),
-      joinhypha: contract('joinhypha111', 'joinhypha'),
+      joinhypha: contract('join.hypha', 'joinhypha'),
     }
   } else if (network == networks.telosTestnet) {
     return {
@@ -215,7 +215,7 @@ const isLocalNet = chainId == networks.local
 const keyProviders = {
   [networks.local]: [process.env.LOCAL_PRIVATE_KEY],
   [networks.telosMainnet]: [
-    // process.env.TELOS_MAINNET_OWNER_KEY, 
+    process.env.TELOS_MAINNET_ACTIVE_KEY, 
     // process.env.TELOS_MAINNET_HYPHA_OWNER_KEY, 
     // process.env.TELOS_MAINNET_ACTIVE_KEY, 
     // process.env.EXCHANGE_KEY,
