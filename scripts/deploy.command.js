@@ -1,21 +1,16 @@
 const fs = require('fs')
 const path = require('path')
 
-const { eos, accounts, ownerPublicKey, activePublicKey } = require('./helper')
+const { eos, encodeName, accounts, ownerPublicKey, activePublicKey } = require('./helper')
 
 const deploy = async (name) => {
     const { code, abi } = await source(name)
 
     let account = accounts[name]
-    console.log(`deploy ${account.name} to ${account.account}`)
+    console.log(`deploy ${account.name}`)
+    let contractName = account.name
     
-    const accountExists = await eos.getAccount(account.account)
-
-    if (!accountExists) {
-      await createAccount(account)
-    } else {
-      console.log("Account " + account.account + " exists")
-    }
+    await createAccount(account)
 
     if (!code)
       throw new Error('code not found')
@@ -61,6 +56,7 @@ const source = async (name) => {
 }
 
 const createAccount = async ({ account, publicKey, stakes, creator }) => {
+
   try {
 
     await eos.transaction({

@@ -13,7 +13,6 @@ const { deployAllContracts, updatePermissions, resetByName,
     changeOwnerAndActivePermission, 
     changeExistingKeyPermission, 
     addActorPermission,
-    createTestToken,
     removeAllActorPermissions,
     listPermissions,
    } = require('./deploy')

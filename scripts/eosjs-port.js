@@ -257,8 +257,10 @@ class Eos {
   }
 
   async getAccount (account) {
+    console.log(" GET ACCT")
     try {
-      return rpc.get_account(account)
+      res = rpc.get_account(account)
+      return res
     } catch (error) {
       // unfortunately this throws an internal server error 500
       // when account does not exist

@@ -213,7 +213,7 @@ const isLocalNet = chainId == networks.local
 // Note: We used to put keys into the .env file but that's unsecure, so going 
 // forward deployments are done with cleos or msig - only with protected wallets  
 const keyProviders = {
-  [networks.local]: [process.env.LOCAL_PRIVATE_KEY],
+  [networks.local]: [process.env.LOCAL_PRIVATE_KEY, process.env.LOCAL_PRIVATE_KEY, process.env.APPLICATION_KEY],
   [networks.telosMainnet]: [
     process.env.TELOS_MAINNET_ACTIVE_KEY, 
     // process.env.TELOS_MAINNET_HYPHA_OWNER_KEY, 
