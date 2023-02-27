@@ -588,11 +588,6 @@ const updatePermissions = async () => {
   }  
 }
 
-const createTestToken = async () => {
-  await createCoins(accounts.testtoken)
-  await createCoins(accounts.hyphatoken)
-}
-
 const deployAllContracts = async () => {
   const ownerExists = await isExistingAccount(accounts.owner.account)
 

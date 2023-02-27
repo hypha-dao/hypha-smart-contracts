@@ -141,72 +141,55 @@ const updatePermissionAction = async () => {
   await updatePermissions()
 }
 
-const updateSettingsAction = async () => {
-  console.log(`UPDATE Settings on ${settings}`)
-  const name = "settings"
-  
-  const contract = await eos.contract(settings)
-
-  console.log(`reset settings`)
-
-  await contract.reset({ authorization: `${settings}@active` })
-
-  if (isTestnet) {
-    timeSeconds = 300
-    console.log("ON TESTNET - setting citizen min account age to "+timeSeconds+" seconds")
-   // ACTION configure(name param, uint64_t value);
-    await contract.configure("cit.age", 300, { authorization: `${settings}@active` })
-
-  }
-
-  console.log(`Success: Settings reset: ${settings}`)
-}
-
-const updateSchedulerAction = async () => {
-  console.log(`UPDATE Scheduler on ${scheduler}`)
-
-  const contract = await eos.contract(scheduler)
-
-  console.log(`${scheduler} stop`)
-  await contract.stop({ authorization: `${scheduler}@active` })
-
-  //console.log(`${scheduler} updateops`)
-  //await contract.updateops({ authorization: `${scheduler}@active` })
-
-  console.log(`${scheduler} start`)
-  await contract.start({ authorization: `${scheduler}@active` })
-
-  console.log(`Success: Scheduler was updated and restarted: ${scheduler}`)
-}
-
-const pauseOpAction = async (opname) => {
-  console.log(`Pause op ${opname}`)
-  const name = "scheduler"
-
-  const contract = await eos.contract(scheduler)
-
-  await contract.pauseop(opname, 1, { authorization: `${scheduler}@active` })
-
-  console.log(`Success: Operatioon paused: ${opname}`)
-}
-
-const unpauseOpAction = async (opname) => {
-  console.log(`Unpause op ${opname}`)
-  const name = "scheduler"
-
-  const contract = await eos.contract(scheduler)
-
-  await contract.pauseop(opname, 0, { authorization: `${scheduler}@active` })
-
-  console.log(`Success: Operatioon unpaused: ${opname}`)
-}
-
 program
   .command('compile <contract> [moreContracts...]')
   .description('Compile custom contract')
   .action(async function (contract, moreContracts) {
     await batchCallFunc(contract, moreContracts, compileAction)
   })
+  program
+  .command('deploy <contract> [moreContracts...]')
+  .description('Deploy custom contract')
+  .action(async function (contract, moreContracts) {
+    await batchCallFunc(contract, moreContracts, deployAction)
+  })
+
+program
+  .command('run <contract> [moreContracts...]')
+  .description('compile and deploy custom contract')
+  .action(async function (contract, moreContracts) {
+    await batchCallFunc(contract, moreContracts, runAction)
+  })
+
+program
+  .command('test <contract> [moreContracts...]')
+  .description('Run unit tests for deployed contract')
+  .action(async function(contract, moreContracts) {
+    await batchCallFunc(contract, moreContracts, test)
+  })
+
+program
+  .command('reset <contract> [moreContracts...]')
+  .description('Reset deployed contract')
+  .action(async function(contract, moreContracts) {
+    await batchCallFunc(contract, moreContracts, resetAction)
+  })
+
+program
+  .command('init [compile]')
+  .description('Initial creation of all accounts and contracts contract')
+  .action(async function(compile) {
+    var comp = compile != "false" 
+    await initAction(comp)
+  })
+
+  program
+  .command('updatePermissions')
+  .description('Update all permissions of all contracts')
+  .action(async function() {
+    await updatePermissionAction()
+  })
+
 
   program
   .command('propose_deploy <proposer_account> <proposal_name> <contract>')
@@ -258,83 +241,6 @@ program
     await removeAllActorPermissions("gdho.seeds")
     console.log("Permissions removed, updating permissions")
     await updatePermissionAction()
-  })
-
-program
-  .command('deploy <contract> [moreContracts...]')
-  .description('Deploy custom contract')
-  .action(async function (contract, moreContracts) {
-    await batchCallFunc(contract, moreContracts, deployAction)
-  })
-
-program
-  .command('run <contract> [moreContracts...]')
-  .description('compile and deploy custom contract')
-  .action(async function (contract, moreContracts) {
-    await batchCallFunc(contract, moreContracts, runAction)
-  })
-
-program
-  .command('test <contract> [moreContracts...]')
-  .description('Run unit tests for deployed contract')
-  .action(async function(contract, moreContracts) {
-    await batchCallFunc(contract, moreContracts, test)
-  })
-
-program
-  .command('reset <contract> [moreContracts...]')
-  .description('Reset deployed contract')
-  .action(async function(contract, moreContracts) {
-    await batchCallFunc(contract, moreContracts, resetAction)
-  })
-
-program
-  .command('init [compile]')
-  .description('Initial creation of all accounts and contracts contract')
-  .action(async function(compile) {
-    var comp = compile != "false" 
-    await initAction(comp)
-  })
-
-  program
-  .command('updatePermissions')
-  .description('Update all permissions of all contracts')
-  .action(async function() {
-    await updatePermissionAction()
-  })
-
-  program
-  .command('updateSettings')
-  .description('Deploy and reset settings contract')
-  .action(async function() {
-    await updateSettingsAction()
-  })
-  program
-  .command('updateScheduler')
-  .description('Deploy and refresh scheduler: stop, updateops, start')
-  .action(async function() {
-    await updateSchedulerAction()
-  })
-
-  program
-  .command('pauseop <op>')
-  .description('Pause an operation on the scheduler')
-  .action(async function(op) {
-    await pauseOpAction(op)
-  })
-
-  program
-  .command('unpauseop <op>')
-  .description('Unause an operation on the scheduler')
-  .action(async function(op) {
-    await unpauseOpAction(op)
-  })
-
-  program
-  .command('createTestTokens')
-  .description('createTestTokens')
-  .action(async function() {
-    createTestToken()
   })
 
 program
@@ -407,14 +313,6 @@ program
     await addActorPermission(target, targetrole, actor, actorrole)
   })
 
-
-  program
-  .command('docsgen <contract> [moreContracts...]')
-  .description('Exports SDK docs for contract')
-  .action(async function(contract, moreContracts) {
-    await batchCallFunc(contract, moreContracts, docsgen)
-  })
-
   program
   .command('issue_hypha <quantity> <proposerAccount> <proposalName>')
   .description('Issue Hypha tokens to dao.hypha')
@@ -427,41 +325,6 @@ program
   .description('Send HYPHA tokens from dao.hypha')
   .action(async function(quantity, recepient, proposerAccount, proposalName) {
     await sendHypha(quantity, recepient, proposerAccount, proposalName)
-  })
-
-  program
-  .command('approveos <proposerAccount> <proposalName>')
-  .description('Send HYPHA tokens from dao.hypha')
-  .action(async function(proposerAccount, proposalName) {
-
-
-    const createESRWithActions = async ({actions, title = "Generating ESR Code"}) => {
-
-      console.log("========= " + title + " ===========")
-      
-      const esr_uri = "https://api-esr.hypha.earth/qr"
-      const body = {
-        actions
-      }
-    
-      //console.log("actions: "+JSON.stringify(body, null, 2))
-    
-      const rawResponse = await fetch(esr_uri, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-    
-      const parsedResponse = await rawResponse.json();
-    
-      //console.log("parsed response "+JSON.stringify(parsedResponse))
-    
-      return parsedResponse
-    }
-    
   })
 
 program.parse(process.argv)
