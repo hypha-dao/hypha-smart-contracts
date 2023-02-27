@@ -124,11 +124,13 @@ command = compile | deploy | test | run
 ```
 
 
-### run a contract - compile, then deploy, then test 
+### run a contract - compile, then deploy
+
+This is good for local iterations.
 
 ```
 example: 
-./scripts/do.js run harvest => compiles seeds.harvest.cpp, deploys it, runs unit tests
+./scripts/do.js run harvest => compiles seeds.harvest.cpp, deploys it
 ```
 
 ### generate contract documentation
