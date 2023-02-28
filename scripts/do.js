@@ -181,6 +181,9 @@ program
     await initAction(comp)
   })
 
+  /// 
+  /// Account creator needs to be configured with oracle account and then activate needs to be called on it
+  /// 
   program
   .command('setupAccountCreator')
   .description('set up Account Creator')
