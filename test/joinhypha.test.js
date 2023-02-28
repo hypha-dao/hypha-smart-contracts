@@ -29,16 +29,13 @@ describe('create account', async assert => {
 
   const contract = await eos.contract(joinhypha)
 
-
-  console.log("set config")
-  // ACTION setconfig ( const name& account_creator_contract, const name& account_creator_oracle );
+  console.log("set oracle account authorized to create accounts")
   await contract.setconfig( seconduser, seconduser, { authorization: `${joinhypha}@active` })
 
   console.log("activate")
   await contract.activate( { authorization: `${joinhypha}@active` })
 
   console.log("create")
-  // ACTION create ( const name& account_to_create, const string& key);
   await contract.create(newAccount, newAccountPublicKey, { authorization: `${seconduser}@active` })
   
   var anybodyCanCreateAnAccount = false

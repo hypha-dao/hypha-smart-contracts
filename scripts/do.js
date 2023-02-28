@@ -4,8 +4,7 @@ const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet } = require('./helper')
-const docsgen = require('./docsgen')
-const { settings, scheduler } = names
+const { joinhypha, oracleuser } = names
 
 const {proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
@@ -180,6 +179,20 @@ program
   .action(async function(compile) {
     var comp = compile != "false" 
     await initAction(comp)
+  })
+
+  program
+  .command('setupAccountCreator')
+  .description('set up Account Creator')
+  .action(async function() {
+    const contract = await eos.contract(joinhypha)
+
+    console.log("set oracle account authorized to create accounts")
+    await contract.setconfig( oracleuser, oracleuser, { authorization: `${joinhypha}@active` })
+  
+    console.log("activate")
+    await contract.activate( { authorization: `${joinhypha}@active` })
+  
   })
 
   program
