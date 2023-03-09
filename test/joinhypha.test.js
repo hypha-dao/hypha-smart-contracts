@@ -48,6 +48,14 @@ describe('create account', async assert => {
     console.log("expected error")
   }
 
+  var createZeroAccount = false
+
+  const acct3 = randomAccountName()
+  console.log("creating acct "+acct3)
+  await contract.create(acct3, newAccountPublicKey, 0, "0.0000 TLOS", "0.0000 TLOS",  { authorization: `${seconduser}@active` })
+
+  createZeroAccount = true
+
   const config = await eos.getTableRows({
     code: joinhypha,
     scope: joinhypha,
@@ -66,6 +74,13 @@ describe('create account', async assert => {
     should: 'a new account has been created on the blockchain',
     actual: account.account_name,
     expected: newAccount
+  })
+
+  assert({
+    given: 'create zero account',
+    should: 'a new account has been created on the blockchain with zero extra resources',
+    actual: createZeroAccount,
+    expected: true
   })
 
   assert({
