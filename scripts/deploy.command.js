@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const { eos, encodeName, accounts, ownerPublicKey, activePublicKey } = require('./helper')
+const { eos, encodeName, accounts, ownerPublicKey, activePublicKey, isLocal } = require('./helper')
 const createAccount = require('./createAccount')
 
 const deploy = async (name) => {
@@ -11,7 +11,14 @@ const deploy = async (name) => {
     console.log(`deploy ${account.name}`)
     let contractName = account.name
     
-    await createAccount(account)
+    if (isLocal()) {
+      // Creating accounts is convenient on the local test chain
+      // However, it's not going to work on a real chain - from the creator 
+      // account to having enough funds, to allocating enough RAM, accounts
+      // on mainnet or testnet need to be created manually. 
+      
+      await createAccount(account)
+    }
 
     if (!code)
       throw new Error('code not found')
