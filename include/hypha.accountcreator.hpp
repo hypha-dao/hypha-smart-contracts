@@ -35,10 +35,10 @@ CONTRACT joinhypha : public contract {
       ACTION pause ();
       ACTION activate ();
       
-      ACTION create ( const name& account_to_create, const string& key);
+      ACTION create(const name account_to_create, const string key, uint32_t ram_bytes, asset cpu_stake, asset net_stake);
 
-    private: 
-      void create_account(name account, string publicKey);
+private:
+   void create_account(name account, string publicKey, uint32_t ram_bytes, asset cpu_stake, asset net_stake);
 
 };
 

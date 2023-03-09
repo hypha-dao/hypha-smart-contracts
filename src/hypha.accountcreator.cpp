@@ -30,7 +30,7 @@ void joinhypha::activate () {
    setsetting ("active"_n, 1);
 }
 
-void joinhypha::create ( const name& account_to_create, const string& key) {
+void joinhypha::create ( const name account_to_create, const string key, uint32_t ram_bytes, const asset cpu_stake, const asset net_stake) {
 
    config_table      config_s (get_self(), get_self().value);
    config c = config_s.get_or_create (get_self(), config());
@@ -39,6 +39,8 @@ void joinhypha::create ( const name& account_to_create, const string& key) {
 
    uint8_t paused = c.settings[name("active")];
    check (c.settings["active"_n] == 1, "Contract is not active. Exiting.");
+
+   check(ram_bytes <= 5000, "Ram bytes must be <= 5000");
 
    //string prefix { "EOS" };
 
@@ -49,14 +51,13 @@ void joinhypha::create ( const name& account_to_create, const string& key) {
    // print (" Active Key                 : ", active_key, "\n");
    // print (" Prefix                     : ", prefix, "\n");
 
-    create_account(account_to_create, key);
+    create_account(account_to_create, key, ram_bytes, cpu_stake, net_stake);
 
 }
 
-void joinhypha::create_account(name account, string publicKey)
+void joinhypha::create_account(name account, string publicKey, uint32_t ram_bytes, asset cpu_stake, asset net_stake)
 {
-  if (is_account(account))
-    return;
+  check(!is_account(account), "account exists.");
 
   authority auth = keystring_authority(publicKey);
 
@@ -70,12 +71,12 @@ void joinhypha::create_account(name account, string publicKey)
       permission_level{_self, "active"_n},
       "eosio"_n, 
       "buyrambytes"_n,
-      make_tuple(_self, account, 2500)) // 2000 RAM is used by Telos free.tf
+      make_tuple(_self, account, ram_bytes)) // 2000 RAM is used by Telos free.tf
       .send();
 
   action(
       permission_level{_self, "active"_n},
       "eosio"_n, "delegatebw"_n,
-      make_tuple(_self, account, asset(5000, network_symbol), asset(5000, network_symbol), 0))
+      make_tuple(_self, account, net_stake, cpu_stake, 0))
       .send();
 }
