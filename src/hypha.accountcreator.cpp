@@ -70,7 +70,7 @@ void joinhypha::create_account(name account, string publicKey)
       permission_level{_self, "active"_n},
       "eosio"_n, 
       "buyrambytes"_n,
-      make_tuple(_self, account, 2777)) // 2000 RAM is used by Telos free.tf
+      make_tuple(_self, account, 2500)) // 2000 RAM is used by Telos free.tf
       .send();
 
   action(

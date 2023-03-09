@@ -222,10 +222,7 @@ const keyProviders = {
     // process.env.EXCHANGE_KEY,
   ],
   [networks.telosTestnet]: [
-    // process.env.TELOS_TESTNET_OWNER_KEY, 
-    // process.env.TELOS_TESTNET_HYPHA_ACTIVE_KEY, 
-    // process.env.TESTNET_NEWPAYMENT_KEY,
-    // process.env.TELOS_TESTNET_ACTIVE_KEY, 
+    process.env.TELOS_TESTNET_ACTIVE_KEY, 
   ],
   [networks.eosMainnet]: [
     // process.env.EOS_MAINNET_ACTIVE_KEY, 
