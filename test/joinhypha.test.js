@@ -36,13 +36,13 @@ describe('create account', async assert => {
   await contract.activate( { authorization: `${joinhypha}@active` })
 
   console.log("create")
-  await contract.create(newAccount, newAccountPublicKey, { authorization: `${seconduser}@active` })
+  await contract.create(newAccount, newAccountPublicKey, 2200, "0.5000 TLOS", "0.5000 TLOS",  { authorization: `${seconduser}@active` })
   
   var anybodyCanCreateAnAccount = false
   try {
     const acct2 = randomAccountName()
     console.log("creating acct "+acct2)
-    await contract.create(acct2, newAccountPublicKey, { authorization: `${firstuser}@active` })
+    await contract.create(acct2, newAccountPublicKey, 2200, "0.5000 TLOS", "0.5000 TLOS", { authorization: `${firstuser}@active` })
     anybodyCanCreateAnAccount = true;
   } catch (err) {
     console.log("expected error")
