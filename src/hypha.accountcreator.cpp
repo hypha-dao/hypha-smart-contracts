@@ -55,8 +55,9 @@ void joinhypha::create ( const name& account_to_create, const string& key) {
 
 void joinhypha::create_account(name account, string publicKey)
 {
-  if (is_account(account))
-    return;
+  if (is_account(account)) {
+    check(false, "account exists: ");
+  }
 
   authority auth = keystring_authority(publicKey);
 
