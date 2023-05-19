@@ -1,5 +1,9 @@
 const { Chain, Asset } = require("qtest-js");
 const { expectThrow } = require("qtest-js");
+const { fixTime } = require("./time");
+
+//set to false for faster test
+const TEST_TIME = true;
 
 describe("HYPHA: hypha.sale contract test", () => {
   let chain;
@@ -10,6 +14,7 @@ describe("HYPHA: hypha.sale contract test", () => {
 
   beforeAll(async () => {
     chain = await Chain.setupChain(chainName);
+    await fixTime(chain);
     [issueAccount, user1, user2, user3] = chain.accounts;
     [husdAccount, tokenAccount, bankAccount, saleAccount] =
       await chain.system.createAccounts([
@@ -559,20 +564,298 @@ describe("HYPHA: hypha.sale contract test", () => {
         "duplicate transaction: foo-payment"
       );
     });
+
+    it("Should advance the rounds", async () => {
+      const round0 = 195000 * 0.5;
+      const round1 = 50000 * 0.6;
+      const quantity = `${Number((round0 + round1) / 100).toFixed(2)} HUSD`;
+
+      if (TEST_TIME) {
+        await chain.time.increase(60 * 60 * 24);
+      }
+
+      await husdContract.action.transfer(
+        {
+          from: issueAccount.name,
+          to: user1.name,
+          quantity,
+          memo: "test",
+        },
+        [{ actor: issueAccount.name, permission: "active" }]
+      );
+
+      await husdContract.action.transfer(
+        {
+          from: user1.name,
+          to: saleAccount.name,
+          quantity,
+          memo: "test",
+        },
+        [{ actor: user1.name, permission: "active" }]
+      );
+
+      const config = await getConfig();
+      const sold = await getSold();
+      const price = await getPrice();
+      const history = await getHistory();
+
+      expect(config.hypha_usd).toBe("0.60 USD");
+      expect(sold.total_sold).toBe(250000);
+      expect(price.remaining).toBe(50000);
+      expect(price.current_round_id).toBe(1);
+      expect(price.hypha_usd).toBe("0.60 USD");
+      expect(history[2].hypha_usd).toBe("0.60 USD");
+
+      if (TEST_TIME) {
+        expect(Date.parse(history[2].date)).toBeGreaterThan(
+          Date.parse(history[1].date) + 60 * 60 * 24 * 1000
+        );
+      }
+    });
+
+    it("Should not to be oversold", async () => {
+      await husdContract.action.transfer(
+        {
+          from: issueAccount.name,
+          to: user2.name,
+          quantity: "4800.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: issueAccount.name, permission: "active" }]
+      );
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user2.name,
+            to: saleAccount.name,
+            quantity: "4900.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user2.name, permission: "active" }]
+        ),
+        "sale: not enough funds available. requested USD value: 4900.000000 available USD value: 4800.000000 max vol: 900000"
+      );
+
+      //TODO: not possible to purchase "last tokens" i.e. 4800 in this example, must be 4799.99...
+      await husdContract.action.transfer(
+        {
+          from: user2.name,
+          to: saleAccount.name,
+          quantity: "4700.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: user2.name, permission: "active" }]
+      );
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user1.name,
+            to: saleAccount.name,
+            quantity: "100.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user1.name, permission: "active" }]
+        ),
+        "No more rounds - sold out"
+      );
+
+      await saleContract.action.addround(
+        {
+          volume: 300000,
+          token_per_usd: "1.00 USD",
+        },
+        [{ actor: saleAccount.name, permission: "active" }]
+      );
+
+      await husdContract.action.transfer(
+        {
+          from: user1.name,
+          to: saleAccount.name,
+          quantity: "100.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: user1.name, permission: "active" }]
+      );
+    });
   });
 
   describe("Per user limit", function () {
-    // it("should initialize sale", async () => {
-    // });
+    it("Should restrict purchase quantity", async () => {
+      await saleContract.action.setflag(
+        {
+          flagname: "whtlst.limit",
+          value: 100000,
+        },
+        [{ actor: saleAccount.name, permission: "active" }]
+      );
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user1.name,
+            to: saleAccount.name,
+            quantity: "100.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user1.name, permission: "active" }]
+        ),
+        `account: ${user1.name} symbol: HUSD tx_id: test usd_quantity: 100.0000 USD free limit: 100000 purchase limit overdrawn, tried to buy 100.00 HYPHA new total would be: 2705.000000`
+      );
+
+      await husdContract.action.transfer(
+        {
+          from: issueAccount.name,
+          to: user3.name,
+          quantity: "1100.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: issueAccount.name, permission: "active" }]
+      );
+
+      await husdContract.action.transfer(
+        {
+          from: user3.name,
+          to: saleAccount.name,
+          quantity: "1000.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: user3.name, permission: "active" }]
+      );
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user3.name,
+            to: saleAccount.name,
+            quantity: "100.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user3.name, permission: "active" }]
+        ),
+        `account: ${user3.name} symbol: HUSD tx_id: test usd_quantity: 100.0000 USD free limit: 100000 purchase limit overdrawn, tried to buy 100.00 HYPHA new total would be: 1100.000000`
+      );
+    });
+
+    it("Should be reset by onperiod", async () => {
+      await saleContract.action.onperiod({}, [
+        { actor: saleAccount.name, permission: "active" },
+      ]);
+
+      await husdContract.action.transfer(
+        {
+          from: user3.name,
+          to: saleAccount.name,
+          quantity: "100.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: user3.name, permission: "active" }]
+      );
+    });
   });
 
   describe("Whitelist", function () {
-    // it("should initialize sale", async () => {
-    // });
+    it("Should enable purchase over limit", async () => {
+      await saleContract.action.setflag(
+        {
+          flagname: "whtlst.limit",
+          value: 1000,
+        },
+        [{ actor: saleAccount.name, permission: "active" }]
+      );
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user1.name,
+            to: saleAccount.name,
+            quantity: "100.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user1.name, permission: "active" }]
+        ),
+        `account: ${user1.name} symbol: HUSD tx_id: test usd_quantity: 100.0000 USD free limit: 1000 purchase limit overdrawn, tried to buy 100.00 HYPHA new total would be: 100.000000`
+      );
+
+      await saleContract.action.addwhitelist(
+        {
+          account: user1.name,
+        },
+        [{ actor: saleAccount.name, permission: "active" }]
+      );
+
+      await husdContract.action.transfer(
+        {
+          from: user1.name,
+          to: saleAccount.name,
+          quantity: "100.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: user1.name, permission: "active" }]
+      );
+
+      await saleContract.action.remwhitelist(
+        {
+          account: user1.name,
+        },
+        [{ actor: saleAccount.name, permission: "active" }]
+      );
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user1.name,
+            to: saleAccount.name,
+            quantity: "100.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user1.name, permission: "active" }]
+        ),
+        `account: ${user1.name} symbol: HUSD tx_id: test usd_quantity: 100.0000 USD free limit: 1000 purchase limit overdrawn, tried to buy 100.00 HYPHA new total would be: 200.000000`
+      );
+    });
   });
 
   describe("Pausing", function () {
-    // it("should initialize sale", async () => {
-    // });
+    it("Should prevent sales", async () => {
+      await saleContract.action.addwhitelist(
+        {
+          account: user1.name,
+        },
+        [{ actor: saleAccount.name, permission: "active" }]
+      );
+
+      await saleContract.action.pause({}, [
+        { actor: saleAccount.name, permission: "active" },
+      ]);
+
+      await expectThrow(
+        husdContract.action.transfer(
+          {
+            from: user1.name,
+            to: saleAccount.name,
+            quantity: "100.00 HUSD",
+            memo: "test",
+          },
+          [{ actor: user1.name, permission: "active" }]
+        ),
+        "Contract is paused - no purchase possible."
+      );
+
+      await saleContract.action.unpause({}, [
+        { actor: saleAccount.name, permission: "active" },
+      ]);
+
+      await husdContract.action.transfer(
+        {
+          from: user1.name,
+          to: saleAccount.name,
+          quantity: "100.00 HUSD",
+          memo: "test",
+        },
+        [{ actor: user1.name, permission: "active" }]
+      );
+    });
   });
 });

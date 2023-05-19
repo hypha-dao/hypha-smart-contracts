@@ -3141,10 +3141,10 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-qtest-js@^0.6.0-beta:
-  version "0.6.0-beta"
-  resolved "https://registry.yarnpkg.com/qtest-js/-/qtest-js-0.6.0-beta.tgz#83d1a1eaa91099f879676375aa291d3564109280"
-  integrity sha512-dfwtVFXtYRBXAPvfle9PJsib9X/OSQtcURwatjb9V4WsmXbjb/PcvlOQeqM0mTraH9qe+9NU0mbCoMC5R/+Mzg==
+qtest-js@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/qtest-js/-/qtest-js-0.6.0.tgz#ab91d3903af439f1b2cdc9f8e357a0a16909eb0b"
+  integrity sha512-SB3IpmVGkFW0gfog93BUkQHAmpzXTTTyF/aPu3nx/9BIjmgHlo7KJR9lRwzJALG+xj5e0u8BTun0HELA2A4irg==
   dependencies:
     eosjs "^22.1.0"
     eosjs-account-name "^2.2.1"
