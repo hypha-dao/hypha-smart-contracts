@@ -18,6 +18,7 @@ yarn install
 ```
 
 Compile contracts (requires latest CDT installed)
+[https://github.com/AntelopeIO/cdt]
 
 ```
 mkdir build
