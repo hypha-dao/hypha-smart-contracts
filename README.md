@@ -28,6 +28,7 @@ make
 ```
 
 Run tests (requires Docker installed)
+[https://docs.docker.com/engine/install/]
 
 ```
 yarn run test
