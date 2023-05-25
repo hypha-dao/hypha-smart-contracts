@@ -67,11 +67,13 @@ async function callPayForCpu() {
 // Call the payforcpu function
 callPayForCpu();
 
-// ❯ cleosm push action paycpu.hypha configure '{ "contractName":"dao.hypha" }' -p paycpu.hypha@active
-// executed transaction: 71b9917b2ed9a24a3f15c35ad77effc3c5c86bba45563ae27f8ad02d86b2681c  104 bytes  3991 us
-// #  paycpu.hypha <= paycpu.hypha::configure      {"contractName":"dao.hypha"}
+// telos mainnet setup
+// cleosm push action paycpu.hypha configure '{ "contractName":"dao.hypha" }' -p paycpu.hypha@active
 
-// ❯ cleos get table paycpu.hypha paycpu.hypha configs
+// telos testnet setup
+// cleost push action paycpuxhypha configure '{ "contractName":"mtdhoxhyphaa" }' -p paycpuxhypha@active
+
+// ❯ cleosm get table paycpu.hypha paycpu.hypha configs
 // {
 //     "rows": [{
 //         "contractName": "dao.hypha"

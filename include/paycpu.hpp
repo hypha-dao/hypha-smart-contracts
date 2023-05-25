@@ -15,6 +15,8 @@ public:
     ACTION configure(name contractName);
 
 private:
+
+    /// This table definition is from dao.hypha
     TABLE nametoid {
         uint64_t id;
         name name;
@@ -27,6 +29,7 @@ private:
         indexed_by<"bydocid"_n, const_mem_fun<nametoid, uint64_t, &nametoid::by_id>>
     > members_table;
 
+    /// config table to configure the dao contract
     TABLE config {
         name contractName;
 
