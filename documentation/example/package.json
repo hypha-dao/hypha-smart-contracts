@@ -1,0 +1,17 @@
+{
+    "name": "eosjs-example",
+    "version": "1.0.0",
+    "description": "Example code for calling payforcpu action using EOSJS",
+    "main": "index.js",
+    "scripts": {
+        "start": "node example_call_paycpu.js"
+    },
+    "author": "Nikolaus Heger",
+    "license": "MIT",
+    "dependencies": {
+        "dotenv": "^16.0.3",
+        "eosjs": "^22.1.0",
+        "isomorphic-fetch": "^3.0.0",
+        "node-fetch": "^3.3.1"
+    }
+}

@@ -1,11 +1,22 @@
-const { Api, JsonRpc, JsSignatureProvider } = require('eosjs');
+require('dotenv').config(); 
+const { Api, JsonRpc } = require('eosjs');
 const { TextEncoder, TextDecoder } = require('util');
+const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig')
+const fetch = require('isomorphic-fetch'); // Import the 'isomorphic-fetch' package
+
 
 // Configure EOSJS with the endpoint URL and the private key of the account
 const endpoint = 'https://mainnet.telos.net';  // Replace with your EOSIO endpoint URL
-const privateKey = 'YOUR_PRIVATE_KEY';  // Replace with the private key of the account
 
-const signatureProvider = new JsSignatureProvider([privateKey]);
+const contractPrivateKey = process.env.PAYCPU_KEY;
+const targetPrivateKey = process.env.PRIVATE_KEY;
+
+console.log("keys " + [contractPrivateKey, targetPrivateKey])
+
+const signatureProvider = new JsSignatureProvider([
+  contractPrivateKey,
+  targetPrivateKey,
+]);
 const rpc = new JsonRpc(endpoint, { fetch });
 const api = new Api({
   rpc,
@@ -15,8 +26,8 @@ const api = new Api({
 });
 
 // Define the contract account and the target account
-const contractAccount = 'paycpu';  // Replace with the account name of the paycpu contract
-const targetAccount = 'alice';  // Replace with the target account you want to pass to the payforcpu action
+const contractAccount = 'paycpu.hypha';  // Replace with the account name of the paycpu contract
+const targetAccount = 'testingseeds';  // Replace with the target account you want to pass to the payforcpu action
 
 async function callPayForCpu() {
   try {
@@ -28,7 +39,7 @@ async function callPayForCpu() {
       account: contractAccount,
       name: 'payforcpu',
       authorization: [
-        { actor: contractAccount, permission: 'active' },  // Authorize the contract
+        { actor: contractAccount, permission: 'payforcpu' },  // Authorize the contract
         { actor: targetAccount, permission: 'active' },    // Authorize the target account
       ],
       data: {
@@ -56,17 +67,17 @@ async function callPayForCpu() {
 // Call the payforcpu function
 callPayForCpu();
 
-// ❯ cleos push action paycpu.hypha configure '{ "contractName":"dao.hypha" }' -p paycpu.hypha@active
+// ❯ cleosm push action paycpu.hypha configure '{ "contractName":"dao.hypha" }' -p paycpu.hypha@active
 // executed transaction: 71b9917b2ed9a24a3f15c35ad77effc3c5c86bba45563ae27f8ad02d86b2681c  104 bytes  3991 us
 // #  paycpu.hypha <= paycpu.hypha::configure      {"contractName":"dao.hypha"}
 
-❯ cleos get table paycpu.hypha paycpu.hypha configs
-{
-    "rows": [{
-        "contractName": "dao.hypha"
-      }
-    ],
-    "more": false,
-    "next_key": "",
-    "next_key_bytes": ""
-  }
+// ❯ cleos get table paycpu.hypha paycpu.hypha configs
+// {
+//     "rows": [{
+//         "contractName": "dao.hypha"
+//       }
+//     ],
+//     "more": false,
+//     "next_key": "",
+//     "next_key_bytes": ""
+//   }
