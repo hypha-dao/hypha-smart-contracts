@@ -2,8 +2,8 @@
 
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
+#include <eosio/multi_index.hpp>
 #include <eosio/singleton.hpp>
-
 
 using namespace eosio;
 
@@ -33,9 +33,8 @@ private:
         uint64_t primary_key() const { return 0; }
     };
 
+    typedef eosio::multi_index<"configs"_n, config> configs_table;
     typedef eosio::singleton<"configs"_n, config> configs_singleton;
-    typedef eosio::multi_index<"configs"_n, config> dump_for_configs;
-
 };
 
 EOSIO_DISPATCH(paycpu, (payforcpu)(configure))
