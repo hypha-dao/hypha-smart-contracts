@@ -17,9 +17,15 @@ CONTRACT joinhypha : public contract {
    public:
       using contract::contract;
 
-      // Note" This needs to be manually set before deploying to a different chain
-      // symbol network_symbol = symbol("TLOS", 4);
-      symbol network_symbol = symbol("EOS", 4);
+      // **Note** This needs to be manually set before deploying to a different chain
+
+      /// Telos
+      // asset net_stake = asset(5000, symbol("TLOS", 4)); // 0.5 TLOS
+      // asset cpu_stake = asset(5000, symbol("TLOS", 4)); // 0.5 TLOS
+
+      /// EOS
+      asset net_stake = asset(1000, symbol("EOS", 4)); // 0.1 EOS
+      asset cpu_stake = asset(1000, symbol("EOS", 4)); // 0.1 EOS
 
       struct [[eosio::table ]] config {
          name                       account_creator_contract   ;

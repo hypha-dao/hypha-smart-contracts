@@ -77,6 +77,6 @@ void joinhypha::create_account(name account, string publicKey)
   action(
       permission_level{_self, "active"_n},
       "eosio"_n, "delegatebw"_n,
-      make_tuple(_self, account, asset(5000, network_symbol), asset(5000, network_symbol), 0))
+      make_tuple(_self, account, net_stake, cpu_stake, 0))
       .send();
 }

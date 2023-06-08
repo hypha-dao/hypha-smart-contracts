@@ -155,6 +155,10 @@ const accountsMetadata = (network) => {
       joinhypha: contract('join.hypha', 'joinhypha'),
       login: contract('logintohypha', 'login'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
+
+      /// not functional
+      sale: contract('sale.hypha', 'sale'),
+
     }
   } else if (network == networks.eosTestnet) {
     return {
@@ -250,7 +254,7 @@ const keyProviders = {
     process.env.TELOS_TESTNET_ACTIVE_KEY, 
   ],
   [networks.eosMainnet]: [
-    // process.env.EOS_MAINNET_ACTIVE_KEY, 
+    process.env.EOS_MAINNET_ACTIVE_KEY, 
   ],
   [networks.eosTestnet]: [
     process.env.EOS_TESTNET_ACTIVE_KEY, 
