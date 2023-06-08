@@ -123,6 +123,7 @@ const accountsMetadata = (network) => {
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
+      paycpu: contract('paycpu.hypha', 'paycpu'),
     }
   } else if (network == networks.telosMainnet) {
     return {
@@ -130,6 +131,7 @@ const accountsMetadata = (network) => {
 
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
+      paycpu: contract('paycpu.hypha', 'paycpu'),
     }
   } else if (network == networks.telosTestnet) {
     return {
@@ -145,12 +147,14 @@ const accountsMetadata = (network) => {
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
+      paycpu: contract('paycpuxhypha', 'paycpu'),
     }
   } else if (network == networks.eosMainnet) {
     return {
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
       login: contract('logintohypha', 'login'),
+      paycpu: contract('paycpu.hypha', 'paycpu'),
     }
   } else if (network == networks.eosTestnet) {
     return {
@@ -158,6 +162,7 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       login: contract('logintohypha', 'login'),
       joinhypha: contract('joinxhypha11', 'joinhypha'),
+      paycpu: contract('paycpu.hypha', 'paycpu'),
     }
   } else {
     throw new Error(`${network} deployment not supported`)
@@ -190,6 +195,17 @@ allBankAccountNames.sort()
 
 /// Set up all special permissions
 
+
+// This is a semi-public key that can be used to pay for CPU but will only work for hypha members 
+const payForCPUKeys = {
+  [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV',
+  [networks.telosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
+  [networks.telosTestnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
+  [networks.eosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
+}
+
+const payForCPUPublicKey = payForCPUKeys[chainId]
+
 var permissions = [{
   target: `${accounts.sale.account}@active`,
   actor: `${accounts.sale.account}@eosio.code`
@@ -203,7 +219,16 @@ var permissions = [{
 }, {
   target: `${accounts.joinhypha.account}@active`,
   actor: `${accounts.joinhypha.account}@eosio.code`
-}]
+}, {
+  target: `${accounts.paycpu.account}@payforcpu`,
+  key: payForCPUPublicKey,
+  parent: 'active'
+}, {
+  target: `${accounts.paycpu.account}@payforcpu`,
+  action: 'payforcpu'
+}
+
+]
 
 const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)
 const isLocalNet = chainId == networks.local
