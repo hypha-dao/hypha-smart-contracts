@@ -43,6 +43,8 @@ CONTRACT sale : public contract {
 
     ACTION incprice();
 
+    ACTION setprice(asset hypha_usd);
+
     ACTION priceupdate();
 
     ACTION pause();
