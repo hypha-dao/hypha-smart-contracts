@@ -4,6 +4,8 @@ const { promisify } = require('util')
 const fse = require('fs-extra')
 var fs = require('fs');
 var dir = './tmp';
+const path = require('path');
+
 
 const existsAsync = promisify(fs.exists)
 const mkdirAsync = promisify(fs.mkdir)
@@ -40,12 +42,19 @@ const compile = async ({ contract, source, include = "", contractSourceName }) =
   //   throw new Error("You have to run from seeds-smart-contracts directory - comment out this line if installed in a different named folder ;)")
   // }
   const artifacts = dir + "artifacts"
+  const buildDir = dir + "build/hypha"
 
   // make sure artifacts exists
   const artifactsFound = await existsAsync(artifacts)
   if (!artifactsFound){
     console.log("creating artifacts directory...")
     await mkdirAsync(artifacts)
+  }
+
+  const buildDirFound = await existsAsync(buildDir)
+  if (!buildDirFound){
+    console.log("creating build directory...")
+    await mkdirAsync(buildDir, {recursive: true})
   }
 
   // clean build folder
@@ -82,6 +91,55 @@ const compile = async ({ contract, source, include = "", contractSourceName }) =
   // run compile
   const execCommand = command({ contract, source, include, dir, contractSourceName })
   await execAsync(execCommand)
+
+  // copy files to build dir for unit testing
+  copyFiles(artifacts, buildDir, buildFileMap)
+}
+
+
+const buildFileMap = {
+  'hyphatoken.abi': 'hypha.token.abi',
+  'hyphatoken.wasm': 'hypha.token.wasm',
+  'joinhypha.abi': 'hypha.joinhypha.abi',
+  'joinhypha.wasm': 'hypha.joinhypha.wasm',
+  'paycpu.abi': 'hypha.paycpu.abi',
+   'paycpu.wasm': 'hypha.paycpu.wasm',
+   'sale.abi': 'hypha.sale.abi',
+   'sale.wasm': 'hypha.sale.wasm'
+}
+
+function copyFiles(sourceDir, destinationDir, fileMap) {
+  // Read the contents of the source directory
+  fs.readdir(sourceDir, (err, files) => {
+    if (err) {
+      console.error('Error reading source directory:', err);
+      return;
+    }
+
+    // Copy each file to the destination directory
+    files.forEach((file) => {
+      const sourcePath = path.join(sourceDir, file);
+      const destinationFile = fileMap[file]
+      if (!destinationFile) {
+        throw 'incomplete map missing ' + file + ' map: ' + fileMap
+      }
+      const destinationPath = path.join(destinationDir, destinationFile);
+
+      // Create a read stream from the source file
+      const readStream = fs.createReadStream(sourcePath);
+
+      // Create a write stream to the destination file
+      const writeStream = fs.createWriteStream(destinationPath);
+
+      // Pipe the read stream to the write stream to perform the copy
+      readStream.pipe(writeStream);
+
+      // Log a message when the file copy is complete
+      writeStream.on('finish', () => {
+        console.log(`Copied ${file} to ${destinationDir}`);
+      });
+    });
+  });
 }
 
 const deleteIfExists = async (file) => {
