@@ -80,3 +80,72 @@ void joinhypha::create_account(name account, string publicKey)
       make_tuple(_self, account, net_stake, cpu_stake, 0))
       .send();
 }
+
+ACTION joinhypha::createinvite(const uint64_t dao_id, const name dao_name, const string dao_fullname, const name inviter, const checksum256 hashed_secret) {
+   require_auth(inviter);
+
+   // Create a new invite entry
+   invite_table invites(get_self(), get_self().value);
+   invites.emplace(inviter, [&](auto& row) {
+      row.invite_id = invites.available_primary_key();
+      row.dao_id = dao_id;
+      row.dao_name = dao_name;
+      row.dao_fullname = dao_fullname;
+      row.inviter = inviter;
+      row.hashed_secret = hashed_secret;
+   });
+
+   print("Invite created successfully. Invite ID: ", invites.available_primary_key() - 1);
+}
+
+ACTION joinhypha::redeeminvite(const name account, const checksum256 secret) {
+   require_auth(account);
+
+   // Create hashed_secret from the provided secret
+   auto hashed_secret = sha256(const_cast<char*>(reinterpret_cast<const char*>(&secret)), sizeof(secret));
+
+   // Lookup the invite from the invite_table using hashed_secret
+   invite_table invites(get_self(), get_self().value);
+   auto invite_by_hashed_secret = invites.get_index<"byhashed"_n>();
+   auto invite_itr = invite_by_hashed_secret.find(hashed_secret);
+   check(invite_itr != invite_by_hashed_secret.end(), "Invalid invite");
+
+   // Get the enroller and dao_id from the invite
+   const name enroller = invite_itr->inviter;
+   const uint64_t dao_id = invite_itr->dao_id;
+
+   // Call the autoenroll action on the dao.hypha contract
+   action(
+      permission_level{get_self(), "eosio.code"_n},
+      "dao.hypha"_n,
+      "autoenroll"_n,
+      std::make_tuple(dao_id, enroller, account)
+   ).send();
+}
+
+ACTION joinhypha::setkv(const name& key, const std::variant<name, uint64_t, asset, std::string>& value) {
+   require_auth(get_self());
+
+   kv_table kv(get_self(), get_self().value);
+   auto kv_itr = kv.find(key.value);
+
+   if (kv_itr == kv.end()) {
+      kv.emplace(get_self(), [&](auto& row) {
+         row.key = key;
+         row.value = value;
+      });
+   } else {
+      kv.modify(kv_itr, get_self(), [&](auto& row) {
+         row.value = value;
+      });
+   }
+}
+
+std::variant<name, uint64_t, asset, std::string> joinhypha::get_kv(const name& key) {
+   kv_table kv(get_self(), get_self().value);
+   auto kv_itr = kv.find(key.value);
+
+   check(kv_itr != kv.end(), "Key not found");
+
+   return kv_itr->value;
+}
