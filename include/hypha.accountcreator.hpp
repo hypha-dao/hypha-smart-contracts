@@ -47,10 +47,3 @@ CONTRACT joinhypha : public contract {
       void create_account(name account, string publicKey);
 
 };
-
-// EOSIO_DISPATCH(joinhypha,
-// (setconfig)
-// (setsetting)
-// (pause)(activate)
-// (create)
-// );
