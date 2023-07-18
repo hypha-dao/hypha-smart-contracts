@@ -124,6 +124,7 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
+      hyphatoken: contract('token.hypha', 'hyphatoken')
     }
   } else if (network == networks.telosMainnet) {
     return {
@@ -348,8 +349,8 @@ const ramdom64ByteHexString = async () => {
 const fromHexString = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
 
 const createKeypair = async () => {
-  let private = await ecc.randomKey()
-  let public = await Eos.getEcc().privateToPublic(private)
+  let private = await Eos.getEcc().randomKey()
+  let public = Eos.getEcc().privateToPublic(private)
   return{ private, public }
 }
 
