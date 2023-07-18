@@ -101,7 +101,6 @@ const resetAction = async (contract) => {
 const runAction = async (contract) => {
   await compileAction(contract)
   await deployAction(contract)
-  await test(contract)
 }
 
 const batchCallFunc = async (contract, moreContracts, func) => {

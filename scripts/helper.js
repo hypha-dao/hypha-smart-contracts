@@ -349,8 +349,8 @@ const ramdom64ByteHexString = async () => {
 const fromHexString = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
 
 const createKeypair = async () => {
-  let private = await ecc.randomKey()
-  let public = await Eos.getEcc().privateToPublic(private)
+  let private = await Eos.getEcc().randomKey()
+  let public = Eos.getEcc().privateToPublic(private)
   return{ private, public }
 }
 

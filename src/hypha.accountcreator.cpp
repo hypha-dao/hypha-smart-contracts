@@ -102,7 +102,8 @@ ACTION joinhypha::redeeminvite(const name account, const checksum256 secret) {
    require_auth(account);
 
    // Create hashed_secret from the provided secret
-   auto hashed_secret = sha256(const_cast<char*>(reinterpret_cast<const char*>(&secret)), sizeof(secret));
+   auto _invite_secret = secret.extract_as_byte_array();
+   checksum256 hashed_secret = sha256((const char *)_invite_secret.data(), _invite_secret.size());
 
    // Lookup the invite from the invite_table using hashed_secret
    invite_table invites(get_self(), get_self().value);
@@ -114,13 +115,21 @@ ACTION joinhypha::redeeminvite(const name account, const checksum256 secret) {
    const name enroller = invite_itr->inviter;
    const uint64_t dao_id = invite_itr->dao_id;
 
+   // Load the dao contract
+   auto dao_contract_value = get_kv(name("dao.contract"));
+   const name dao_contract = std::get<name>(dao_contract_value);
+
    // Call the autoenroll action on the dao.hypha contract
    action(
-      permission_level{get_self(), "eosio.code"_n},
-      "dao.hypha"_n,
+      permission_level{get_self(), "active"_n},
+      dao_contract,
       "autoenroll"_n,
       std::make_tuple(dao_id, enroller, account)
    ).send();
+
+   // Erase the invite from the invites table
+   invite_by_hashed_secret.erase(invite_itr);
+
 }
 
 ACTION joinhypha::setkv(const name& key, const std::variant<name, uint64_t, asset, std::string>& value) {
@@ -145,7 +154,8 @@ std::variant<name, uint64_t, asset, std::string> joinhypha::get_kv(const name& k
    kv_table kv(get_self(), get_self().value);
    auto kv_itr = kv.find(key.value);
 
-   check(kv_itr != kv.end(), "Key not found");
+   check(kv_itr != kv.end(), "Key not found:  " + key.to_string());
 
    return kv_itr->value;
 }
+
