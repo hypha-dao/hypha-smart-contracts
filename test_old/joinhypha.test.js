@@ -9,7 +9,7 @@ const randomAccountName = () => {
   var characters = 'abcdefghijklmnopqrstuvwxyz1234';
   var charactersLength = characters.length;
   for (var i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
 }
@@ -30,18 +30,18 @@ describe('create account', async assert => {
   const contract = await eos.contract(joinhypha)
 
   console.log("set oracle account authorized to create accounts")
-  await contract.setconfig( seconduser, seconduser, { authorization: `${joinhypha}@active` })
+  await contract.setconfig(seconduser, seconduser, { authorization: `${joinhypha}@active` })
 
   console.log("activate")
-  await contract.activate( { authorization: `${joinhypha}@active` })
+  await contract.activate({ authorization: `${joinhypha}@active` })
 
   console.log("create")
   await contract.create(newAccount, newAccountPublicKey, { authorization: `${seconduser}@active` })
-  
+
   var anybodyCanCreateAnAccount = false
   try {
     const acct2 = randomAccountName()
-    console.log("creating acct "+acct2)
+    console.log("creating acct " + acct2)
     await contract.create(acct2, newAccountPublicKey, { authorization: `${firstuser}@active` })
     anybodyCanCreateAnAccount = true;
   } catch (err) {
@@ -55,11 +55,11 @@ describe('create account', async assert => {
     json: true
   })
 
-  console.log("conig "+ JSON.stringify(config))
+  console.log("conig " + JSON.stringify(config))
 
   const account = await eos.getAccount(newAccount)
 
-  console.log("new account exists: "+JSON.stringify(account))
+  console.log("new account exists: " + JSON.stringify(account))
 
   assert({
     given: 'create account',
