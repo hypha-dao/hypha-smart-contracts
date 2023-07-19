@@ -167,7 +167,7 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       login: contract('logintohypha', 'login'),
       joinhypha: contract('joinxhypha11', 'joinhypha'),
-      paycpu: contract('paycpu.hypha', 'paycpu'),
+      paycpu: contract('paycpuxhypha', 'paycpu'),
     }
   } else {
     throw new Error(`${network} deployment not supported`)
