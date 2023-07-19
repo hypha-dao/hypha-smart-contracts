@@ -65,7 +65,6 @@ class Eos {
     api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() })
 
     this.api = api
-    this.transactESRMode = false
 
     isUnitTest = isLocal ? isLocal() : false
 
@@ -244,9 +243,10 @@ class Eos {
   // replace all api.transact calls with this
   // optionally generate ESR code instead of firing off transaction
   async transactionWrapper (trx, trxConfig) {
-    if (this.transactESRMode) {
-      console.log("ESR mode: " + JSON.stringify(trx, null, 2))
-      return createESRWithActions({actions: trx.actions})
+    if (this.transactionDelegate) {
+      console.log("ESR delegate mode: " + JSON.stringify(trx, null, 2))
+      this.transactionDelegate.transact(api, trx, trxConfig)
+      //return createESRWithActions({actions: trx.actions})
 
     } else {
       await api.transact(trx, trxConfig)
