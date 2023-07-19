@@ -118,6 +118,7 @@ const accountsMetadata = (network) => {
       fifthuser: account('seedsuseryyy', '100.00 HYPHA'),
       sixthuser: account('seedsuserzzz', '5.00 HYPHA'),
       oracleuser: account('hyphaoracle1', '10.00 HYPHA'),
+      daoAccount: account('dao.hypha'),
       
       // for testing..
       login: contract('logintohypha', 'login'),
@@ -129,6 +130,8 @@ const accountsMetadata = (network) => {
   } else if (network == networks.telosMainnet) {
     return {
       owner: account(owner),
+      oracleuser: account('hyphaoracle1'),
+      daoAccount: account('dao.hypha'),
 
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
@@ -137,6 +140,9 @@ const accountsMetadata = (network) => {
   } else if (network == networks.telosTestnet) {
     return {
       owner: account(owner),
+      oracleuser: account('hyphaoracle1'),
+      daoAccount: account('mtdhoxhyphaa'),
+
 
       firstuser: account('seedsuseraaa', '10000000.0000 SEEDS'),
       seconduser: account('seedsuserbbb', '10000000.0000 SEEDS'),
@@ -152,6 +158,9 @@ const accountsMetadata = (network) => {
     }
   } else if (network == networks.eosMainnet) {
     return {
+      oracleuser: account('hyphaoracle1'),
+      daoAccount: account('dao.hypha'),
+
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
       login: contract('logintohypha', 'login'),
@@ -163,6 +172,9 @@ const accountsMetadata = (network) => {
     }
   } else if (network == networks.eosTestnet) {
     return {
+      oracleuser: account('hyphaoracle1'),
+      daoAccount: account('daoxhypha111'),
+
       // we don't deploy sale contract on EOS, but defining it here
       sale: contract('sale.hypha', 'sale'),
       login: contract('logintohypha', 'login'),

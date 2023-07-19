@@ -4,7 +4,7 @@ const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows } = require('./helper')
-const { joinhypha, oracleuser, paycpu } = names
+const { joinhypha, oracleuser, paycpu, daoAccount } = names
 
 const {proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
@@ -198,12 +198,32 @@ program
   })
 
   program
-  .command('configurePayCpu <daoContract>')
+  .command('listAccountCreator')
+  .description('set up Account Creator')
+  .action(async function() {
+    const contract = await eos.contract(joinhypha)
+
+    const res = await getTableRows({
+      code: joinhypha,
+      scope: joinhypha,
+      table: 'config',
+      json: true,
+      limit: 10  
+    })  
+
+    console.log("Account Creator configuration at " + joinhypha + ": "+JSON.stringify(res, null, 2))
+
+  
+  })
+
+
+  program
+  .command('configurePayCpu')
   .description('set up pay cpu config')
-  .action(async function(daoContract) {
+  .action(async function() {
     const contract = await eos.contract(paycpu)
 
-    console.log("set dao contract on " + paycpu + " to: " + daoContract)
+    console.log("set dao contract on " + paycpu + " to: " + daoAccount)
     await contract.configure( daoContract, { authorization: `${paycpu}@active` })
     console.log("done");
 
@@ -213,8 +233,6 @@ program
   .command('listPayCpu')
   .description('show pay cpu config')
   .action(async function() {
-    console.log("PCU "+JSON.stringify(paycpu, null, 2))
-
     const res = await getTableRows({
       code: paycpu,
       scope: paycpu,
@@ -226,7 +244,6 @@ program
     console.log("configuration of " + paycpu + ": "+JSON.stringify(res, null, 2))
 
   })
-
 
   program
   .command('updatePermissions')
