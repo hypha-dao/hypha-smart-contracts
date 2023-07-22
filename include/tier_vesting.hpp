@@ -30,6 +30,9 @@ public:
 
   [[eosio::action]]
   void removetoken(symbol token_symbol);
+  
+  [[eosio::on_notify("eosio.token::transfer")]]
+  void onreceive(name from, name to, asset quantity, std::string memo);
 
 private:
   void send_transfer(name contract, name from, name to, asset quantity, std::string memo);
@@ -72,5 +75,14 @@ private:
   };
 
   typedef eosio::multi_index<"tokens"_n, token> tokens_table;
+
+  struct [[eosio::table]] balance {
+    name owner;
+    asset balance;
+
+    uint64_t primary_key() const { return owner.value; }
+  };
+
+  typedef eosio::multi_index<"balances"_n, balance> balances_table;
 
 };

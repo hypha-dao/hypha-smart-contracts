@@ -184,6 +184,39 @@ void tier_vesting::removetoken(symbol token_symbol) {
   tokens.erase(token_itr);
 }
 
+void tier_vesting::onreceive(name from, name to, asset quantity, std::string memo) {
+  if (to != get_self()) {
+    return;
+  }
+
+  // Open the tokens table
+  tokens_table tokens(get_self(), get_self().value);
+
+  // Find the correct token contract for the transferred asset
+  auto token_itr = tokens.find(quantity.symbol.raw());
+  
+  // Ensure the asset is in the tokens table and the transfer comes from the correct contract
+  if (token_itr == tokens.end() || get_sender() != token_itr->contract) {
+    return;
+  }
+
+  // Open the balances table
+  balances_table balances(get_self(), get_self().value);
+
+  // Find the sender's balance or create a new balance
+  auto balance_itr = balances.find(from.value);
+  if (balance_itr == balances.end()) {
+    balances.emplace(get_self(), [&](auto& row) {
+      row.owner = from;
+      row.balance = quantity;
+    });
+  } else {
+    balances.modify(balance_itr, get_self(), [&](auto& row) {
+      row.balance += quantity;
+    });
+  }
+}
+
 // ... Other action implementations ...
 
 void tier_vesting::send_transfer(name contract, name from, name to, asset quantity, std::string memo) {
