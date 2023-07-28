@@ -468,10 +468,15 @@ const isCreateActorPermission = permission => permission.type == "createActorPer
 const isKeyPermission = permission => permission.key && !permission.actor
 
 const updatePermissions = async () => {
+  console.log("Updating permissions...[deprecated]")
+  await updatePermissionsList(permissions)
+}
+
+const updatePermissionsList = async (listOfPermissions) => {
 
   console.log("Updating permissions...")
 
-  for (let current = 0; current < permissions.length; current++) {
+  for (let current = 0; current < listOfPermissions.length; current++) {
     const permission = permissions[current]
 
     if (isActionPermission(permission)) {
@@ -501,6 +506,7 @@ const updatePermissions = async () => {
     }
   }  
 }
+
 
 const deployAllContracts = async () => {
   const ownerExists = await isExistingAccount(accounts.owner.account)
