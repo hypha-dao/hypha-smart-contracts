@@ -6,70 +6,70 @@ const compile = require('./compile')
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows } = require('./helper')
 const { joinhypha, oracleuser, paycpu, daoAccount } = names
 
-const {proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
+const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
-const { deployAllContracts, updatePermissions, resetByName, 
-    changeOwnerAndActivePermission, 
-    changeExistingKeyPermission, 
-    addActorPermission,
-    removeAllActorPermissions,
-    listPermissions,
-   } = require('./deploy')
+const { deployAllContracts, updatePermissions, resetByName,
+  changeOwnerAndActivePermission,
+  changeExistingKeyPermission,
+  addActorPermission,
+  removeAllActorPermissions,
+  listPermissions,
+} = require('./deploy')
 
 
 const getContractLocation = (contract) => {
-    if (contract == 'sale') {
-      return {
-        source: `./src/hypha.${contract}.cpp`,
-        include: ""
-      }  
-    } else if (contract == 'hyphatoken') {
-      return {
-        source: `./src/seeds.startoken.cpp`,
-        include: "",
-        contractSourceName: "startoken"
-      }  
-    } else if (contract == 'joinhypha') {
-      return {
-        source: `./src/hypha.accountcreator.cpp`,
-        include: "",
-      }  
-    }
+  if (contract == 'sale') {
     return {
-      source: `./src/${contract}.cpp`,
+      source: `./src/hypha.${contract}.cpp`,
       include: ""
     }
-  
+  } else if (contract == 'hyphatoken') {
+    return {
+      source: `./src/seeds.startoken.cpp`,
+      include: "",
+      contractSourceName: "startoken"
+    }
+  } else if (contract == 'joinhypha') {
+    return {
+      source: `./src/hypha.accountcreator.cpp`,
+      include: "",
+    }
+  }
+  return {
+    source: `./src/${contract}.cpp`,
+    include: ""
+  }
+
 }
 
 const compileAction = async (contract) => {
-    try {
-      var { source, include, contractSourceName } = getContractLocation(contract)
-      await compile({
-        contract: contract,
-        source,
-        include,
-        contractSourceName
-      })
-      console.log(`${contract} compiled`)
-    } catch (err) {
-        console.log("compile failed for " + contract + " error: " + err)
-    }
+  try {
+    var { source, include, contractSourceName } = getContractLocation(contract)
+    await compile({
+      contract: contract,
+      source,
+      include,
+      contractSourceName
+    })
+    console.log(`${contract} compiled`)
+  } catch (err) {
+    console.log("compile failed for " + contract + " error: " + err)
+  }
 }
 
 const deployAction = async (contract) => {
-    try {
-      await deploy(contract)
-      console.log(`${contract} deployed`)
-    } catch(err) {
-      let errStr = ("" + err).toLowerCase()
-      if (errStr.includes("contract is already running this version of code")) {
-        console.log(`${contract} code was already deployed`)
-      } else {
-        console.log("error deploying ", contract)
-        console.log(err)          
-      }
+  try {
+    await deploy(contract)
+    console.log(`${contract} deployed`)
+  } catch (err) {
+    let errStr = ("" + err).toLowerCase()
+    if (errStr.includes("contract is already running this version of code")) {
+      console.log(`${contract} code was already deployed`)
+    } else {
+      console.log("error deploying ", contract)
+      console.log(err)
     }
+  }
 }
 
 const resetAction = async (contract) => {
@@ -87,15 +87,15 @@ const resetAction = async (contract) => {
   try {
     await resetByName(contract)
     console.log(`${contract} reset`)
-  } catch(err) {
+  } catch (err) {
     let errStr = ("" + err).toLowerCase()
     if (errStr.includes("contract is already running this version of code")) {
       console.log(`${contract} code was already deployed`)
     } else {
       console.log("error deploying ", contract)
-      console.log(err)          
+      console.log(err)
     }
-}
+  }
 }
 
 const runAction = async (contract) => {
@@ -112,7 +112,7 @@ const batchCallFunc = async (contract, moreContracts, func) => {
     await func(contract)
   }
   if (moreContracts) {
-    for (var i=0; i<moreContracts.length; i++) {
+    for (var i = 0; i < moreContracts.length; i++) {
       await func(moreContracts[i])
     }
   }
@@ -121,7 +121,7 @@ const batchCallFunc = async (contract, moreContracts, func) => {
 const initAction = async (compile = true) => {
 
   if (compile) {
-    for (i=0; i<allContracts.length; i++) {
+    for (i = 0; i < allContracts.length; i++) {
       let item = allContracts[i];
       console.log("compile ... " + item);
       await compileAction(item);
@@ -144,7 +144,7 @@ program
   .action(async function (contract, moreContracts) {
     await batchCallFunc(contract, moreContracts, compileAction)
   })
-  program
+program
   .command('deploy <contract> [moreContracts...]')
   .description('Deploy custom contract')
   .action(async function (contract, moreContracts) {
@@ -161,46 +161,46 @@ program
 program
   .command('test <contract> [moreContracts...]')
   .description('Run unit tests for deployed contract')
-  .action(async function(contract, moreContracts) {
+  .action(async function (contract, moreContracts) {
     await batchCallFunc(contract, moreContracts, test)
   })
 
 program
   .command('reset <contract> [moreContracts...]')
   .description('Reset deployed contract')
-  .action(async function(contract, moreContracts) {
+  .action(async function (contract, moreContracts) {
     await batchCallFunc(contract, moreContracts, resetAction)
   })
 
 program
   .command('init [compile]')
   .description('Initial creation of all accounts and contracts contract')
-  .action(async function(compile) {
-    var comp = compile != "false" 
+  .action(async function (compile) {
+    var comp = compile != "false"
     await initAction(comp)
   })
 
-  /// 
-  /// Account creator needs to be configured with oracle account and then activate needs to be called on it
-  /// 
-  program
+/// 
+/// Account creator needs to be configured with oracle account and then activate needs to be called on it
+/// 
+program
   .command('setupAccountCreator')
   .description('set up Account Creator')
-  .action(async function() {
+  .action(async function () {
     const contract = await eos.contract(joinhypha)
 
     console.log("set oracle account authorized to create accounts")
-    await contract.setconfig( oracleuser, oracleuser, { authorization: `${joinhypha}@active` })
-  
+    await contract.setconfig(oracleuser, oracleuser, { authorization: `${joinhypha}@active` })
+
     console.log("activate")
-    await contract.activate( { authorization: `${joinhypha}@active` })
-  
+    await contract.activate({ authorization: `${joinhypha}@active` })
+
   })
 
-  program
+program
   .command('listAccountCreator')
   .description('set up Account Creator')
-  .action(async function() {
+  .action(async function () {
     const contract = await eos.contract(joinhypha)
 
     const res = await getTableRows({
@@ -208,186 +208,76 @@ program
       scope: joinhypha,
       table: 'config',
       json: true,
-      limit: 10  
-    })  
+      limit: 10
+    })
 
-    console.log("Account Creator configuration at " + joinhypha + ": "+JSON.stringify(res, null, 2))
+    console.log("Account Creator configuration at " + joinhypha + ": " + JSON.stringify(res, null, 2))
 
-  
+
   })
 
 
-  program
+program
   .command('configurePayCpu')
   .description('set up pay cpu config')
-  .action(async function() {
+  .action(async function () {
     const contract = await eos.contract(paycpu)
 
     console.log("set dao contract on " + paycpu + " to: " + daoAccount)
-    await contract.configure( daoContract, { authorization: `${paycpu}@active` })
+    await contract.configure(daoContract, { authorization: `${paycpu}@active` })
     console.log("done");
 
   })
 
-  program
+program
   .command('listPayCpu')
   .description('show pay cpu config')
-  .action(async function() {
+  .action(async function () {
     const res = await getTableRows({
       code: paycpu,
       scope: paycpu,
       table: 'configs',
       json: true,
-      limit: 10  
-    })  
+      limit: 10
+    })
 
-    console.log("configuration of " + paycpu + ": "+JSON.stringify(res, null, 2))
+    console.log("configuration of " + paycpu + ": " + JSON.stringify(res, null, 2))
 
-  })
-
-  program
-  .command('updatePermissions')
-  .description('Update all permissions of all contracts')
-  .action(async function() {
-    await updatePermissionAction()
-  })
-
-
-  program
-  .command('propose_deploy <proposer_account> <proposal_name> <contract>')
-  .description('Propose contract deployment: ./scripts/do.js propose_deploy seedsuseraaa ab policy')
-  .action(async function (proposer_account, proposal_name, contract) {
-    await proposeDeploy(proposer_account, proposal_name, contract)
-  })
-
-  program
-  .command('propose_change_guardians <proposer_account> <proposal_name> <account> [guardians...]')
-  .description('Propose change guardians')
-  .action(async function (proposerAccount, proposalName, account, guardians) {
-    await proposeChangeGuardians(proposerAccount, proposalName, account, guardians)
-  })
-
-  program
-  .command('propose_key_permission <proposer_account> <proposal_name> <contract> <key>')
-  .description('Propose setting contract permissions to key - guardians need to sign')
-  .action(async function (proposer_account, proposal_name, contract, key) {
-    await proposeKeyPermissions(proposer_account, proposal_name, contract, "owner", key)
-  })
-
-  program
-  .command('set_cg_permissions <contract> <permission> [hot] [propose]')
-  .description('Place contract under guardian control')
-  .action(async function (contract, permission, hot, propose) {
-    await setCGPermissions(contract, permission, hot, propose)
-  })
-
-  program
-  .command('set_cg_all [hot]')
-  .description('Place contract under guardian control')
-  .action(async function (contract, permission, hot) {
-    await setCGPermissions(contract, permission, hot)
-  })
-
-  program
-  .command('remove_actor_permissions')
-  .description('Remove all actor permissions, updatePermissions can then cleanly add new permissions.')
-  .action(async function () {
-    
-    await removeAllActorPermissions("harvst.seeds")
-    await removeAllActorPermissions("settgs.seeds")
-    await removeAllActorPermissions("system.seeds")
-    await removeAllActorPermissions("refer.seeds")
-    await removeAllActorPermissions("allies.seeds")
-    await removeAllActorPermissions("gift.seeds")
-    await removeAllActorPermissions("milest.seeds")
-    await removeAllActorPermissions("gdho.seeds")
-    console.log("Permissions removed, updating permissions")
-    await updatePermissionAction()
   })
 
 program
-  .command('list')
-  .description('List all contracts / accounts')
-  .action(async function() {
-    console.print("\nSeeds Bank Accounts\n")
-    allBankAccountNames.forEach(item=>console.print(item))
-    console.print("\nSeeds Contracts\n")
-    allContractNames.forEach(item=>console.print(item))
-  })
-
-  program
-  .command('list_permissions')
-  .description('List all contracts / accounts permissions')
-  .action(async function() {
-    console.print("Hypha Accounts")
-    hyphaAccounts = [
-      "buy", 
-      "sale",
-      "costak",
-      "voice",
-      "msig",
-      "docs",
-      "publish",
-      "husd",
-      "bank",
-      "kv",
-      "token",
-      "dao",
-      "seeds",
-      "hypha",
-    ]
-    for (var account of hyphaAccounts) {
-      await listPermissions(account + ".hypha")
-    }
-
-    console.print("\nSeeds Bank Accounts\n")
-    for (var account of allBankAccountNames) {
-      await listPermissions(account)
-    }
-    console.print("\nSeeds Contracts\n")
-    for (var account of allContractNames) {
-      await listPermissions(account)
-    }
+  .command('updatePermissions')
+  .description('Update all permissions of all contracts')
+  .action(async function () {
+    await updatePermissionAction()
   })
 
 
 program
   .command('changekey <contract> <key>')
   .description('Change owner and active key')
-  .action(async function(contract, key) {
-    console.print(`Change key of ${contract} to `+key + "\n")
+  .action(async function (contract, key) {
+    console.print(`Change key of ${contract} to ` + key + "\n")
     await changeOwnerAndActivePermission(contract, key)
   })
 
 program
   .command('change_key_permission <contract> <role> <parentrole> <key>')
   .description('Change owner and active key')
-  .action(async function(contract, role, parentrole, key) {
-    console.print(`Change key of ${contract} to `+key + "\n")
+  .action(async function (contract, role, parentrole, key) {
+    console.print(`Change key of ${contract} to ` + key + "\n")
     await changeExistingKeyPermission(contract, role, parentrole, key)
   })
 
-  program
+program
   .command('add_permission <target> <targetrole> <actor> <actorrole>')
   .description('Add permission')
-  .action(async function(target, targetrole, actor, actorrole) {
-    console.print(`Adding ${actor}@${actorrole} to ${target}@${targetrole}`+ "\n")
+  .action(async function (target, targetrole, actor, actorrole) {
+    console.print(`Adding ${actor}@${actorrole} to ${target}@${targetrole}` + "\n")
     await addActorPermission(target, targetrole, actor, actorrole)
   })
 
-  program
-  .command('issue_hypha <quantity> <proposerAccount> <proposalName>')
-  .description('Issue Hypha tokens to dao.hypha')
-  .action(async function(quantity, proposerAccount, proposalName) {
-    await issueHypha(quantity, proposerAccount, proposalName)
-  })
 
-  program
-  .command('send_hypha <quantity> <recepient> <proposerAccount> <proposalName>')
-  .description('Send HYPHA tokens from dao.hypha')
-  .action(async function(quantity, recepient, proposerAccount, proposalName) {
-    await sendHypha(quantity, recepient, proposerAccount, proposalName)
-  })
 
 program.parse(process.argv)
 
