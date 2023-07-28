@@ -477,7 +477,7 @@ const updatePermissionsList = async (listOfPermissions) => {
   console.log("Updating permissions...")
 
   for (let current = 0; current < listOfPermissions.length; current++) {
-    const permission = permissions[current]
+    const permission = listOfPermissions[current]
 
     if (isActionPermission(permission)) {
       const { target, action } = permission
@@ -550,5 +550,6 @@ module.exports = {
   resetByName, changeOwnerAndActivePermission, 
   changeExistingKeyPermission, addActorPermission,
   removeAllActorPermissions,
-  listPermissions
+  listPermissions,
+  updatePermissionsList
 }

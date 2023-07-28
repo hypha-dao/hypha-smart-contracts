@@ -224,29 +224,42 @@ const payForCPUKeys = {
 const payForCPUPublicKey = payForCPUKeys[chainId]
 
 var permissions = [
-  {
-    target: `${accounts.sale.account}@active`,
-    actor: `${accounts.sale.account}@eosio.code`
-  }, {
-    target: `${accounts.sale.account}@newpayment`,
-    key: salePublicKey,
-    parent: 'active'
-  }, {
-    target: `${accounts.sale.account}@newpayment`,
-    action: 'newpayment'
-  }, {
-    target: `${accounts.joinhypha.account}@active`,
-    actor: `${accounts.joinhypha.account}@eosio.code`
-  }, {
-    target: `${accounts.paycpu.account}@payforcpu`,
-    key: payForCPUPublicKey,
-    parent: 'active'
-  }, {
-    target: `${accounts.paycpu.account}@payforcpu`,
-    action: 'payforcpu'
-  }
 
 ]
+
+var contractPermissions = {
+  sale: [
+    {
+      target: `${accounts.sale.account}@active`,
+      actor: `${accounts.sale.account}@eosio.code`
+    }, {
+      target: `${accounts.sale.account}@newpayment`,
+      key: salePublicKey,
+      parent: 'active'
+    }, {
+      target: `${accounts.sale.account}@newpayment`,
+      action: 'newpayment'
+    },
+  ],
+
+  joinhypha: [
+    {
+      target: `${accounts.joinhypha.account}@active`,
+      actor: `${accounts.joinhypha.account}@eosio.code`
+    },
+  ],
+
+  paycpu: [
+    {
+      target: `${accounts.paycpu.account}@payforcpu`,
+      key: payForCPUPublicKey,
+      parent: 'active'
+    }, {
+      target: `${accounts.paycpu.account}@payforcpu`,
+      action: 'payforcpu'
+    }
+  ]
+}
 
 const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)
 const isLocalNet = chainId == networks.local
@@ -400,5 +413,6 @@ module.exports = {
   eos, getEOSWithEndpoint, getBalance, getBalanceFloat, getTableRows, initContracts,
   accounts, names, ownerPublicKey, activePublicKey, permissions, sha256, isLocal, ramdom64ByteHexString, createKeypair,
   testnetUserPubkey, getTelosBalance, fromHexString, allContractNames, allContracts, allBankAccountNames, sleep, asset, isTestnet,
-  sendTransaction
+  sendTransaction,
+  contractPermissions,
 }

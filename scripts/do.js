@@ -3,7 +3,7 @@
 const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')
-const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows } = require('./helper')
+const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows, contractPermissions } = require('./helper')
 const { joinhypha, oracleuser, paycpu, daoAccount } = names
 
 const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
@@ -14,6 +14,7 @@ const { deployAllContracts, updatePermissions, resetByName,
   addActorPermission,
   removeAllActorPermissions,
   listPermissions,
+  updatePermissionsList
 } = require('./deploy')
 
 
@@ -103,6 +104,18 @@ const runAction = async (contract) => {
   await deployAction(contract)
 }
 
+const permissionsAction = async (contract) => {
+  try {
+    const permissions = contractPermissions[contract]
+    console.log("permissions for " + contract + " " + JSON.stringify(permissions, null, 2))
+    await updatePermissionsList(permissions)
+    console.log(`${contract} permissions updated.`)
+  } catch (err) {
+    console.log("permissions update failed for " + contract + " error: " + err)
+  }
+}
+
+
 const batchCallFunc = async (contract, moreContracts, func) => {
   if (contract == 'all') {
     for (const contract of allContracts) {
@@ -158,11 +171,18 @@ program
     await batchCallFunc(contract, moreContracts, runAction)
   })
 
-program
+  program
   .command('test <contract> [moreContracts...]')
   .description('Run unit tests for deployed contract')
   .action(async function (contract, moreContracts) {
     await batchCallFunc(contract, moreContracts, test)
+  })
+
+  program
+  .command('permissions <contract> [moreContracts...]')
+  .description('Run unit tests for deployed contract')
+  .action(async function (contract, moreContracts) {
+    await batchCallFunc(contract, moreContracts, permissionsAction)
   })
 
 program
