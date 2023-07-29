@@ -14,15 +14,19 @@ describe("HYPHA: hypha.sale contract test", () => {
 
   beforeAll(async () => {
     chain = await Chain.setupChain(chainName);
+    chain.Asset
+    chain.systemContractEnable = true;
     await fixTime(chain);
     [issueAccount, user1, user2, user3] = chain.accounts;
-    [husdAccount, tokenAccount, bankAccount, saleAccount] =
-      await chain.system.createAccounts([
-        "husd.hypha",
-        "hypha.hypha",
-        "bank.hypha",
-        "sale.hypha",
-      ]);
+    [husdAccount, tokenAccount, bankAccount] =
+    await chain.system.createAccounts([
+      "husd.hypha",
+      "hypha.hypha",
+      "bank.hypha",
+    ]);
+    saleAccount = await chain.system.createAccount(
+      "sale.hypha", chain.coreSymbol.convertAssetString(100), 1024 * 1024 * 2
+    );
 
     await saleAccount.addCode("active");
     husdContract = await husdAccount.setContract({

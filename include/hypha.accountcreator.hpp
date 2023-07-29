@@ -36,21 +36,43 @@ CONTRACT joinhypha : public contract {
       typedef singleton<"config"_n, config> config_table;
       typedef multi_index<"config"_n, config> config_table_placeholder;
 
+      struct [[eosio::table]] invite {
+         uint64_t                   invite_id;
+         uint64_t                   dao_id;
+         name                       dao_name;
+         string                     dao_fullname;
+         name                       inviter;
+         checksum256                hashed_secret;
+
+         uint64_t primary_key() const { return invite_id; }
+         checksum256 by_hashed_secret() const { return hashed_secret; }
+      };
+
+      typedef multi_index<"invites"_n, invite, indexed_by<"byhashed"_n, const_mem_fun<invite, checksum256, &invite::by_hashed_secret>>> invite_table;
+
+      struct [[eosio::table]] kv {
+         name                       key;
+         std::variant<name, uint64_t, asset, std::string> value;
+
+         uint64_t primary_key() const { return key.value; }
+      };
+
+      typedef multi_index<"kv"_n, kv> kv_table;
+
       ACTION setconfig ( const name& account_creator_contract, const name& account_creator_oracle );
       ACTION setsetting ( const name& setting_name, const uint8_t& setting_value );
+      ACTION setkv(const name& key, const std::variant<name, uint64_t, asset, std::string>& value);
+
       ACTION pause ();
       ACTION activate ();
       
       ACTION create ( const name& account_to_create, const string& key);
 
+      ACTION createinvite(const uint64_t dao_id, const name dao_name, const string dao_fullname, const name inviter, const checksum256 hashed_secret);
+      ACTION redeeminvite(const name account, const checksum256 secret);
+
     private: 
       void create_account(name account, string publicKey);
+      std::variant<name, uint64_t, asset, std::string> get_kv(const name& key);
 
 };
-
-// EOSIO_DISPATCH(joinhypha,
-// (setconfig)
-// (setsetting)
-// (pause)(activate)
-// (create)
-// );
