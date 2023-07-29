@@ -14,7 +14,8 @@ const { deployAllContracts, updatePermissions, resetByName,
   addActorPermission,
   removeAllActorPermissions,
   listPermissions,
-  updatePermissionsList
+  updatePermissionsList,
+  deployAllAccounts
 } = require('./deploy')
 
 
@@ -265,11 +266,19 @@ program
 
   })
 
-program
+  program
   .command('updatePermissions')
   .description('Update all permissions of all contracts')
   .action(async function () {
     await updatePermissionAction()
+  })
+
+  program
+  .command('add_accounts')
+  .description('Add all accounts')
+  .action(async function () {
+    await deployAllAccounts()
+    console.log('done.')
   })
 
 

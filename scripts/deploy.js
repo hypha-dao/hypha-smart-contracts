@@ -547,11 +547,44 @@ const deployAllContracts = async () => {
   await updatePermissions()
 }
 
+const deployAllAccounts = async () => {
+  const ownerExists = await isExistingAccount(accounts.owner.account)
+
+  if (!ownerExists) {
+    console.log(`owner ${accounts.owner.account} should exist before deployment`)
+    return
+  }
+
+  if (accounts.testtoken) {
+    await createCoins(accounts.testtoken)
+  }
+  if (accounts.hyphatoken) {
+    await createCoins(accounts.hyphatoken)
+  }
+
+  const accountNames = Object.keys(accounts)
+  
+  for (let current = 0; current < accountNames.length; current++) {
+    const accountName = accountNames[current]
+    const account = accounts[accountName]
+
+    await createAccount(account)
+  
+    if (account.quantity && Number.parseFloat(account.quantity) > 0) {
+      await transferCoins(accounts.hyphatoken, account)
+    }
+
+    await sleep(200)
+  }
+  
+}
+
 module.exports = { 
   source, deployAllContracts, updatePermissions, 
   resetByName, changeOwnerAndActivePermission, 
   changeExistingKeyPermission, addActorPermission,
   removeAllActorPermissions,
   listPermissions,
-  updatePermissionsList
+  updatePermissionsList,
+  deployAllAccounts
 }
