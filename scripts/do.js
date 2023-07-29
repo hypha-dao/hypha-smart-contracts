@@ -244,7 +244,7 @@ program
     const contract = await eos.contract(paycpu)
 
     console.log("set dao contract on " + paycpu + " to: " + daoAccount)
-    await contract.configure(daoContract, { authorization: `${paycpu}@active` })
+    await contract.configure(daoAccount, { authorization: `${paycpu}@active` })
     console.log("done");
 
   })
