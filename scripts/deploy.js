@@ -46,6 +46,8 @@ const source = async (name) => {
 
 
 const deploy = async ({ name, account }) => {
+  console.log("warn: deploy.js DEPLOY - duplicate code")
+
   try {
     const { code, abi } = await source(name)
 
