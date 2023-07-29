@@ -86,13 +86,18 @@ Use the do.js script to
 
 ### update contract permissions
 
-This command will update all permissions on all contracts
+This command will update all permissions for a contract
 
 It will check if a permission is already set and only set permissions that
 have been added or have been changed.
 
+Permissions for a contract can affect other contracts, example give contract A eosio.code permission
+on contract B.
+
+Permissions are defined in helper.js / contractPermissions
+
 ```
-./scripts/do.js updatePermissions
+./scripts/do.js permissions <contract>
 ```
 
 ### Compile, deploy, or test a contract

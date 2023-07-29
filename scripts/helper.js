@@ -236,7 +236,7 @@ var permissions = [
 
 ]
 
-var contractPermissions = {
+const contractPermissions = {
   sale: [
     {
       target: `${accounts.sale.account}@active`,
