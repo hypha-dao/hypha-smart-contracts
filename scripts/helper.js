@@ -125,7 +125,9 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
-      hyphatoken: contract('token.hypha', 'hyphatoken')
+      hyphatoken: contract('token.hypha', 'hyphatoken'),
+      daoContract: account('dao.hypha', 'dao'),
+
     }
   } else if (network == networks.telosMainnet) {
     return {
@@ -136,6 +138,8 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
+      daoContract: account('dao.hypha', 'dao'),
+
     }
   } else if (network == networks.telosTestnet) {
     return {
@@ -155,6 +159,8 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
+      daoContract: account('mtdhoxhyphaa', 'dao'),
+
     }
   } else if (network == networks.eosMainnet) {
     return {
@@ -168,6 +174,7 @@ const accountsMetadata = (network) => {
 
       /// not functional
       sale: contract('sale.hypha', 'sale'),
+      daoContract: account('dao.hypha', 'dao'),
 
     }
   } else if (network == networks.eosTestnet) {
@@ -180,6 +187,8 @@ const accountsMetadata = (network) => {
       login: contract('logintohypha', 'login'),
       joinhypha: contract('joinxhypha11', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
+      daoContract: account('daoxhypha111', 'dao'),
+
     }
   } else {
     throw new Error(`${network} deployment not supported`)
@@ -246,7 +255,12 @@ var contractPermissions = {
     {
       target: `${accounts.joinhypha.account}@active`,
       actor: `${accounts.joinhypha.account}@eosio.code`
-    },
+    }, {
+      target: `${accounts.daoAccount.account}@autoenroll`,
+      actor: `${accounts.joinhypha.account}@eosio.code`,
+      parent: 'active',
+      type: 'createActorPermission'
+    }
   ],
 
   paycpu: [
