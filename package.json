@@ -22,8 +22,8 @@
         "commander": "^3.0.2",
         "commonmark": "^0.29.2",
         "dotenv": "^8.1.0",
-        "eosio-signing-request": "^2.2.1",
-        "eosjs": "^21.0.3",
+        "eosio-signing-request": "^2.5.3",
+        "eosjs": "^21.0.4",
         "eosjs-ecc": "^4.0.7",
         "fs-extra": "^9.1.0",
         "handlebars": "^4.7.6",
@@ -31,10 +31,11 @@
         "json": "^9.0.6",
         "mocha": "^6.1.4",
         "moment": "^2.24.0",
-        "node-fetch": "^2.6.1",
+        "node-fetch": "^2.6.12",
         "ramda": "^0.26.1",
         "riteway": "^6.0.3",
-        "tap-nirvana": "^1.1.0"
+        "tap-nirvana": "^1.1.0",
+        "zlib": "^1.0.5"
     },
     "devDependencies": {
         "jest": "^28.1.3",

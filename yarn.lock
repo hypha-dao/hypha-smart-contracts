@@ -1515,10 +1515,10 @@
   "resolved" "https://registry.npmjs.org/entities/-/entities-4.4.0.tgz"
   "version" "4.4.0"
 
-"eosio-signing-request@^2.2.1":
-  "integrity" "sha512-mkWhsjZYVfyvUujbeSBZ4u1NlT5Pks/VAT2CesUtMsffg1e4LaA2/uijrDoGNkhRzVv4VDxrssh9jVPdyV97rw=="
-  "resolved" "https://registry.npmjs.org/eosio-signing-request/-/eosio-signing-request-2.5.2.tgz"
-  "version" "2.5.2"
+"eosio-signing-request@^2.5.3":
+  "integrity" "sha512-jb4cKjQM+NI8+JwtGClYiCDX9sgSeUreRTE7YkIAga0fo21vtLTjTn0ZUH1zyfQU5b4Drdcs/yUMXdPUtqp9bg=="
+  "resolved" "https://registry.npmjs.org/eosio-signing-request/-/eosio-signing-request-2.5.3.tgz"
+  "version" "2.5.3"
   dependencies:
     "@greymass/eosio" "^0.6.0"
     "tslib" "^2.0.3"
@@ -1543,7 +1543,7 @@
     "ecurve" "1.0.5"
     "randombytes" "2.0.5"
 
-"eosjs@^21.0.3":
+"eosjs@^21.0.4":
   "integrity" "sha512-XbuIoidplA1hHIejy7VQ+hmBfC6T28kYFaQMsn6G1DMTg1CFwUzxwzUvZg/dGNPuf7hgPxOpaQvAUsdidTgGhQ=="
   "resolved" "https://registry.npmjs.org/eosjs/-/eosjs-21.0.4.tgz"
   "version" "21.0.4"
@@ -2896,10 +2896,10 @@
     "object.getownpropertydescriptors" "^2.0.3"
     "semver" "^5.7.0"
 
-"node-fetch@^2.6.1", "node-fetch@2":
-  "integrity" "sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ=="
-  "resolved" "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.7.tgz"
-  "version" "2.6.7"
+"node-fetch@^2.6.12", "node-fetch@2":
+  "integrity" "sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g=="
+  "resolved" "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.12.tgz"
+  "version" "2.6.12"
   dependencies:
     "whatwg-url" "^5.0.0"
 
@@ -4074,3 +4074,8 @@
   "integrity" "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="
   "resolved" "https://registry.npmjs.org/yocto-queue/-/yocto-queue-0.1.0.tgz"
   "version" "0.1.0"
+
+"zlib@^1.0.5":
+  "integrity" "sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w=="
+  "resolved" "https://registry.npmjs.org/zlib/-/zlib-1.0.5.tgz"
+  "version" "1.0.5"
