@@ -260,6 +260,9 @@ const contractPermissions = {
       actor: `${accounts.joinhypha.account}@eosio.code`,
       parent: 'active',
       type: 'createActorPermission'
+    }, {
+      target: `${accounts.daoAccount.account}@autoenroll`,
+      action: 'autoenroll'
     }
   ],
 
