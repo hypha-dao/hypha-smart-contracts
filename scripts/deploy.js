@@ -46,6 +46,8 @@ const source = async (name) => {
 
 
 const deploy = async ({ name, account }) => {
+  console.log("warn: deploy.js DEPLOY - duplicate code")
+
   try {
     const { code, abi } = await source(name)
 
@@ -468,11 +470,16 @@ const isCreateActorPermission = permission => permission.type == "createActorPer
 const isKeyPermission = permission => permission.key && !permission.actor
 
 const updatePermissions = async () => {
+  console.log("Updating permissions...[deprecated]")
+  await updatePermissionsList(permissions)
+}
+
+const updatePermissionsList = async (listOfPermissions) => {
 
   console.log("Updating permissions...")
 
-  for (let current = 0; current < permissions.length; current++) {
-    const permission = permissions[current]
+  for (let current = 0; current < listOfPermissions.length; current++) {
+    const permission = listOfPermissions[current]
 
     if (isActionPermission(permission)) {
       const { target, action } = permission
@@ -501,6 +508,7 @@ const updatePermissions = async () => {
     }
   }  
 }
+
 
 const deployAllContracts = async () => {
   const ownerExists = await isExistingAccount(accounts.owner.account)
@@ -539,10 +547,44 @@ const deployAllContracts = async () => {
   await updatePermissions()
 }
 
+const deployAllAccounts = async () => {
+  const ownerExists = await isExistingAccount(accounts.owner.account)
+
+  if (!ownerExists) {
+    console.log(`owner ${accounts.owner.account} should exist before deployment`)
+    return
+  }
+
+  if (accounts.testtoken) {
+    await createCoins(accounts.testtoken)
+  }
+  if (accounts.hyphatoken) {
+    await createCoins(accounts.hyphatoken)
+  }
+
+  const accountNames = Object.keys(accounts)
+  
+  for (let current = 0; current < accountNames.length; current++) {
+    const accountName = accountNames[current]
+    const account = accounts[accountName]
+
+    await createAccount(account)
+  
+    if (account.quantity && Number.parseFloat(account.quantity) > 0) {
+      await transferCoins(accounts.hyphatoken, account)
+    }
+
+    await sleep(200)
+  }
+  
+}
+
 module.exports = { 
   source, deployAllContracts, updatePermissions, 
   resetByName, changeOwnerAndActivePermission, 
   changeExistingKeyPermission, addActorPermission,
   removeAllActorPermissions,
-  listPermissions
+  listPermissions,
+  updatePermissionsList,
+  deployAllAccounts
 }

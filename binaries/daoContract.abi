@@ -1,0 +1,1451 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [
+        {
+            "new_type_name": "ContentGroup",
+            "type": "Content[]"
+        },
+        {
+            "new_type_name": "ContentGroups",
+            "type": "ContentGroup[]"
+        },
+        {
+            "new_type_name": "FlexValue",
+            "type": "variant_monostate_name_string_asset_time_point_int64_checksum256"
+        },
+        {
+            "new_type_name": "root_doc",
+            "type": "Document"
+        },
+        {
+            "new_type_name": "root_edge",
+            "type": "Edge"
+        }
+    ],
+    "structs": [
+        {
+            "name": "Certificate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "certifier",
+                    "type": "name"
+                },
+                {
+                    "name": "notes",
+                    "type": "string"
+                },
+                {
+                    "name": "certification_date",
+                    "type": "time_point"
+                }
+            ]
+        },
+        {
+            "name": "Content",
+            "base": "",
+            "fields": [
+                {
+                    "name": "label",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "FlexValue"
+                }
+            ]
+        },
+        {
+            "name": "Document",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "creator",
+                    "type": "name"
+                },
+                {
+                    "name": "content_groups",
+                    "type": "ContentGroups"
+                },
+                {
+                    "name": "certificates",
+                    "type": "Certificate[]"
+                },
+                {
+                    "name": "created_date",
+                    "type": "time_point"
+                },
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "updated_date",
+                    "type": "time_point$"
+                }
+            ]
+        },
+        {
+            "name": "Edge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "from_node_edge_name_index",
+                    "type": "uint64"
+                },
+                {
+                    "name": "from_node_to_node_index",
+                    "type": "uint64"
+                },
+                {
+                    "name": "to_node_edge_name_index",
+                    "type": "uint64"
+                },
+                {
+                    "name": "from_node",
+                    "type": "uint64"
+                },
+                {
+                    "name": "to_node",
+                    "type": "uint64"
+                },
+                {
+                    "name": "edge_name",
+                    "type": "name"
+                },
+                {
+                    "name": "created_date",
+                    "type": "time_point"
+                },
+                {
+                    "name": "creator",
+                    "type": "name"
+                },
+                {
+                    "name": "contract",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "ElectionVote",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "total_amount",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "NameToID",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "Payment",
+            "base": "",
+            "fields": [
+                {
+                    "name": "payment_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "payment_date",
+                    "type": "time_point"
+                },
+                {
+                    "name": "period_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "assignment_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "recipient",
+                    "type": "name"
+                },
+                {
+                    "name": "amount",
+                    "type": "asset"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "RedemptionInfo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "amount",
+                    "type": "asset"
+                },
+                {
+                    "name": "receiver",
+                    "type": "name"
+                },
+                {
+                    "name": "notes",
+                    "type": "string"
+                },
+                {
+                    "name": "redemption_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "TokenToDao",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "token",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "activatebdg",
+            "base": "",
+            "fields": [
+                {
+                    "name": "assign_badge_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "addadmins",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "admin_accounts",
+                    "type": "name[]"
+                }
+            ]
+        },
+        {
+            "name": "addenroller",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enroller_account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "addtreasurer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "treasury_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "treasurer",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "adjustcmtmnt",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "adjust_info",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
+            "name": "adjustdeferr",
+            "base": "",
+            "fields": [
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "assignment_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "new_deferred_perc_x100",
+                    "type": "int64"
+                }
+            ]
+        },
+        {
+            "name": "apply",
+            "base": "",
+            "fields": [
+                {
+                    "name": "applicant",
+                    "type": "name"
+                },
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "content",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "applycircle",
+            "base": "",
+            "fields": [
+                {
+                    "name": "circle_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "applicant",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "archiverecur",
+            "base": "",
+            "fields": [
+                {
+                    "name": "document_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "assigntokdao",
+            "base": "",
+            "fields": [
+                {
+                    "name": "token",
+                    "type": "asset"
+                },
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "force",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "autoenroll",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enroller",
+                    "type": "name"
+                },
+                {
+                    "name": "member",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "cancelcmsig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msig_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "canceler",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "cancmsigpay",
+            "base": "",
+            "fields": [
+                {
+                    "name": "treasurer",
+                    "type": "name"
+                },
+                {
+                    "name": "msig_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "claimnextper",
+            "base": "",
+            "fields": [
+                {
+                    "name": "assignment_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "closedocprop",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposal_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "cmntadd",
+            "base": "",
+            "fields": [
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "content",
+                    "type": "string"
+                },
+                {
+                    "name": "comment_or_section_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "cmntrem",
+            "base": "",
+            "fields": [
+                {
+                    "name": "comment_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "cmntupd",
+            "base": "",
+            "fields": [
+                {
+                    "name": "new_content",
+                    "type": "string"
+                },
+                {
+                    "name": "comment_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "createdao",
+            "base": "",
+            "fields": [
+                {
+                    "name": "config",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
+            "name": "createdaodft",
+            "base": "",
+            "fields": [
+                {
+                    "name": "config",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
+            "name": "createmsig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "creator",
+                    "type": "name"
+                },
+                {
+                    "name": "kvs",
+                    "type": "pair_string_FlexValue[]"
+                }
+            ]
+        },
+        {
+            "name": "createtrsy",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "dao_document",
+            "base": "root_doc",
+            "fields": []
+        },
+        {
+            "name": "dao_edge",
+            "base": "root_edge",
+            "fields": []
+        },
+        {
+            "name": "deletedaodft",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_draft_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "enroll",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enroller",
+                    "type": "name"
+                },
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "applicant",
+                    "type": "name"
+                },
+                {
+                    "name": "content",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "enrollcircle",
+            "base": "",
+            "fields": [
+                {
+                    "name": "circle_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enroller",
+                    "type": "name"
+                },
+                {
+                    "name": "applicant",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "execmsig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msig_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "executer",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "genperiods",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "period_count",
+                    "type": "int64"
+                }
+            ]
+        },
+        {
+            "name": "modalerts",
+            "base": "",
+            "fields": [
+                {
+                    "name": "root_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "alerts",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
+            "name": "modsalaryband",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "salary_bands",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
+            "name": "monostate",
+            "base": "",
+            "fields": []
+        },
+        {
+            "name": "newmsigpay",
+            "base": "",
+            "fields": [
+                {
+                    "name": "treasurer",
+                    "type": "name"
+                },
+                {
+                    "name": "treasury_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "payments",
+                    "type": "RedemptionInfo[]"
+                },
+                {
+                    "name": "signers",
+                    "type": "permission_level[]"
+                }
+            ]
+        },
+        {
+            "name": "newpayment",
+            "base": "",
+            "fields": [
+                {
+                    "name": "treasurer",
+                    "type": "name"
+                },
+                {
+                    "name": "redemption_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "amount",
+                    "type": "asset"
+                },
+                {
+                    "name": "notes",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "pair_string_FlexValue",
+            "base": "",
+            "fields": [
+                {
+                    "name": "first",
+                    "type": "string"
+                },
+                {
+                    "name": "second",
+                    "type": "FlexValue"
+                }
+            ]
+        },
+        {
+            "name": "permission_level",
+            "base": "",
+            "fields": [
+                {
+                    "name": "actor",
+                    "type": "name"
+                },
+                {
+                    "name": "permission",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "propose",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "proposer",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_type",
+                    "type": "name"
+                },
+                {
+                    "name": "content_groups",
+                    "type": "ContentGroups"
+                },
+                {
+                    "name": "publish",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "proposepub",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposer",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "proposerem",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposer",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "proposeupd",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposer",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "content_groups",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
+            "name": "reactadd",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "reaction",
+                    "type": "name"
+                },
+                {
+                    "name": "document_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "reactrem",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "document_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "redeem",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "requestor",
+                    "type": "name"
+                },
+                {
+                    "name": "amount",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "rejectcircle",
+            "base": "",
+            "fields": [
+                {
+                    "name": "circle_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enroller",
+                    "type": "name"
+                },
+                {
+                    "name": "applicant",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "remadmin",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "admin_account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "remapplicant",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "applicant_names",
+                    "type": "name[]"
+                }
+            ]
+        },
+        {
+            "name": "remenroller",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enroller_account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "remmember",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "member_names",
+                    "type": "name[]"
+                }
+            ]
+        },
+        {
+            "name": "remtreasurer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "treasury_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "treasurer",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "setclaimenbld",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setdaosetting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "kvs",
+                    "type": "pair_string_FlexValue[]"
+                },
+                {
+                    "name": "group",
+                    "type": "string?"
+                }
+            ]
+        },
+        {
+            "name": "setpaynotes",
+            "base": "",
+            "fields": [
+                {
+                    "name": "payment_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "notes",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "setrsysttngs",
+            "base": "",
+            "fields": [
+                {
+                    "name": "treasury_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "kvs",
+                    "type": "pair_string_FlexValue[]"
+                },
+                {
+                    "name": "group",
+                    "type": "string?"
+                }
+            ]
+        },
+        {
+            "name": "setsetting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "FlexValue"
+                },
+                {
+                    "name": "group",
+                    "type": "string?"
+                }
+            ]
+        },
+        {
+            "name": "setupbadges",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "suspend",
+            "base": "",
+            "fields": [
+                {
+                    "name": "proposer",
+                    "type": "name"
+                },
+                {
+                    "name": "document_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "reason",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "updatemsig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msig_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "vote",
+            "base": "",
+            "fields": [
+                {
+                    "name": "voter",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "vote",
+                    "type": "string"
+                },
+                {
+                    "name": "notes",
+                    "type": "string?"
+                }
+            ]
+        },
+        {
+            "name": "votemsig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msig_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "signer",
+                    "type": "name"
+                },
+                {
+                    "name": "approve",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "document_id",
+                    "type": "uint64"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "activatebdg",
+            "type": "activatebdg",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addadmins",
+            "type": "addadmins",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addenroller",
+            "type": "addenroller",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addtreasurer",
+            "type": "addtreasurer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "adjustcmtmnt",
+            "type": "adjustcmtmnt",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "adjustdeferr",
+            "type": "adjustdeferr",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "apply",
+            "type": "apply",
+            "ricardian_contract": "---\nspec_version: \"0.2.0\"\ntitle: Apply\nsummary: 'Apply for Membership'\nicon: https://eos.gyftie.org/statics/logos/mobile.png#54b516210a9fe709b1ccc8c075e16538d51e3664674f707f80630a7e53dbd2e7\n---\n\n{{$action.authorization.[0].actor}} applies"
+        },
+        {
+            "name": "applycircle",
+            "type": "applycircle",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "archiverecur",
+            "type": "archiverecur",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "assigntokdao",
+            "type": "assigntokdao",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "autoenroll",
+            "type": "autoenroll",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cancelcmsig",
+            "type": "cancelcmsig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cancmsigpay",
+            "type": "cancmsigpay",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "claimnextper",
+            "type": "claimnextper",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "closedocprop",
+            "type": "closedocprop",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cmntadd",
+            "type": "cmntadd",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cmntrem",
+            "type": "cmntrem",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cmntupd",
+            "type": "cmntupd",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createdao",
+            "type": "createdao",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createdaodft",
+            "type": "createdaodft",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createmsig",
+            "type": "createmsig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createtrsy",
+            "type": "createtrsy",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "deletedaodft",
+            "type": "deletedaodft",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "enroll",
+            "type": "enroll",
+            "ricardian_contract": "---\nspec_version: \"0.2.0\"\ntitle: Enroll\nsummary: 'Enroll a member in the organization'\nicon: https://eos.gyftie.org/statics/logos/mobile.png#54b516210a9fe709b1ccc8c075e16538d51e3664674f707f80630a7e53dbd2e7\n---\n\n{{$action.authorization.[0].actor}} enrolls the existing applicant {{applicant}} with the content {{content}} to Hypha DAO.\""
+        },
+        {
+            "name": "enrollcircle",
+            "type": "enrollcircle",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "execmsig",
+            "type": "execmsig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "genperiods",
+            "type": "genperiods",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "modalerts",
+            "type": "modalerts",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "modsalaryband",
+            "type": "modsalaryband",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "newmsigpay",
+            "type": "newmsigpay",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "newpayment",
+            "type": "newpayment",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "propose",
+            "type": "propose",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "proposepub",
+            "type": "proposepub",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "proposerem",
+            "type": "proposerem",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "proposeupd",
+            "type": "proposeupd",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "reactadd",
+            "type": "reactadd",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "reactrem",
+            "type": "reactrem",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "redeem",
+            "type": "redeem",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "rejectcircle",
+            "type": "rejectcircle",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "remadmin",
+            "type": "remadmin",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "remapplicant",
+            "type": "remapplicant",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "remenroller",
+            "type": "remenroller",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "remmember",
+            "type": "remmember",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "remtreasurer",
+            "type": "remtreasurer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setclaimenbld",
+            "type": "setclaimenbld",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setdaosetting",
+            "type": "setdaosetting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setpaynotes",
+            "type": "setpaynotes",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setrsysttngs",
+            "type": "setrsysttngs",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setsetting",
+            "type": "setsetting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setupbadges",
+            "type": "setupbadges",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "suspend",
+            "type": "suspend",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updatemsig",
+            "type": "updatemsig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "vote",
+            "type": "vote",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "votemsig",
+            "type": "votemsig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "withdraw",
+            "type": "withdraw",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "daos",
+            "type": "NameToID",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "documents",
+            "type": "dao_document",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "edges",
+            "type": "dao_edge",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "electionvote",
+            "type": "ElectionVote",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "members",
+            "type": "NameToID",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "payments",
+            "type": "Payment",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "tokentodao",
+            "type": "TokenToDao",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": [
+        {
+            "name": "variant_monostate_name_string_asset_time_point_int64_checksum256",
+            "types": ["monostate","name","string","asset","time_point","int64","checksum256"]
+        }
+    ],
+    "action_results": []
+}

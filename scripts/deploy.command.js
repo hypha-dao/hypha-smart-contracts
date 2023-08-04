@@ -8,8 +8,7 @@ const deploy = async (name) => {
     const { code, abi } = await source(name)
 
     let account = accounts[name]
-    console.log(`deploy ${account.name}`)
-    let contractName = account.name
+    console.log(`deploy ${account.account}`)
     
     if (isLocal()) {
       // Creating accounts is convenient on the local test chain
@@ -49,9 +48,25 @@ const deploy = async (name) => {
   console.log(`Success: ${name} deployed to ${account.account}`)
 }
 
+/// Search directories in order
+/// return first found file
+const findContract = (name, directories) => {
+  for (dir of directories) {
+    const result = path.join(__dirname, dir, name)
+    if (fs.existsSync(result)) {
+      return result
+    }
+  }
+  throw 'file cannot be found: ' + name
+}
+
 const source = async (name) => {
-  const codePath = path.join(__dirname, '../artifacts', name.concat('.wasm'))
-  const abiPath = path.join(__dirname, '../artifacts', name.concat('.abi'))
+  const binaryDirectories = [
+    '../artifacts',
+    '../binaries',
+  ]
+  const codePath = findContract(name.concat('.wasm'), binaryDirectories)
+  const abiPath = findContract(name.concat('.abi'), binaryDirectories)
 
   const code = new Promise(resolve => {
     fs.readFile(codePath, (_, r) => resolve(r))
