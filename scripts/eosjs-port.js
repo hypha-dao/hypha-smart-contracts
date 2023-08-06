@@ -258,7 +258,7 @@ class Eos {
     trxConfig = { blocksBehind:3, expireSeconds:30, ...trxConfig }
     let result
     try {
-      result = await api.transact(trx, trxConfig)
+      result = await transactionWrapper(trx, trxConfig)
     } catch (err) {
       const errStr = '' + err
       if (errStr.toLowerCase().includes('exceeded by') && numTries > 0) {
