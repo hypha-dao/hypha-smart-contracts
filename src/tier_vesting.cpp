@@ -153,20 +153,20 @@ void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
   auto new_total_amount = tier_itr->total_amount + amount;
 
   // Create a new lock
-  locks.emplace(sender, [&](auto &row) {
+  locks.emplace(sender, [&](auto &row)
+                {
     row.lock_id = locks.available_primary_key();
     row.owner = owner;
     row.tier_id = tier_id;
     row.amount = amount;
-    row.claimed_amount = asset(0, amount.symbol); 
+    row.claimed_amount = asset(0, amount.symbol);
   });
 
-      // Update the tier's total amount
+  // Update the tier's total amount
   tiers.modify(tier_itr, get_self(), [&](auto &row)
                {
     row.total_amount = new_total_amount;
   });
-
 }
 
 void tier_vesting::removelock(uint64_t lock_id)
