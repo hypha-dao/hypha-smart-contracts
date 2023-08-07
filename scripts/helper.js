@@ -127,6 +127,7 @@ const accountsMetadata = (network) => {
       paycpu: contract('paycpu.hypha', 'paycpu'),
       hyphatoken: contract('token.hypha', 'hyphatoken'),
       daoContract: account('dao.hypha', 'dao'),
+      tier_vesting: account('vestng.hypha', 'tier_vesting'),
 
     }
   } else if (network == networks.telosMainnet) {

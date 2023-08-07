@@ -1,4 +1,4 @@
-#include "tier_vesting.hpp"
+#include "../include/tier_vesting.hpp"
 
 void tier_vesting::addtier(name tier_id, asset total_amount, time_point_sec start_date, std::string name) {
   // Ensure this action is authorized by the contract account
@@ -13,7 +13,7 @@ void tier_vesting::addtier(name tier_id, asset total_amount, time_point_sec star
 
   // Add the tier to the table
   tiers.emplace(get_self(), [&](auto& row) {
-    row.tier_id = tier_id;
+    row.id = tier_id;
     row.total_amount = total_amount;
     row.start_date = start_date;
     row.name = name;
@@ -189,16 +189,17 @@ void tier_vesting::onreceive(name from, name to, asset quantity, std::string mem
     return;
   }
 
-  // Open the tokens table
-  tokens_table tokens(get_self(), get_self().value);
+  // For now only hypha token is supported - other tokens would need a more elaborate balances table.
+  // // Open the tokens table
+  // tokens_table tokens(get_self(), get_self().value);
 
-  // Find the correct token contract for the transferred asset
-  auto token_itr = tokens.find(quantity.symbol.raw());
+  // // Find the correct token contract for the transferred asset
+  // auto token_itr = tokens.find(quantity.symbol.raw());
   
-  // Ensure the asset is in the tokens table and the transfer comes from the correct contract
-  if (token_itr == tokens.end() || get_sender() != token_itr->contract) {
-    return;
-  }
+  // // Ensure the asset is in the tokens table and the transfer comes from the correct contract
+  // if (token_itr == tokens.end() || get_sender() != token_itr->contract) {
+  //   return;
+  // }
 
   // Open the balances table
   balances_table balances(get_self(), get_self().value);

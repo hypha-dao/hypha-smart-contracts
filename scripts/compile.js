@@ -106,7 +106,9 @@ const buildFileMap = {
   'paycpu.abi': 'hypha.paycpu.abi',
   'paycpu.wasm': 'hypha.paycpu.wasm',
   'sale.abi': 'hypha.sale.abi',
-  'sale.wasm': 'hypha.sale.wasm'
+  'sale.wasm': 'hypha.sale.wasm',
+  'tier_vesting.wasm': 'tier_vesting.wasm',
+  'tier_vesting.abi': 'tier_vesting.abi',
 }
 
 function copyFiles(sourceDir, destinationDir, fileMap) {
@@ -138,7 +140,7 @@ function copyFiles(sourceDir, destinationDir, fileMap) {
 
       // Log a message when the file copy is complete
       writeStream.on('finish', () => {
-        console.log(`Copied ${file} to ${destinationDir}`);
+        //console.log(`Copied ${file} to ${destinationDir}`);
       });
     });
   });

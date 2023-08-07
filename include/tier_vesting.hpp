@@ -31,7 +31,7 @@ public:
   [[eosio::action]]
   void removetoken(symbol token_symbol);
   
-  [[eosio::on_notify("eosio.token::transfer")]]
+  [[eosio::on_notify("hypha.hypha::transfer")]]
   void onreceive(name from, name to, asset quantity, std::string memo);
 
 private:
@@ -84,5 +84,6 @@ private:
   };
 
   typedef eosio::multi_index<"balances"_n, balance> balances_table;
+
 
 };
