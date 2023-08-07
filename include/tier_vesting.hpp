@@ -1,5 +1,8 @@
 #include <eosio/asset.hpp>
 #include <eosio/eosio.hpp>
+#include <eosio/time.hpp>
+#include <eosio/name.hpp>
+#include <eosio/transaction.hpp>
 
 using namespace eosio;
 
@@ -8,25 +11,25 @@ public:
   using contract::contract;
 
   [[eosio::action]]
-  void addtier(name tier_id, asset total_amount, time_point_sec start_date, std::string name);
+  void addtier(name tier_id, asset total_amount, std::string name);
 
   [[eosio::action]]
-  void release(name tier_id, double percent);
+  void removetier(name tier_id);
 
   [[eosio::action]]
-  void addlock(name sender, name owner, name tier_id, asset amount);
+  void release(name tier_id, asset amount);
 
   [[eosio::action]]
   void claim(name owner, uint64_t lock_id);
 
   [[eosio::action]]
-  void addtoken(name token_contract, asset token);
+  void addlock(name sender, name owner, name tier_id, asset amount);
 
   [[eosio::action]]
   void removelock(uint64_t lock_id);
 
   [[eosio::action]]
-  void removetier(name tier_id);
+  void addtoken(name token_contract, asset token);
 
   [[eosio::action]]
   void removetoken(symbol token_symbol);
@@ -40,10 +43,10 @@ private:
   struct [[eosio::table]] tier {
     name id;
     std::string name;
-    time_point_sec start_date;
+    eosio::time_point created_at;
     asset total_amount;
     asset released_amount;
-    double released_percentage;
+    double percentage_released;
 
     uint64_t primary_key() const { return id.value; }
   };
@@ -84,6 +87,5 @@ private:
   };
 
   typedef eosio::multi_index<"balances"_n, balance> balances_table;
-
 
 };
