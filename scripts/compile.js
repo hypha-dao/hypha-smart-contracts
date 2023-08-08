@@ -5,6 +5,7 @@ const fse = require('fs-extra')
 var fs = require('fs');
 var dir = './tmp';
 const path = require('path');
+const { isLocal } = require('./helper');
 
 
 const existsAsync = promisify(fs.exists)
@@ -20,7 +21,12 @@ const command = ({ contract, source, include, dir, contractSourceName }) => {
   contractSourceName = contractSourceName ?? contract
 
   if (process.env.COMPILER === 'local') {
-    cmd = "eosio-cpp -abigen -I " + inc + " -contract " + contractSourceName + " -o ./artifacts/" + contract + ".wasm " + source;
+
+    const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
+
+    // eosio-cpp -abigen -I ./include -contract tier_vesting -DLOCAL_TEST -o ./artifacts/tier_vesting.wasm ./src/tier_vesting.cpp
+
+    cmd = "eosio-cpp -abigen -I " + inc + " -contract " + contractSourceName + testingFlag + " -o ./artifacts/" + contract + ".wasm " + source;
   } else {
     cmd = `docker run --rm --name eosio.cdt_v1.7.0-rc1 --volume ${volume}:/project -w /project eostudio/eosio.cdt:v1.7.0-rc1 /bin/bash -c "echo 'starting';eosio-cpp -abigen -I ${inc} -contract ${contract} -o ./artifacts/${contract}.wasm ${source}"`
   }

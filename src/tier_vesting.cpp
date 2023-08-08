@@ -3,11 +3,17 @@
 void tier_vesting::reset()
 {
   require_auth(get_self());
-  // check(false, "reset is only active in testing");
+#ifdef LOCAL_TEST
+    utils::delete_table<tiers_table>(get_self(), get_self().value);
+    utils::delete_table<locks_table>(get_self(), get_self().value);
+    utils::delete_table<balances_table>(get_self(), get_self().value);
+#else
+    check(false, "reset is only active in testing");
+#endif
 
-  utils::delete_table<tiers_table>(get_self(), get_self().value);
-  utils::delete_table<locks_table>(get_self(), get_self().value);
-  utils::delete_table<balances_table>(get_self(), get_self().value);
+  // utils::delete_table<tiers_table>(get_self(), get_self().value);
+  // utils::delete_table<locks_table>(get_self(), get_self().value);
+  // utils::delete_table<balances_table>(get_self(), get_self().value);
 }
 
 void tier_vesting::addtier(name tier_id, asset amount, std::string name)
