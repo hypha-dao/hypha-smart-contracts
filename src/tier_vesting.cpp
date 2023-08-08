@@ -85,8 +85,17 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
   auto lock_itr = locks.find(lock_id);
   check(lock_itr != locks.end(), "Lock not found");
 
+  // Open the tiers table
+  tiers_table tiers(get_self(), get_self().value);
+
+  // Ensure the tier exists
+  auto tier_itr = tiers.find(lock_itr->tier_id.value);
+  check(tier_itr != tiers.end(), "Tier not found");
+
+  double fraction_released = tier_itr->percentage_released / 100.0;
+
   // Calculate the claimable amount
-  asset claimable = lock_itr->amount - lock_itr->claimed_amount;
+  asset claimable = lock_itr->amount * fraction_released - lock_itr->claimed_amount;
 
   // Ensure there is something to claim
   check(claimable.amount > 0, "Nothing to claim");

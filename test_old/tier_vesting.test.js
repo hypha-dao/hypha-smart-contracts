@@ -45,7 +45,32 @@ const getTiersTable = async () => {
     })
 }
 
-describe('Tier Vesting', async assert => {
+const getLocksTable = async (lockId) => {
+    return eos.getTableRows({
+        code: tier_vesting,
+        scope: tier_vesting,
+        table: 'locks',
+        json: true
+    })
+}
+
+const getLock = async (lockId) => {
+    const rows = await eos.getTableRows({
+        code: tier_vesting,
+        scope: tier_vesting,
+        table: 'locks',
+        lower_bound: lockId,
+        upper_bound: lockId,
+        json: true
+    })
+    if (rows.length == 1) {
+        return rows[0]
+    } else {
+        throw "lock not found: " + lockId
+    }
+}
+
+const setup = async () => {
 
     if (!isLocal()) {
         console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
@@ -61,96 +86,333 @@ describe('Tier Vesting', async assert => {
 
     console.log("add a tier")
     const tierName = "tier11"
+    await contract.addtier(tierName, "0.00 HYPHA", "The first tier", { authorization: `${tier_vesting}@active` })
 
-    await contract.addtier(tierName, "10000.00 HYPHA", "The first tier", { authorization: `${tier_vesting}@active` })
-
-    const tiers = await getTiersTable()
-    //console.log("tiers " + JSON.stringify(tiers, null, 2))
-
-    const theTier = tiers.rows[0]
-
-    console.log("add locks")
     const addLock = async (from, to, tier, amount) => {
         await tokenContract.transfer(from, tier_vesting, amount, "test", { authorization: `${firstuser}@active` })
         await contract.addlock(from, to, tier, amount, { authorization: `${firstuser}@active` })
     }
 
-    await addLock(firstuser, seconduser, tierName, "300.00 HYPHA")
-    assert({
-        given: 'Added lock',
-        should: 'add to balance',
-        actual: (await getTiersTable()).rows[0].total_amount,
-        expected: "300.00 HYPHA",
-    })
+    const commonData = {
+        contract,
+        tokenContract,
+        tierName,
+        addLock,
+    };
+    await sleep(300)
+    return commonData;
+};
 
-    await addLock(firstuser, thirduser, tierName, "1000.00 HYPHA")
-
-    assert({
-        given: 'Added second lock',
-        should: 'add to balance',
-        actual: (await getTiersTable()).rows[0].total_amount,
-        expected: "1300.00 HYPHA",
-    })
-
-    await addLock(firstuser, fourthuser, tierName, "1.00 HYPHA")
-
-    assert({
-        given: 'Added third lock',
-        should: 'add to balance',
-        actual: (await getTiersTable()).rows[0].total_amount,
-        expected: "1301.00 HYPHA",
-    })
-
-    // void release(name tier_id, amount);
-    console.log("release a percentage")
-    await contract.release(tierName, "300.00 HYPHA", { authorization: `${tier_vesting}@active` })
+describe('Tier Vesting', async assert => {
 
 
-    var duplicateTierName = false
-    try {
-        console.log("add a tier same name")
-        await contract.addtier(tierName, "9.00 HYPHA", "something", { authorization: `${tier_vesting}@active` })
-        duplicateTierName = true
-    } catch (err) {
-        console.log("expected error: " + err)
-    }
-
-    await contract.removetier(tierName, { authorization: `${tier_vesting}@active` })
-
-    const tiersAfter2 = await getTiersTable()
-    console.log("tiers after 2: " + JSON.stringify(tiersAfter2, null, 2))
-
-    assert({
-        given: 'Created Tier',
-        should: 'exist',
-        actual: {
-            "id": theTier.id,
-            "name": theTier.name,
-            "total_amount": theTier.total_amount,
-            "released_amount": theTier.released_amount,
-        },
-        expected: {
-            "id": tierName,
-            "name": "The first tier",
-            "total_amount": "0.00 HYPHA",
-            "released_amount": "0.00 HYPHA",
+    describe('Add and remove tiers', async assert => {
+        const { contract, tokenContract, tierName, addLock } = await setup();
+        const tiers = await getTiersTable()
+        //console.log("tiers " + JSON.stringify(tiers, null, 2))
+        const theTier = tiers.rows[0]
+        var duplicateTierName = false
+        try {
+            console.log("add a tier same name")
+            await contract.addtier(tierName, "9.00 HYPHA", "something", { authorization: `${tier_vesting}@active` })
+            duplicateTierName = true
+        } catch (err) {
+            console.log("expected error: " + err)
         }
 
+        await contract.removetier(tierName, { authorization: `${tier_vesting}@active` })
+
+        const tiersAfter2 = await getTiersTable()
+        console.log("tiers after 2: " + JSON.stringify(tiersAfter2, null, 2))
+
+        assert({
+            given: 'Created Tier',
+            should: 'exist',
+            actual: {
+                "id": theTier.id,
+                "name": theTier.name,
+                "total_amount": theTier.total_amount,
+                "released_amount": theTier.released_amount,
+            },
+            expected: {
+                "id": tierName,
+                "name": "The first tier",
+                "total_amount": "0.00 HYPHA",
+                "released_amount": "0.00 HYPHA",
+            }
+
+        })
+
+        assert({
+            given: 'Trying to create tier with existing name',
+            should: 'fail',
+            actual: duplicateTierName,
+            expected: false
+        })
+
+        assert({
+            given: 'Deleted tiers',
+            should: 'delete tiers',
+            actual: tiersAfter2.rows.length,
+            expected: 0
+        })
+
     })
 
-    assert({
-        given: 'Trying to create tier with existing name',
-        should: 'fail',
-        actual: duplicateTierName,
-        expected: false
+    describe('Add and remove locks', async assert => {
+        const { contract, tokenContract, tierName, addLock } = await setup();
+
+        const totalTierAmount = async () => (await getTiersTable()).rows[0].total_amount
+
+        console.log("add locks")
+        await addLock(firstuser, seconduser, tierName, "300.00 HYPHA")
+
+        assert({
+            given: 'Added lock',
+            should: 'add to balance',
+            actual: (await totalTierAmount()),
+            expected: "300.00 HYPHA",
+        })
+
+        await addLock(firstuser, thirduser, tierName, "1000.00 HYPHA")
+
+        assert({
+            given: 'Added second lock',
+            should: 'add to balance',
+            actual: (await totalTierAmount()),
+            expected: "1300.00 HYPHA",
+        })
+
+        await addLock(firstuser, fourthuser, tierName, "1.00 HYPHA")
+
+        assert({
+            given: 'Added third lock',
+            should: 'add to balance',
+            actual: (await totalTierAmount()),
+            expected: "1301.00 HYPHA",
+        })
+
+        const locks = await getLocksTable()
+        console.log('locks: ' + JSON.stringify(locks, null, 2))
+
+        assert({
+            given: 'Created lock',
+            should: 'lock exists',
+            actual: locks,
+            expected: {
+                "rows": [
+                  {
+                    "lock_id": 0,
+                    "owner": seconduser,
+                    "tier_id": "tier11",
+                    "amount": "300.00 HYPHA",
+                    "claimed_amount": "0.00 HYPHA"
+                  },
+                  {
+                    "lock_id": 1,
+                    "owner": thirduser,
+                    "tier_id": "tier11",
+                    "amount": "1000.00 HYPHA",
+                    "claimed_amount": "0.00 HYPHA"
+                  },
+                  {
+                    "lock_id": 2,
+                    "owner": fourthuser,
+                    "tier_id": "tier11",
+                    "amount": "1.00 HYPHA",
+                    "claimed_amount": "0.00 HYPHA"
+                  }
+                ],
+                "more": false,
+                "next_key": "",
+                "next_key_bytes": ""
+              }
+
+        })
+
+
     })
-    assert({
-        given: 'Deleted tiers',
-        should: 'delete tiers',
-        actual: tiersAfter2.rows.length,
-        expected: 0
-    })
+
 
 })
+
+// describe('Add Tiers', async assert => {
+
+//     if (!isLocal()) {
+//         console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
+//         return
+//     }
+
+//     console.log("init contracts")
+//     const contract = await eos.contract(tier_vesting)
+//     const tokenContract = await eos.contract(hyphatoken)
+
+//     console.log("reset contract")
+//     await contract.reset({ authorization: `${tier_vesting}@active` })
+
+//     console.log("add a tier")
+//     const tierName = "tier11"
+
+//     await contract.addtier(tierName, "0.00 HYPHA", "The first tier", { authorization: `${tier_vesting}@active` })
+
+//     const tiers = await getTiersTable()
+
+//     const theTier = tiers.rows[0]
+
+//     var duplicateTierName = false
+//     try {
+//         console.log("add a tier same name")
+//         await contract.addtier(tierName, "9.00 HYPHA", "something", { authorization: `${tier_vesting}@active` })
+//         duplicateTierName = true
+//     } catch (err) {
+//         console.log("expected error: " + err)
+//     }
+
+//     await contract.removetier(tierName, { authorization: `${tier_vesting}@active` })
+
+//     const tiersAfter2 = await getTiersTable()
+//     console.log("tiers after 2: " + JSON.stringify(tiersAfter2, null, 2))
+
+//     assert({
+//         given: 'Created Tier',
+//         should: 'exist',
+//         actual: {
+//             "id": theTier.id,
+//             "name": theTier.name,
+//             "total_amount": theTier.total_amount,
+//             "released_amount": theTier.released_amount,
+//         },
+//         expected: {
+//             "id": tierName,
+//             "name": "The first tier",
+//             "total_amount": "0.00 HYPHA",
+//             "released_amount": "0.00 HYPHA",
+//         }
+
+//     })
+
+//     assert({
+//         given: 'Trying to create tier with existing name',
+//         should: 'fail',
+//         actual: duplicateTierName,
+//         expected: false
+//     })
+//     assert({
+//         given: 'Deleted tiers',
+//         should: 'delete tiers',
+//         actual: tiersAfter2.rows.length,
+//         expected: 0
+//     })
+
+// })
+
+// describe('Tier Vesting', async assert => {
+
+//     if (!isLocal()) {
+//         console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
+//         return
+//     }
+
+//     console.log("init contracts")
+//     const contract = await eos.contract(tier_vesting)
+//     const tokenContract = await eos.contract(hyphatoken)
+
+//     console.log("reset contract")
+//     await contract.reset({ authorization: `${tier_vesting}@active` })
+
+//     console.log("add a tier")
+//     const tierName = "tier11"
+
+//     await contract.addtier(tierName, "10000.00 HYPHA", "The first tier", { authorization: `${tier_vesting}@active` })
+
+//     const tiers = await getTiersTable()
+//     //console.log("tiers " + JSON.stringify(tiers, null, 2))
+
+//     const theTier = tiers.rows[0]
+
+//     console.log("add locks")
+//     const addLock = async (from, to, tier, amount) => {
+//         await tokenContract.transfer(from, tier_vesting, amount, "test", { authorization: `${firstuser}@active` })
+//         await contract.addlock(from, to, tier, amount, { authorization: `${firstuser}@active` })
+//     }
+
+//     await addLock(firstuser, seconduser, tierName, "300.00 HYPHA")
+//     assert({
+//         given: 'Added lock',
+//         should: 'add to balance',
+//         actual: (await getTiersTable()).rows[0].total_amount,
+//         expected: "300.00 HYPHA",
+//     })
+
+//     await addLock(firstuser, thirduser, tierName, "1000.00 HYPHA")
+
+//     assert({
+//         given: 'Added second lock',
+//         should: 'add to balance',
+//         actual: (await getTiersTable()).rows[0].total_amount,
+//         expected: "1300.00 HYPHA",
+//     })
+
+//     await addLock(firstuser, fourthuser, tierName, "1.00 HYPHA")
+
+//     assert({
+//         given: 'Added third lock',
+//         should: 'add to balance',
+//         actual: (await getTiersTable()).rows[0].total_amount,
+//         expected: "1301.00 HYPHA",
+//     })
+
+//     // void release(name tier_id, amount);
+//     console.log("release a percentage")
+//     await contract.release(tierName, "300.00 HYPHA", { authorization: `${tier_vesting}@active` })
+
+
+//     var duplicateTierName = false
+//     try {
+//         console.log("add a tier same name")
+//         await contract.addtier(tierName, "9.00 HYPHA", "something", { authorization: `${tier_vesting}@active` })
+//         duplicateTierName = true
+//     } catch (err) {
+//         console.log("expected error: " + err)
+//     }
+
+//     await contract.removetier(tierName, { authorization: `${tier_vesting}@active` })
+
+//     const tiersAfter2 = await getTiersTable()
+//     console.log("tiers after 2: " + JSON.stringify(tiersAfter2, null, 2))
+
+//     assert({
+//         given: 'Created Tier',
+//         should: 'exist',
+//         actual: {
+//             "id": theTier.id,
+//             "name": theTier.name,
+//             "total_amount": theTier.total_amount,
+//             "released_amount": theTier.released_amount,
+//         },
+//         expected: {
+//             "id": tierName,
+//             "name": "The first tier",
+//             "total_amount": "0.00 HYPHA",
+//             "released_amount": "0.00 HYPHA",
+//         }
+
+//     })
+
+//     assert({
+//         given: 'Trying to create tier with existing name',
+//         should: 'fail',
+//         actual: duplicateTierName,
+//         expected: false
+//     })
+//     assert({
+//         given: 'Deleted tiers',
+//         should: 'delete tiers',
+//         actual: tiersAfter2.rows.length,
+//         expected: 0
+//     })
+
+// })
+
 
 
