@@ -29,7 +29,7 @@
 const { describe } = require('riteway')
 const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep } = require('../scripts/helper')
 
-const { tier_vesting, hyphatoken, firstuser, seconduser, thirduser } = names
+const { tier_vesting, hyphatoken, firstuser, seconduser, thirduser, fourthuser } = names
 
 // typedef eosio::multi_index<"tiers"_n, tier> tiers_table;
 // typedef eosio::multi_index<"locks"_n, tier> tiers_table;
@@ -71,15 +71,37 @@ describe('Tier Vesting', async assert => {
 
     console.log("add locks")
     const addLock = async (from, to, tier, amount) => {
-        await tokenContract.transfer(firstuser, tier_vesting, "300.00 HYPHA", "test", { authorization: `${firstuser}@active` })
-        await contract.addlock(firstuser, seconduser, tierName, "300.00 HYPHA", { authorization: `${firstuser}@active` })
+        await tokenContract.transfer(from, tier_vesting, amount, "test", { authorization: `${firstuser}@active` })
+        await contract.addlock(from, to, tier, amount, { authorization: `${firstuser}@active` })
     }
 
     await addLock(firstuser, seconduser, tierName, "300.00 HYPHA")
+    assert({
+        given: 'Added lock',
+        should: 'add to balance',
+        actual: (await getTiersTable()).rows[0].total_amount,
+        expected: "300.00 HYPHA",
+    })
 
-    //void addlock(name sender, name owner, name tier_id, asset amount);
+    await addLock(firstuser, thirduser, tierName, "1000.00 HYPHA")
 
-// void release(name tier_id, amount);
+    assert({
+        given: 'Added second lock',
+        should: 'add to balance',
+        actual: (await getTiersTable()).rows[0].total_amount,
+        expected: "1300.00 HYPHA",
+    })
+
+    await addLock(firstuser, fourthuser, tierName, "1.00 HYPHA")
+
+    assert({
+        given: 'Added third lock',
+        should: 'add to balance',
+        actual: (await getTiersTable()).rows[0].total_amount,
+        expected: "1301.00 HYPHA",
+    })
+
+    // void release(name tier_id, amount);
     console.log("release a percentage")
     await contract.release(tierName, "300.00 HYPHA", { authorization: `${tier_vesting}@active` })
 
