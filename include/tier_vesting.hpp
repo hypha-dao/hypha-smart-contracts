@@ -29,17 +29,19 @@ public:
   [[eosio::action]]
   void removelock(uint64_t lock_id);
 
-  // [[eosio::action]]
-  // void addtoken(name token_contract, asset token);
+  [[eosio::action]]
+  void addtoken(name token_contract, asset token);
 
-  // [[eosio::action]]
-  // void removetoken(symbol token_symbol);
+  [[eosio::action]]
+  void removetoken(symbol token_symbol);
   
-  [[eosio::on_notify("hypha.hypha::transfer")]]
-  void onreceive(name from, name to, asset quantity, std::string memo);
+  // [[eosio::on_notify("hypha.hypha::transfer")]]
+  // void onreceive(name from, name to, asset quantity, std::string memo);
 
   [[eosio::action]]
   void reset();
+
+  void on_receive(name from, name to, asset quantity, std::string memo);
 
 private:
   void send_transfer(name contract, name from, name to, asset quantity, std::string memo);
@@ -74,14 +76,14 @@ private:
     indexed_by<"bytier"_n, const_mem_fun<lock, uint64_t, &lock::get_tier_id>>
   > locks_table;
 
-  // struct [[eosio::table]] token {
-  //   symbol symbol;
-  //   name contract;
+  struct [[eosio::table]] token {
+    symbol symbol;
+    name contract;
 
-  //   uint64_t primary_key() const { return symbol.raw(); }
-  // };
+    uint64_t primary_key() const { return symbol.raw(); }
+  };
 
-  // typedef eosio::multi_index<"tokens"_n, token> tokens_table;
+  typedef eosio::multi_index<"tokens"_n, token> tokens_table;
 
   struct [[eosio::table]] balance {
     name owner;
@@ -92,4 +94,20 @@ private:
 
   typedef eosio::multi_index<"balances"_n, balance> balances_table;
 
+
 };
+
+extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
+    if (action == name("transfer").value) {
+        // Check if the transfer action is from a specific token contract
+        if (code == name("tokencontract1").value) {
+            // Call the corresponding function to handle tokencontract1 transfers
+            execute_action<tier_vesting>(name(receiver), name(code), &tier_vesting::on_receive);
+        }
+        // Add more if conditions for handling transfers from other token contracts
+        // else if (code == name("tokencontract3").value) {
+        //    execute_action<vesting_contract>(name(receiver), name(code), &vesting_contract::on_transfer_tokencontract3);
+        // }
+        // ... and so on
+    }
+}

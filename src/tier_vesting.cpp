@@ -100,31 +100,11 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
                { row.claimed_amount += claimable; });
 
   // // Find the token contract for this asset symbol
-  // tokens_table tokens(get_self(), get_self().value);
-  // auto token_itr = tokens.find(claimable.symbol.raw());
-  // check(token_itr != tokens.end(), "Token contract not found for this asset symbol");
-  // send_transfer(token_itr->contract, get_self(), owner, claimable, "Claim from vesting contract");
-  send_transfer(name("hypha.hypha"), get_self(), owner, claimable, "Claim from vesting contract");
+  tokens_table tokens(get_self(), get_self().value);
+  auto token_itr = tokens.find(claimable.symbol.raw());
+  check(token_itr != tokens.end(), "Token contract not found for this asset symbol");
+  send_transfer(token_itr->contract, get_self(), owner, claimable, "Claim from vesting contract");
 }
-
-// void tier_vesting::addtoken(name token_contract, asset token)
-// {
-//   // Ensure this action is authorized by the contract account
-//   require_auth(get_self());
-
-//   // Open the tokens table
-//   tokens_table tokens(get_self(), get_self().value);
-
-//   // Ensure the token doesn't already exist in the table
-//   auto token_itr = tokens.find(token.symbol.raw());
-//   check(token_itr == tokens.end(), "Token already exists in the table");
-
-//   // Add the token to the table
-//   tokens.emplace(get_self(), [&](auto &row)
-//                  {
-//     row.symbol = token.symbol;
-//     row.contract = token_contract; });
-// }
 
 void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
 {
@@ -207,23 +187,41 @@ void tier_vesting::removetier(name tier_id)
   tiers.erase(tier_itr);
 }
 
-// void tier_vesting::removetoken(symbol token_symbol)
-// {
-//   // Ensure this action is authorized by the contract account
-//   require_auth(get_self());
+void tier_vesting::addtoken(name token_contract, asset token)
+{
+  require_auth(get_self());
 
-//   // Open the tokens table
-//   tokens_table tokens(get_self(), get_self().value);
+  // Open the tokens table
+  tokens_table tokens(get_self(), get_self().value);
 
-//   // Find the token
-//   auto token_itr = tokens.find(token_symbol.raw());
-//   check(token_itr != tokens.end(), "Token not found");
+  // Ensure the token doesn't already exist in the table
+  auto token_itr = tokens.find(token.symbol.raw());
+  check(token_itr == tokens.end(), "Token already exists in the table");
+  
+  // Add the token to the table
+  tokens.emplace(get_self(), [&](auto &row)
+                 {
+    row.symbol = token.symbol;
+    row.contract = token_contract; });
+}
 
-//   // Remove the token from the table
-//   tokens.erase(token_itr);
-// }
+void tier_vesting::removetoken(symbol token_symbol)
+{
+  // Ensure this action is authorized by the contract account
+  require_auth(get_self());
 
-void tier_vesting::onreceive(name from, name to, asset quantity, std::string memo)
+  // Open the tokens table
+  tokens_table tokens(get_self(), get_self().value);
+
+  // Find the token
+  auto token_itr = tokens.find(token_symbol.raw());
+  check(token_itr != tokens.end(), "Token not found");
+
+  // Remove the token from the table
+  tokens.erase(token_itr);
+}
+
+void tier_vesting::on_receive(name from, name to, asset quantity, std::string memo)
 {
   if (to != get_self())
   {
@@ -231,16 +229,16 @@ void tier_vesting::onreceive(name from, name to, asset quantity, std::string mem
   }
 
   // For now only hypha token is supported - other tokens would need a more elaborate balances table.
-  // // Open the tokens table
-  // tokens_table tokens(get_self(), get_self().value);
+  // Open the tokens table
+  tokens_table tokens(get_self(), get_self().value);
 
-  // // Find the correct token contract for the transferred asset
-  // auto token_itr = tokens.find(quantity.symbol.raw());
+  // Find the correct token contract for the transferred asset
+  auto token_itr = tokens.find(quantity.symbol.raw());
 
-  // // Ensure the asset is in the tokens table and the transfer comes from the correct contract
-  // if (token_itr == tokens.end() || get_sender() != token_itr->contract) {
-  //   return;
-  // }
+  // Ensure the asset is in the tokens table and the transfer comes from the correct contract
+  if (token_itr == tokens.end() || get_sender() != token_itr->contract) {
+    return;
+  }
 
   // Open the balances table
   balances_table balances(get_self(), get_self().value);
