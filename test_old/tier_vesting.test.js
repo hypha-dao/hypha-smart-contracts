@@ -373,6 +373,11 @@ describe('Tier Vesting', async assert => {
 
         const tier = (await getTiersTable()).rows[0]
         
+        const addLockOnActiveTierThrows = await expectError(async()=>{
+            await contract.addlock(firstuser, seconduser, tierName, "1.00 HYPHA", { authorization: `${firstuser}@active` })
+        }, "vesting has already started")
+
+
         const getBalance = async (account) => {
             return await eos.getCurrencyBalance("hypha.hypha", account, "HYPHA")
         }
@@ -437,6 +442,17 @@ describe('Tier Vesting', async assert => {
             await contract.claim(firstuser, 8, { authorization: `${firstuser}@active` })
         }, "lock")
 
+        console.log("release more 5%")
+        await contract.release(tierName, "455.00 HYPHA", { authorization: `${tier_vesting}@active` })
+        const tier2 = (await getTiersTable()).rows[0]
+        await sleep(500)
+
+        const expectedClaim5Pct = (id) => (lockedValues[id] * 0.05).toFixed(2) + " HYPHA"
+        await claimWithExpectedDifference(seconduser, 0, expectedClaim5Pct(0))
+        await claimWithExpectedDifference(thirduser, 1, expectedClaim5Pct(1))
+        await claimWithExpectedDifference(fourthuser, 2, expectedClaim5Pct(2))
+        await claimWithExpectedDifference(seconduser, 3, expectedClaim5Pct(3))
+
         assert({
             given: 'Release wrong symbol',
             should: 'throw error',
@@ -452,6 +468,13 @@ describe('Tier Vesting', async assert => {
         })
 
         assert({
+            given: 'Add lock after tier has started',
+            should: 'throw error',
+            actual: addLockOnActiveTierThrows,
+            expected: true,
+        })
+
+        assert({
             given: 'Release 10%',
             should: 'show correct values',
             actual: {
@@ -463,6 +486,7 @@ describe('Tier Vesting', async assert => {
                 "percentage_released": "10.00"        
             },
         })
+
         assert({
             given: 'Claim wrong lock',
             should: 'throw error',
@@ -480,6 +504,43 @@ describe('Tier Vesting', async assert => {
             given: 'Claim on non existent lock',
             should: 'throw error',
             actual: lockDoesNotExistThrows,
+            expected: true,
+        })
+
+        console.log("release the rest")
+        await contract.release(tierName, (9100.0 * .85).toFixed(2) + " HYPHA", { authorization: `${tier_vesting}@active` })
+        const tier3 = (await getTiersTable()).rows[0]
+
+        await sleep(500)
+
+        const expectedClaim85Pct = (id) => (lockedValues[id] * 0.85).toFixed(2) + " HYPHA"
+        await claimWithExpectedDifference(seconduser, 0, expectedClaim85Pct(0))
+        await claimWithExpectedDifference(thirduser, 1, expectedClaim85Pct(1))
+        await claimWithExpectedDifference(fourthuser, 2, expectedClaim85Pct(2))
+        await claimWithExpectedDifference(seconduser, 3, expectedClaim85Pct(3))
+
+        const locksAfter = await getLocksTable()
+        const tierAfter = (await getTiersTable()).rows[0]
+
+        //console.log("locks after " + JSON.stringify(locksAfter, null, 2))
+        
+        locksAfter.rows.forEach((element) => assert({
+            given: 'claimed whole amount',
+            should: 'have same claimed as amount',
+            actual: element.amount == element.claimed_amount,
+            expected: true,
+        }))
+
+        assert({
+            given: 'Tier fully released',
+            should: 'have same claimed as amount',
+            actual: tierAfter.total_amount == tierAfter.released_amount,
+            expected: true,
+        })
+        assert({
+            given: 'Tier fully released',
+            should: 'have 100%',
+            actual: parseFloat(tierAfter.percentage_released).toFixed(4) == "100.0000",
             expected: true,
         })
 
