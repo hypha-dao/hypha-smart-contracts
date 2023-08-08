@@ -1,8 +1,18 @@
 #include "../include/tier_vesting.hpp"
+// #include "../include/utils.hpp"
+
+void tier_vesting::reset()
+{
+  require_auth(get_self());
+  // check(false, "reset is only active in testing");
+
+  utils::delete_table<tiers_table>(get_self(), get_self().value);
+  utils::delete_table<locks_table>(get_self(), get_self().value);
+  utils::delete_table<balances_table>(get_self(), get_self().value);
+}
 
 void tier_vesting::addtier(name tier_id, asset amount, std::string name)
 {
-  // Ensure this action is authorized by the contract account
   require_auth(get_self());
 
   // Open the tiers table
@@ -15,17 +25,17 @@ void tier_vesting::addtier(name tier_id, asset amount, std::string name)
   // Initialize the created_at with the current time
   auto current_time = eosio::current_time_point();
 
-// TODO: build the total_amount balance by locks so it's always correct and reflecting existing locks
+  // TODO: build the total_amount balance by locks so it's always correct and reflecting existing locks
 
   // Add the tier to the table
-  tiers.emplace(get_self(), [&](auto &row) {
+  tiers.emplace(get_self(), [&](auto &row)
+                {
     row.id = tier_id;
     row.total_amount = asset(0, amount.symbol);
     row.name = name;
     row.created_at = current_time;
     row.percentage_released = 0.0;
-    row.released_amount = asset(0, amount.symbol); 
-  });
+    row.released_amount = asset(0, amount.symbol); });
 }
 
 void tier_vesting::release(name tier_id, asset amount)
@@ -89,33 +99,32 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
   locks.modify(lock_itr, get_self(), [&](auto &row)
                { row.claimed_amount += claimable; });
 
-  // Find the token contract for this asset symbol
-  tokens_table tokens(get_self(), get_self().value);
-  auto token_itr = tokens.find(claimable.symbol.raw());
-  check(token_itr != tokens.end(), "Token contract not found for this asset symbol");
-
-  // Send the claimed assets to the owner
-  send_transfer(token_itr->contract, get_self(), owner, claimable, "Claim from vesting contract");
+  // // Find the token contract for this asset symbol
+  // tokens_table tokens(get_self(), get_self().value);
+  // auto token_itr = tokens.find(claimable.symbol.raw());
+  // check(token_itr != tokens.end(), "Token contract not found for this asset symbol");
+  // send_transfer(token_itr->contract, get_self(), owner, claimable, "Claim from vesting contract");
+  send_transfer(name("hypha.hypha"), get_self(), owner, claimable, "Claim from vesting contract");
 }
 
-void tier_vesting::addtoken(name token_contract, asset token)
-{
-  // Ensure this action is authorized by the contract account
-  require_auth(get_self());
+// void tier_vesting::addtoken(name token_contract, asset token)
+// {
+//   // Ensure this action is authorized by the contract account
+//   require_auth(get_self());
 
-  // Open the tokens table
-  tokens_table tokens(get_self(), get_self().value);
+//   // Open the tokens table
+//   tokens_table tokens(get_self(), get_self().value);
 
-  // Ensure the token doesn't already exist in the table
-  auto token_itr = tokens.find(token.symbol.raw());
-  check(token_itr == tokens.end(), "Token already exists in the table");
+//   // Ensure the token doesn't already exist in the table
+//   auto token_itr = tokens.find(token.symbol.raw());
+//   check(token_itr == tokens.end(), "Token already exists in the table");
 
-  // Add the token to the table
-  tokens.emplace(get_self(), [&](auto &row)
-                 {
-    row.symbol = token.symbol;
-    row.contract = token_contract; });
-}
+//   // Add the token to the table
+//   tokens.emplace(get_self(), [&](auto &row)
+//                  {
+//     row.symbol = token.symbol;
+//     row.contract = token_contract; });
+// }
 
 void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
 {
@@ -159,14 +168,11 @@ void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
     row.owner = owner;
     row.tier_id = tier_id;
     row.amount = amount;
-    row.claimed_amount = asset(0, amount.symbol);
-  });
+    row.claimed_amount = asset(0, amount.symbol); });
 
   // Update the tier's total amount
   tiers.modify(tier_itr, get_self(), [&](auto &row)
-               {
-    row.total_amount = new_total_amount;
-  });
+               { row.total_amount = new_total_amount; });
 }
 
 void tier_vesting::removelock(uint64_t lock_id)
@@ -201,21 +207,21 @@ void tier_vesting::removetier(name tier_id)
   tiers.erase(tier_itr);
 }
 
-void tier_vesting::removetoken(symbol token_symbol)
-{
-  // Ensure this action is authorized by the contract account
-  require_auth(get_self());
+// void tier_vesting::removetoken(symbol token_symbol)
+// {
+//   // Ensure this action is authorized by the contract account
+//   require_auth(get_self());
 
-  // Open the tokens table
-  tokens_table tokens(get_self(), get_self().value);
+//   // Open the tokens table
+//   tokens_table tokens(get_self(), get_self().value);
 
-  // Find the token
-  auto token_itr = tokens.find(token_symbol.raw());
-  check(token_itr != tokens.end(), "Token not found");
+//   // Find the token
+//   auto token_itr = tokens.find(token_symbol.raw());
+//   check(token_itr != tokens.end(), "Token not found");
 
-  // Remove the token from the table
-  tokens.erase(token_itr);
-}
+//   // Remove the token from the table
+//   tokens.erase(token_itr);
+// }
 
 void tier_vesting::onreceive(name from, name to, asset quantity, std::string memo)
 {

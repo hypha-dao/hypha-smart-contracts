@@ -45,6 +45,10 @@ describe('Tier Vesting', async assert => {
 
     const contract = await eos.contract(tier_vesting)
 
+    console.log("reset contract")
+    await contract.reset({ authorization: `${tier_vesting}@active` })
+
+
     // void addtier(name tier_id, asset total_amount, time_point_sec created_at, std::string name);
     console.log("add a tier")
     const tierName = "tier11"

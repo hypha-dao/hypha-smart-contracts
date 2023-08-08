@@ -3,6 +3,7 @@
 #include <eosio/time.hpp>
 #include <eosio/name.hpp>
 #include <eosio/transaction.hpp>
+#include "utils.hpp"
 
 using namespace eosio;
 
@@ -28,14 +29,17 @@ public:
   [[eosio::action]]
   void removelock(uint64_t lock_id);
 
-  [[eosio::action]]
-  void addtoken(name token_contract, asset token);
+  // [[eosio::action]]
+  // void addtoken(name token_contract, asset token);
 
-  [[eosio::action]]
-  void removetoken(symbol token_symbol);
+  // [[eosio::action]]
+  // void removetoken(symbol token_symbol);
   
   [[eosio::on_notify("hypha.hypha::transfer")]]
   void onreceive(name from, name to, asset quantity, std::string memo);
+
+  [[eosio::action]]
+  void reset();
 
 private:
   void send_transfer(name contract, name from, name to, asset quantity, std::string memo);
@@ -70,14 +74,14 @@ private:
     indexed_by<"bytier"_n, const_mem_fun<lock, uint64_t, &lock::get_tier_id>>
   > locks_table;
 
-  struct [[eosio::table]] token {
-    symbol symbol;
-    name contract;
+  // struct [[eosio::table]] token {
+  //   symbol symbol;
+  //   name contract;
 
-    uint64_t primary_key() const { return symbol.raw(); }
-  };
+  //   uint64_t primary_key() const { return symbol.raw(); }
+  // };
 
-  typedef eosio::multi_index<"tokens"_n, token> tokens_table;
+  // typedef eosio::multi_index<"tokens"_n, token> tokens_table;
 
   struct [[eosio::table]] balance {
     name owner;
