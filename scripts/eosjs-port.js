@@ -136,7 +136,7 @@ class Eos {
         }
         catch (err) {
           const errStr = ''+err
-          console.log('TRANSACTION ERROR:', errStr)
+          //console.log('TRANSACTION ERROR:', errStr)
           if (errStr.toLowerCase().includes('deadline exceeded')) {
             await sleep(3000)
             console.log('retrying...')
@@ -144,7 +144,7 @@ class Eos {
               actions
             }, trxConfig)
           } else {
-            console.log("Error on actions: "+JSON.stringify(actions))
+            //console.log("Error on actions: "+JSON.stringify(actions))
             throw err
           }
         }

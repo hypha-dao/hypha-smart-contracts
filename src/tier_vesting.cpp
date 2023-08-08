@@ -85,6 +85,9 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
   auto lock_itr = locks.find(lock_id);
   check(lock_itr != locks.end(), "Lock not found");
 
+  // Check owner
+  check(lock_itr->owner == owner, "Only owner can claim their lock");
+
   // Open the tiers table
   tiers_table tiers(get_self(), get_self().value);
 
@@ -95,16 +98,20 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
   double fraction_released = tier_itr->percentage_released / 100.0;
 
   // Calculate the claimable amount
-  asset claimable = lock_itr->amount * fraction_released - lock_itr->claimed_amount;
+  auto claimableValue = lock_itr->amount.amount * fraction_released - lock_itr->claimed_amount.amount;
+
+  asset claimable = asset(claimableValue, lock_itr->amount.symbol);
+
+  std::string claimableStr = std::to_string(claimable.amount) + " " + claimable.symbol.code().to_string();
 
   // Ensure there is something to claim
-  check(claimable.amount > 0, "Nothing to claim");
+  check(claimable.amount > 0, "Nothing to claim " + claimableStr);
 
   // Update the lock
   locks.modify(lock_itr, get_self(), [&](auto &row)
                { row.claimed_amount += claimable; });
 
-  send_transfer(name("hypha.hypha"), get_self(), owner, claimable, "Claim from vesting contract");
+  send_transfer(name("hypha.hypha"), get_self(), lock_itr->owner, claimable, "Claim from vesting contract");
 }
 
 void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)

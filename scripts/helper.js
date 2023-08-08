@@ -111,7 +111,7 @@ const accountsMetadata = (network) => {
       owner: account(owner),
       hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA'),
 
-      firstuser: account('seedsuseraaa', '10000.00 HYPHA'),
+      firstuser: account('seedsuseraaa', '10000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
       thirduser: account('seedsuserccc', '50000.00 HYPHA'),
       fourthuser: account('seedsuserxxx', '100000.00 HYPHA'),
@@ -275,7 +275,15 @@ const contractPermissions = {
       target: `${accounts.paycpu.account}@payforcpu`,
       action: 'payforcpu'
     }
-  ]
+  ],
+
+  tier_vesting: [
+    {
+      target: `${accounts.tier_vesting.account}@active`,
+      actor: `${accounts.tier_vesting.account}@eosio.code`
+    },
+  ],
+
 }
 
 const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)
