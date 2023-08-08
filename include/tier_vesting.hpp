@@ -24,7 +24,7 @@ public:
   void claim(name owner, uint64_t lock_id);
 
   [[eosio::action]]
-  void addlock(name sender, name owner, name tier_id, asset amount);
+  void addlock(name sender, name owner, name tier_id, asset amount, std::string note);
 
   [[eosio::action]]
   void removelock(uint64_t lock_id);
@@ -57,6 +57,7 @@ private:
     name tier_id;
     asset amount;
     asset claimed_amount;
+    std::string note;
 
     uint64_t primary_key() const { return lock_id; }
     uint64_t get_owner() const { return owner.value; }

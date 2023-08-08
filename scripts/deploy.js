@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const R = require('ramda')
-const { eos, isLocal, getBalance, accounts, permissions, sleep } = require('./helper')
+const { eos, isLocal, getBalance, accounts, contractPermissions, sleep } = require('./helper')
 const createAccount = require('./createAccount')
 
 const debug = process.env.DEBUG || false
@@ -471,8 +471,10 @@ const isCreateActorPermission = permission => permission.type == "createActorPer
 const isKeyPermission = permission => permission.key && !permission.actor
 
 const updatePermissions = async () => {
-  console.log("Updating permissions...[deprecated]")
-  await updatePermissionsList(permissions)
+  for (const contractName in contractPermissions) {
+    const permissionsList = contractPermissions[contractName];
+    await updatePermissionsList(permissionsList)
+  }
 }
 
 const updatePermissionsList = async (listOfPermissions) => {

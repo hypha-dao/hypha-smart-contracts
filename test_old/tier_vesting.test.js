@@ -1,26 +1,7 @@
-
-
-// [[eosio::action]]
-// void release(name tier_id, asset amount);
-
-// [[eosio::action]]
-// void claim(name owner, uint64_t lock_id);
-
-// [[eosio::action]]
-// void addlock(name sender, name owner, name tier_id, asset amount);
-
-// [[eosio::action]]
-// void removelock(uint64_t lock_id);
-
 const { describe } = require('riteway')
 const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep } = require('../scripts/helper')
 
 const { tier_vesting, hyphatoken, firstuser, seconduser, thirduser, fourthuser } = names
-
-// typedef eosio::multi_index<"tiers"_n, tier> tiers_table;
-// typedef eosio::multi_index<"locks"_n, tier> tiers_table;
-// typedef eosio::multi_index<"balances"_n, tier> tiers_table;
-// typedef eosio::multi_index<"tokens"_n, tier> tiers_table;
 
 const getTiersTable = async () => {
     return eos.getTableRows({
@@ -86,7 +67,7 @@ const setup = async () => {
     const addLock = async (from, to, tier, amount) => {
         await tokenContract.transfer("owner", firstuser, amount, "", { authorization: `owner@active` })
         await tokenContract.transfer(from, tier_vesting, amount, "test", { authorization: `${firstuser}@active` })
-        await contract.addlock(from, to, tier, amount, { authorization: `${firstuser}@active` })
+        await contract.addlock(from, to, tier, amount, "", { authorization: `${firstuser}@active` })
     }
 
     const commonData = {
@@ -206,41 +187,38 @@ describe('Tier Vesting', async assert => {
         })
 
         const locks = await getLocksTable()
-        console.log('locks: ' + JSON.stringify(locks, null, 2))
+        // console.log('locks: ' + JSON.stringify(locks, null, 2))
 
         assert({
             given: 'Created lock',
             should: 'lock exists',
-            actual: locks,
-            expected: {
-                "rows": [
+            actual: locks.rows,
+            expected: [
                     {
                         "lock_id": 0,
                         "owner": seconduser,
                         "tier_id": "tier11",
                         "amount": "300.00 HYPHA",
-                        "claimed_amount": "0.00 HYPHA"
+                        "claimed_amount": "0.00 HYPHA",
+                        "note": "",
                     },
                     {
                         "lock_id": 1,
                         "owner": thirduser,
                         "tier_id": "tier11",
                         "amount": "1000.00 HYPHA",
-                        "claimed_amount": "0.00 HYPHA"
+                        "claimed_amount": "0.00 HYPHA",
+                        "note": "",
                     },
                     {
                         "lock_id": 2,
                         "owner": fourthuser,
                         "tier_id": "tier11",
                         "amount": "1.00 HYPHA",
-                        "claimed_amount": "0.00 HYPHA"
+                        "claimed_amount": "0.00 HYPHA",
+                        "note": "",
                     }
-                ],
-                "more": false,
-                "next_key": "",
-                "next_key_bytes": ""
-            }
-
+                ]
         })
 
 
@@ -251,7 +229,7 @@ describe('Tier Vesting', async assert => {
 
 
         const addWhenNoBalanceThrowsError = await expectError(async ()=>{
-            await contract.addlock(firstuser, seconduser, tierName, "0.01 HYPHA", { authorization: `${firstuser}@active` })
+            await contract.addlock(firstuser, seconduser, tierName, "0.01 HYPHA", "", { authorization: `${firstuser}@active` })
         }, "balance")
 
         console.log("send balance")
@@ -259,24 +237,24 @@ describe('Tier Vesting', async assert => {
         await tokenContract.transfer(firstuser, tier_vesting, "100.00 HYPHA", "test", { authorization: `${firstuser}@active` })
 
         const lockTooMuchThrows = await expectError(async ()=>{
-            await contract.addlock(firstuser, seconduser, tierName, "100.01 HYPHA", { authorization: `${firstuser}@active` })
+            await contract.addlock(firstuser, seconduser, tierName, "100.01 HYPHA", "a note", { authorization: `${firstuser}@active` })
         }, "balance")
 
         console.log("add lock")
 
         const balances = await getBalancesTable()
 
-        console.log("balances: " + JSON.stringify(balances, null, 2))
+        // console.log("balances: " + JSON.stringify(balances, null, 2))
         
-        await contract.addlock(firstuser, seconduser, tierName, "99.00 HYPHA", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, seconduser, tierName, "99.00 HYPHA", "test note", { authorization: `${firstuser}@active` })
         
         const balancesAfter = await getBalancesTable()
 
         const balanceFinishedThrows = await expectError(async ()=>{
-            await contract.addlock(firstuser, seconduser, tierName, "1.01 HYPHA", { authorization: `${firstuser}@active` })
+            await contract.addlock(firstuser, seconduser, tierName, "1.01 HYPHA", "note note", { authorization: `${firstuser}@active` })
         }, "balance")
 
-        await contract.addlock(firstuser, seconduser, tierName, "1.00 HYPHA", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, seconduser, tierName, "1.00 HYPHA", "notify this", { authorization: `${firstuser}@active` })
         const balancesAfter2 = await getBalancesTable()
 
 
@@ -352,13 +330,13 @@ describe('Tier Vesting', async assert => {
             5000,
             100
         ]
-        await contract.addlock(firstuser, seconduser, tierName, "1000.00 HYPHA", { authorization: `${firstuser}@active` })
-        await contract.addlock(firstuser, thirduser, tierName, "3000.00 HYPHA", { authorization: `${firstuser}@active` })
-        await contract.addlock(firstuser, fourthuser, tierName, "5000.00 HYPHA", { authorization: `${firstuser}@active` })
-        await contract.addlock(firstuser, seconduser, tierName, "100.00 HYPHA", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, seconduser, tierName, "1000.00 HYPHA", "", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, thirduser, tierName, "3000.00 HYPHA", "", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, fourthuser, tierName, "5000.00 HYPHA", "", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, seconduser, tierName, "100.00 HYPHA", "", { authorization: `${firstuser}@active` })
 
         const locks = await getLocksTable()
-        console.log('locks: ' + JSON.stringify(locks, null, 2))
+        // console.log('locks: ' + JSON.stringify(locks, null, 2))
 
         // console.log('tiers: ' + JSON.stringify((await getTiersTable()), null, 2))
 
@@ -376,7 +354,7 @@ describe('Tier Vesting', async assert => {
         const tier = (await getTiersTable()).rows[0]
         
         const addLockOnActiveTierThrows = await expectError(async()=>{
-            await contract.addlock(firstuser, seconduser, tierName, "1.00 HYPHA", { authorization: `${firstuser}@active` })
+            await contract.addlock(firstuser, seconduser, tierName, "1.00 HYPHA", "", { authorization: `${firstuser}@active` })
         }, "vesting has already started")
 
 

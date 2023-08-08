@@ -3,17 +3,13 @@
 void tier_vesting::reset()
 {
   require_auth(get_self());
-#ifdef LOCAL_TEST
-    utils::delete_table<tiers_table>(get_self(), get_self().value);
-    utils::delete_table<locks_table>(get_self(), get_self().value);
-    utils::delete_table<balances_table>(get_self(), get_self().value);
-#else
-    check(false, "reset is only active in testing");
-#endif
-
-  // utils::delete_table<tiers_table>(get_self(), get_self().value);
-  // utils::delete_table<locks_table>(get_self(), get_self().value);
-  // utils::delete_table<balances_table>(get_self(), get_self().value);
+  #ifdef LOCAL_TEST
+      utils::delete_table<tiers_table>(get_self(), get_self().value);
+      utils::delete_table<locks_table>(get_self(), get_self().value);
+      utils::delete_table<balances_table>(get_self(), get_self().value);
+  #else
+      check(false, "reset is only active in testing");
+  #endif
 }
 
 void tier_vesting::addtier(name tier_id, asset amount, std::string name)
@@ -120,7 +116,7 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
   send_transfer(name("hypha.hypha"), get_self(), lock_itr->owner, claimable, "Claim from vesting contract");
 }
 
-void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
+void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount, std::string note)
 {
   // Ensure this action is authorized by the sender
   require_auth(sender);
@@ -162,7 +158,8 @@ void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
     row.owner = owner;
     row.tier_id = tier_id;
     row.amount = amount;
-    row.claimed_amount = asset(0, amount.symbol); });
+    row.claimed_amount = asset(0, amount.symbol);
+    row.note = note; });
 
   // Update the tier's total amount
   tiers.modify(tier_itr, get_self(), [&](auto &row)
