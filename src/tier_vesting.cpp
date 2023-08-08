@@ -1,5 +1,4 @@
 #include "../include/tier_vesting.hpp"
-// #include "../include/utils.hpp"
 
 void tier_vesting::reset()
 {
@@ -42,9 +41,6 @@ void tier_vesting::release(name tier_id, asset amount)
 {
   // Ensure this action is authorized by the contract account
   require_auth(get_self());
-
-  // Validate the input percentage
-  // check(percent >= 0.0 && percent <= 100.0, "Percent must be between 0 and 100");
 
   // Open the tiers table
   tiers_table tiers(get_self(), get_self().value);
@@ -99,32 +95,8 @@ void tier_vesting::claim(name owner, uint64_t lock_id)
   locks.modify(lock_itr, get_self(), [&](auto &row)
                { row.claimed_amount += claimable; });
 
-  // // Find the token contract for this asset symbol
-  // tokens_table tokens(get_self(), get_self().value);
-  // auto token_itr = tokens.find(claimable.symbol.raw());
-  // check(token_itr != tokens.end(), "Token contract not found for this asset symbol");
-  // send_transfer(token_itr->contract, get_self(), owner, claimable, "Claim from vesting contract");
   send_transfer(name("hypha.hypha"), get_self(), owner, claimable, "Claim from vesting contract");
 }
-
-// void tier_vesting::addtoken(name token_contract, asset token)
-// {
-//   // Ensure this action is authorized by the contract account
-//   require_auth(get_self());
-
-//   // Open the tokens table
-//   tokens_table tokens(get_self(), get_self().value);
-
-//   // Ensure the token doesn't already exist in the table
-//   auto token_itr = tokens.find(token.symbol.raw());
-//   check(token_itr == tokens.end(), "Token already exists in the table");
-
-//   // Add the token to the table
-//   tokens.emplace(get_self(), [&](auto &row)
-//                  {
-//     row.symbol = token.symbol;
-//     row.contract = token_contract; });
-// }
 
 void tier_vesting::addlock(name sender, name owner, name tier_id, asset amount)
 {
@@ -207,40 +179,12 @@ void tier_vesting::removetier(name tier_id)
   tiers.erase(tier_itr);
 }
 
-// void tier_vesting::removetoken(symbol token_symbol)
-// {
-//   // Ensure this action is authorized by the contract account
-//   require_auth(get_self());
-
-//   // Open the tokens table
-//   tokens_table tokens(get_self(), get_self().value);
-
-//   // Find the token
-//   auto token_itr = tokens.find(token_symbol.raw());
-//   check(token_itr != tokens.end(), "Token not found");
-
-//   // Remove the token from the table
-//   tokens.erase(token_itr);
-// }
-
 void tier_vesting::onreceive(name from, name to, asset quantity, std::string memo)
 {
   if (to != get_self())
   {
     return;
   }
-
-  // For now only hypha token is supported - other tokens would need a more elaborate balances table.
-  // // Open the tokens table
-  // tokens_table tokens(get_self(), get_self().value);
-
-  // // Find the correct token contract for the transferred asset
-  // auto token_itr = tokens.find(quantity.symbol.raw());
-
-  // // Ensure the asset is in the tokens table and the transfer comes from the correct contract
-  // if (token_itr == tokens.end() || get_sender() != token_itr->contract) {
-  //   return;
-  // }
 
   // Open the balances table
   balances_table balances(get_self(), get_self().value);
@@ -261,8 +205,6 @@ void tier_vesting::onreceive(name from, name to, asset quantity, std::string mem
   }
 }
 
-// ... Other action implementations ...
-
 void tier_vesting::send_transfer(name contract, name from, name to, asset quantity, std::string memo)
 {
   action{
@@ -272,5 +214,3 @@ void tier_vesting::send_transfer(name contract, name from, name to, asset quanti
       std::make_tuple(from, to, quantity, memo)}
       .send();
 }
-
-// ... Other helper method implementations ...

@@ -111,13 +111,13 @@ const accountsMetadata = (network) => {
       owner: account(owner),
       hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA'),
 
-      firstuser: account('seedsuseraaa', '10.00 HYPHA'),
-      seconduser: account('seedsuserbbb', '10.00 HYPHA'),
-      thirduser: account('seedsuserccc', '50.00 HYPHA'),
-      fourthuser: account('seedsuserxxx', '100.00 HYPHA'),
-      fifthuser: account('seedsuseryyy', '100.00 HYPHA'),
-      sixthuser: account('seedsuserzzz', '5.00 HYPHA'),
-      oracleuser: account('hyphaoracle1', '10.00 HYPHA'),
+      firstuser: account('seedsuseraaa', '10000.00 HYPHA'),
+      seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
+      thirduser: account('seedsuserccc', '50000.00 HYPHA'),
+      fourthuser: account('seedsuserxxx', '100000.00 HYPHA'),
+      fifthuser: account('seedsuseryyy', '100000.00 HYPHA'),
+      sixthuser: account('seedsuserzzz', '5000.00 HYPHA'),
+      oracleuser: account('hyphaoracle1', '10000.00 HYPHA'),
       daoAccount: account('dao.hypha'),
 
       // for testing..
@@ -125,7 +125,6 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
-      hyphatoken: contract('token.hypha', 'hyphatoken'),
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
 

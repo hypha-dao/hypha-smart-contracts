@@ -352,7 +352,8 @@ const createCoins = async (token) => {
           }],
           data: {
             issuer,
-            initial_supply: supply
+            initial_supply: supply,
+            max_supply: supply,
           }
         }
       ]
@@ -405,7 +406,7 @@ const transferCoins = async (token, recipient) => {
     
     console.log(`sent ${recipient.quantity} from ${token.issuer} to ${recipient.account}`)
 
-    console.log("remaining balance for "+token.issuer +" "+ JSON.stringify(await getBalance(token.issuer), null, 2))
+    //console.log("remaining balance for "+token.issuer +" "+ JSON.stringify(await getBalance(token.issuer), null, 2))
 
   } catch (err) {
     console.error(`cannot transfer from ${token.issuer} to ${recipient.account} (${recipient.quantity})\n* error: ` + err + `\n`)

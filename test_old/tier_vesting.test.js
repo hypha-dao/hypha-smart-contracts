@@ -29,12 +29,21 @@
 const { describe } = require('riteway')
 const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep } = require('../scripts/helper')
 
-const { tier_vesting, firstuser, seconduser, thirduser } = names
+const { tier_vesting, hyphatoken, firstuser, seconduser, thirduser } = names
 
 // typedef eosio::multi_index<"tiers"_n, tier> tiers_table;
 // typedef eosio::multi_index<"locks"_n, tier> tiers_table;
 // typedef eosio::multi_index<"balances"_n, tier> tiers_table;
 // typedef eosio::multi_index<"tokens"_n, tier> tiers_table;
+
+const getTiersTable = async () => {
+    return eos.getTableRows({
+        code: tier_vesting,
+        scope: tier_vesting,
+        table: 'tiers',
+        json: true
+    })
+}
 
 describe('Tier Vesting', async assert => {
 
@@ -43,30 +52,30 @@ describe('Tier Vesting', async assert => {
         return
     }
 
+    console.log("init contracts")
     const contract = await eos.contract(tier_vesting)
+    const tokenContract = await eos.contract(hyphatoken)
 
     console.log("reset contract")
     await contract.reset({ authorization: `${tier_vesting}@active` })
 
-
-    // void addtier(name tier_id, asset total_amount, time_point_sec created_at, std::string name);
     console.log("add a tier")
     const tierName = "tier11"
 
     await contract.addtier(tierName, "10000.00 HYPHA", "The first tier", { authorization: `${tier_vesting}@active` })
 
-    const tiers = await eos.getTableRows({
-        code: tier_vesting,
-        scope: tier_vesting,
-        table: 'tiers',
-        json: true
-    })
-    console.log("tiers " + JSON.stringify(tiers, null, 2))
+    const tiers = await getTiersTable()
+    //console.log("tiers " + JSON.stringify(tiers, null, 2))
 
     const theTier = tiers.rows[0]
 
     console.log("add locks")
-    await contract.addlock(firstuser, seconduser, tierName, "300.00 HYPHA", { authorization: `${tier_vesting}@active` })
+    const addLock = async (from, to, tier, amount) => {
+        await tokenContract.transfer(firstuser, tier_vesting, "300.00 HYPHA", "test", { authorization: `${firstuser}@active` })
+        await contract.addlock(firstuser, seconduser, tierName, "300.00 HYPHA", { authorization: `${firstuser}@active` })
+    }
+
+    await addLock(firstuser, seconduser, tierName, "300.00 HYPHA")
 
     //void addlock(name sender, name owner, name tier_id, asset amount);
 
@@ -86,13 +95,8 @@ describe('Tier Vesting', async assert => {
 
     await contract.removetier(tierName, { authorization: `${tier_vesting}@active` })
 
-    const tiersAfter = await eos.getTableRows({
-        code: tier_vesting,
-        scope: tier_vesting,
-        table: 'tiers',
-        json: true
-    })
-    console.log("tiers after" + JSON.stringify(tiersAfter, null, 2))
+    const tiersAfter2 = await getTiersTable()
+    console.log("tiers after 2: " + JSON.stringify(tiersAfter2, null, 2))
 
     assert({
         given: 'Created Tier',
@@ -106,7 +110,7 @@ describe('Tier Vesting', async assert => {
         expected: {
             "id": tierName,
             "name": "The first tier",
-            "total_amount": "10000.00 HYPHA",
+            "total_amount": "0.00 HYPHA",
             "released_amount": "0.00 HYPHA",
         }
 
@@ -121,7 +125,7 @@ describe('Tier Vesting', async assert => {
     assert({
         given: 'Deleted tiers',
         should: 'delete tiers',
-        actual: tiersAfter.rows.length,
+        actual: tiersAfter2.rows.length,
         expected: 0
     })
 

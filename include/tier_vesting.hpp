@@ -28,12 +28,6 @@ public:
 
   [[eosio::action]]
   void removelock(uint64_t lock_id);
-
-  // [[eosio::action]]
-  // void addtoken(name token_contract, asset token);
-
-  // [[eosio::action]]
-  // void removetoken(symbol token_symbol);
   
   [[eosio::on_notify("hypha.hypha::transfer")]]
   void onreceive(name from, name to, asset quantity, std::string memo);
@@ -58,7 +52,7 @@ private:
   typedef eosio::multi_index<"tiers"_n, tier> tiers_table;
 
   struct [[eosio::table]] lock {
-    uint64_t lock_id; // This should be unique across all locks
+    uint64_t lock_id;
     name owner;
     name tier_id;
     asset amount;
@@ -73,15 +67,6 @@ private:
     indexed_by<"byowner"_n, const_mem_fun<lock, uint64_t, &lock::get_owner>>,
     indexed_by<"bytier"_n, const_mem_fun<lock, uint64_t, &lock::get_tier_id>>
   > locks_table;
-
-  // struct [[eosio::table]] token {
-  //   symbol symbol;
-  //   name contract;
-
-  //   uint64_t primary_key() const { return symbol.raw(); }
-  // };
-
-  // typedef eosio::multi_index<"tokens"_n, token> tokens_table;
 
   struct [[eosio::table]] balance {
     name owner;
