@@ -90,13 +90,9 @@ const resetAction = async (contract) => {
     await resetByName(contract)
     console.log(`${contract} reset`)
   } catch (err) {
-    let errStr = ("" + err).toLowerCase()
-    if (errStr.includes("contract is already running this version of code")) {
-      console.log(`${contract} code was already deployed`)
-    } else {
-      console.log("error deploying ", contract)
+      console.log("error reset ", contract)
       console.log(err)
-    }
+    
   }
 }
 

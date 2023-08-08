@@ -5,45 +5,43 @@ const { eos, encodeName, accounts, ownerPublicKey, activePublicKey, isLocal } = 
 const createAccount = require('./createAccount')
 
 const deploy = async (name) => {
-    const { code, abi } = await source(name)
+  const { code, abi } = await source(name)
 
-    let account = accounts[name]
-    console.log(`deploy ${account.account}`)
-    
-    if (isLocal()) {
-      // Creating accounts is convenient on the local test chain
-      // However, it's not going to work on a real chain - from the creator 
-      // account to having enough funds, to allocating enough RAM, accounts
-      // on mainnet or testnet need to be created manually. 
-      
-      await createAccount(account)
-    }
+  let account = accounts[name]
+  console.log(`deploy ${account.account}`)
 
-    if (!code)
-      throw new Error('code not found')
+  if (isLocal()) {
+    // Creating accounts is convenient on the local test chain
+    // However, it's not going to work on a real chain - from the creator 
+    // account to having enough funds, to allocating enough RAM, accounts
+    // on mainnet or testnet need to be created manually. 
 
-    if (!abi)
-      throw new Error('abi not found')
+    await createAccount(account)
+  }
 
-    await eos.setabi({
-        account: account.account,
-        abi: JSON.parse(abi)
-      }, {
-        authorization: `${account.account}@owner`
-      })
-  
-    await eos.setcode({
-      account: account.account,
-      code,
-      vmtype: 0,
-      vmversion: 0
-    }, {
-      authorization: `${account.account}@owner`
-    })
-    console.log("code deployed")
+  if (!code)
+    throw new Error('code not found')
 
+  if (!abi)
+    throw new Error('abi not found')
 
+  await eos.setabi({
+    account: account.account,
+    abi: JSON.parse(abi)
+  }, {
+    authorization: `${account.account}@owner`
+  })
   console.log("abi deployed")
+
+  await eos.setcode({
+    account: account.account,
+    code,
+    vmtype: 0,
+    vmversion: 0
+  }, {
+    authorization: `${account.account}@owner`
+  })
+  console.log("code deployed")
 
   console.log(`Success: ${name} deployed to ${account.account}`)
 }

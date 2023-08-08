@@ -139,6 +139,7 @@ const accountsMetadata = (network) => {
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
+      tier_vesting: account('vestng.hypha', 'tier_vesting'),
 
     }
   } else if (network == networks.telosTestnet) {
@@ -160,6 +161,8 @@ const accountsMetadata = (network) => {
       joinhypha: contract('joinhypha111', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('mtdhoxhyphaa', 'dao'),
+      tier_vesting: account('vestngxhypha', 'tier_vesting'),
+
 
     }
   } else if (network == networks.eosMainnet) {
@@ -175,6 +178,7 @@ const accountsMetadata = (network) => {
       /// not functional
       sale: contract('sale.hypha', 'sale'),
       daoContract: account('dao.hypha', 'dao'),
+      tier_vesting: account('vestng.hypha', 'tier_vesting'),
 
     }
   } else if (network == networks.eosTestnet) {
@@ -188,7 +192,7 @@ const accountsMetadata = (network) => {
       joinhypha: contract('joinxhypha11', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('daoxhypha111', 'dao'),
-
+      tier_vesting: account('vestngxhypha', 'tier_vesting'),
     }
   } else {
     throw new Error(`${network} deployment not supported`)
