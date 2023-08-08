@@ -84,6 +84,7 @@ const setup = async () => {
     await contract.addtier(tierName, "0.00 HYPHA", "The first tier", { authorization: `${tier_vesting}@active` })
 
     const addLock = async (from, to, tier, amount) => {
+        await tokenContract.transfer("owner", firstuser, amount, "", { authorization: `owner@active` })
         await tokenContract.transfer(from, tier_vesting, amount, "test", { authorization: `${firstuser}@active` })
         await contract.addlock(from, to, tier, amount, { authorization: `${firstuser}@active` })
     }
@@ -94,7 +95,8 @@ const setup = async () => {
         tierName,
         addLock,
     };
-    await sleep(300)
+
+    await sleep(500)
     return commonData;
 };
 
@@ -247,13 +249,15 @@ describe('Tier Vesting', async assert => {
     describe('Check balances', async assert => {
         const { contract, tokenContract, tierName, addLock } = await setup();
 
-        console.log("add locks")
 
         const addWhenNoBalanceThrowsError = await expectError(async ()=>{
             await contract.addlock(firstuser, seconduser, tierName, "0.01 HYPHA", { authorization: `${firstuser}@active` })
         }, "balance")
 
+        console.log("send balance")
+        await tokenContract.transfer("owner", firstuser, "100.00 HYPHA", "", { authorization: `owner@active` })
         await tokenContract.transfer(firstuser, tier_vesting, "100.00 HYPHA", "test", { authorization: `${firstuser}@active` })
+
         const lockTooMuchThrows = await expectError(async ()=>{
             await contract.addlock(firstuser, seconduser, tierName, "100.01 HYPHA", { authorization: `${firstuser}@active` })
         }, "balance")
@@ -334,13 +338,11 @@ describe('Tier Vesting', async assert => {
 
     })
 
-    describe.only('Release and claim', async assert => {
+    describe('Release and claim', async assert => {
         const { contract, tokenContract, tierName, addLock } = await setup();
 
         console.log("transfer balance")
-
         await tokenContract.transfer("owner", firstuser, "9100.00 HYPHA", "issue tokens", { authorization: `owner@active` })
-
         await tokenContract.transfer(firstuser, tier_vesting, "9100.00 HYPHA", "test", { authorization: `${firstuser}@active` })
 
         console.log("add locks")
@@ -546,6 +548,58 @@ describe('Tier Vesting', async assert => {
 
     })
 
+    describe('Tier Vesting with 2 Tiers', async assert => {
+        const { contract, tierName, tokenContract, addLock } = await setup();
+        
+        await tokenContract.transfer("owner", firstuser, "35.00 HYPHA", "issue tokens", { authorization: `owner@active` })
+
+        const tier2 = "tier22";
+                
+        console.log("add tier2")
+
+        await contract.addtier(tier2, "0.00 HYPHA", "The second tier", { authorization: `${tier_vesting}@active` });
+    
+        console.log("add locks")
+        // Add locks to both tiers
+        await addLock(firstuser, seconduser, tierName, "5.00 HYPHA");
+        await addLock(firstuser, thirduser, tierName, "10.00 HYPHA");
+        await addLock(firstuser, fourthuser, tier2, "20.00 HYPHA");
+    
+        // ... Continue with assertions for adding locks
+    
+        console.log("release tier 1")
+        await contract.release(tierName, "15.00 HYPHA", { authorization: `${tier_vesting}@active` });
+    
+        // ... Continue with assertions for releasing tier 1
+    
+        console.log("claim from tier 1")
+        // Claim from tier 1 locks
+        await contract.claim(seconduser, 0, { authorization: `${seconduser}@active` });
+        await contract.claim(thirduser, 1, { authorization: `${thirduser}@active` });
+    
+        // ... Continue with assertions for claiming from tier 1
+    
+        console.log("attempt to claim from tier 2")
+        const tier2ClaimThrows = await expectError(async () => {
+            await contract.claim(fourthuser, 2, { authorization: `${fourthuser}@active` });
+        }, "Nothing to claim");
+    
+        assert({
+            given: 'Added two tiers',
+            should: 'exist',
+            actual: (await getTiersTable()).rows.length,
+            expected: 2,
+        });
+    
+        assert({
+            given: 'Attempt to claim from tier 2',
+            should: 'throw error',
+            actual: tier2ClaimThrows,
+            expected: true,
+        });
+    
+    });
+        
 
 })
 
