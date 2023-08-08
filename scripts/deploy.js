@@ -337,9 +337,7 @@ const listPermissions = async (account) => {
 
 const createCoins = async (token) => {
   const { account, issuer, supply } = token
-
-  console.log("creating coins "+JSON.stringify(token, null, 2))
-
+  
   try {
     await eos.transaction({
       actions: [
@@ -520,19 +518,35 @@ const deployAllContracts = async () => {
     console.log(`owner ${accounts.owner.account} should exist before deployment`)
     return
   }
-
-  if (accounts.testtoken) {
-    await createCoins(accounts.testtoken)
-  }
-  if (accounts.hyphatoken) {
-    await createCoins(accounts.hyphatoken)
-  }
-
   const accountNames = Object.keys(accounts)
-  
+
+  // First, create all tokens
   for (let current = 0; current < accountNames.length; current++) {
     const accountName = accountNames[current]
     const account = accounts[accountName]
+    if (account.type === 'token') {
+      console.log("deploying token " + account.name + " to " + account.account)
+      await createAccount(account)
+      await deploy(account)
+      await createCoins(account)
+    }
+    await sleep(500)
+  }
+
+  // if (accounts.testtoken) {
+  //   await createCoins(accounts.testtoken)
+  // }
+  // if (accounts.hyphatoken) {
+  //   await createCoins(accounts.hyphatoken)
+  // }
+
+  for (let current = 0; current < accountNames.length; current++) {
+    const accountName = accountNames[current]
+    const account = accounts[accountName]
+
+    if (account.type === 'token') {
+      continue;
+    }
 
     await createAccount(account)
 
@@ -544,7 +558,7 @@ const deployAllContracts = async () => {
       await transferCoins(accounts.hyphatoken, account)
     }
 
-    await sleep(1000)
+    await sleep(501)
   }
   
   await updatePermissions()

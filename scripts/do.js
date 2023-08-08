@@ -129,11 +129,6 @@ const batchCallFunc = async (contract, moreContracts, func) => {
 }
 
 const initAction = async (compile = true) => {
-
-  console.log("WARNING: Bug - doesn't set up coins correctly when run the first time")
-  console.log("Too lazy to fix: Run it a second time with do.js init false")
-  console.log("Want to fix: Token contracts need to be deployed before we try to create coins")
-
   if (compile) {
     for (i = 0; i < allContracts.length; i++) {
       let item = allContracts[i];
