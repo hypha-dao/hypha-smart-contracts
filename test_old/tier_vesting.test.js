@@ -50,7 +50,7 @@ const getBalancesTable = async () => {
 }
 
 const getLock = async (lockId) => {
-    const rows = await eos.getTableRows({
+    const res = await eos.getTableRows({
         code: tier_vesting,
         scope: tier_vesting,
         table: 'locks',
@@ -58,8 +58,8 @@ const getLock = async (lockId) => {
         upper_bound: lockId,
         json: true
     })
-    if (rows.length == 1) {
-        return rows[0]
+    if (res.rows.length == 1) {
+        return res.rows[0]
     } else {
         throw "lock not found: " + lockId
     }
@@ -116,7 +116,6 @@ const expectError = async (func, expectedMessage) => {
 
 
 describe('Tier Vesting', async assert => {
-
 
     describe('Add and remove tiers', async assert => {
         const { contract, tokenContract, tierName, addLock } = await setup();
@@ -367,9 +366,12 @@ describe('Tier Vesting', async assert => {
         const releaseWrongPrecisionThrows = await expectError(async()=>{
             await contract.release(tierName, "910.0000 HYPHA", { authorization: `${tier_vesting}@active` })
         }, "symbol")
-        //console.log('tiers after: ' + JSON.stringify((await getTiersTable()), null, 2))
+
+        /// release 10%
+        console.log("release 10% of tier")
         await contract.release(tierName, "910.00 HYPHA", { authorization: `${tier_vesting}@active` })
-        // console.log('tiers after 2: ' + JSON.stringify((await getTiersTable()), null, 2))
+
+        const tier = (await getTiersTable()).rows[0]
         
         const getBalance = async (account) => {
             return await eos.getCurrencyBalance("hypha.hypha", account, "HYPHA")
@@ -379,9 +381,13 @@ describe('Tier Vesting', async assert => {
             const balance = parseFloat(await getBalance(account))
             console.log("account " + account + " has " + balance + " HYPHA " + " expected claim: " + expectedClaim)
             
+            const lockBefore = await getLock(lock_id)
+
             await contract.claim(account, lock_id, { authorization: `${account}@active` })
 
             const balanceAfter = parseFloat(await getBalance(account))
+            const lockAfter = await getLock(lock_id)
+
             console.log("account " + account + " balance after: " + balanceAfter + " HYPHA")
             const expected = parseFloat(expectedClaim)
             const difference = balanceAfter - balance
@@ -397,15 +403,19 @@ describe('Tier Vesting', async assert => {
                 actual: epsilon < 0.0001,
                 expected: true,
             })
-                
-            
+
+            const lockClaimBefore = parseFloat(lockBefore.claimed_amount)
+            const expectedAfter = lockClaimBefore + difference
+            const lockClaimAfter = parseFloat(lockAfter.claimed_amount)
+            assert({
+                given: 'Claim of ' + difference,
+                should: 'Modify lock claimed balance',
+                actual: lockClaimAfter.toFixed(2),
+                expected: expectedAfter.toFixed(2),
+            })
+
         }
-
-        const tier = (await getTiersTable()).rows[0]
-
-        // void claim(name owner, uint64_t lock_id);
         console.log("claim some")
-
         const expectedClaim = (id) => (lockedValues[id] * 0.1).toFixed(2) + " HYPHA"
 
         await claimWithExpectedDifference(seconduser, 0, expectedClaim(0))
@@ -414,6 +424,18 @@ describe('Tier Vesting', async assert => {
             await contract.claim(seconduser, 1, { authorization: `${seconduser}@active` })
         }, "Only owner")
 
+        await claimWithExpectedDifference(thirduser, 1, expectedClaim(1))
+        await claimWithExpectedDifference(fourthuser, 2, expectedClaim(2))
+        await claimWithExpectedDifference(seconduser, 3, expectedClaim(3))
+
+        const claimNothingThrows = await expectError(async()=>{
+            await sleep(500) // this keeps throwing duplicate transaction.
+            await contract.claim(seconduser, 0, { authorization: `${seconduser}@active` })
+        }, "nothing")
+        const lockDoesNotExistThrows = await expectError(async()=>{
+            await sleep(500) // this keeps throwing duplicate transaction.
+            await contract.claim(firstuser, 8, { authorization: `${firstuser}@active` })
+        }, "lock")
 
         assert({
             given: 'Release wrong symbol',
@@ -445,6 +467,19 @@ describe('Tier Vesting', async assert => {
             given: 'Claim wrong lock',
             should: 'throw error',
             actual: claimTheWrongLock,
+            expected: true,
+        })
+
+        assert({
+            given: 'Claim on nothing claimable',
+            should: 'throw error',
+            actual: claimNothingThrows,
+            expected: true,
+        })
+        assert({
+            given: 'Claim on non existent lock',
+            should: 'throw error',
+            actual: lockDoesNotExistThrows,
             expected: true,
         })
 
