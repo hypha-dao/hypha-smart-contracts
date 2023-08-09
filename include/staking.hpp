@@ -1,10 +1,11 @@
 #pragma once
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
+#include "./utils.hpp"
 
 using namespace eosio;
 
-class [[eosio::contract]] stake : public contract {
+class [[eosio::contract]] staking : public contract {
 public:
     using contract::contract;
 
@@ -35,6 +36,7 @@ public:
         uint64_t by_account() const { return account_name.value; }
         uint64_t by_account_beneficiary() const { return (account_name.value << 32) | beneficiary.value; }
     };
+    
     typedef eosio::multi_index<name("stakes"), stake_entry,
         indexed_by<name("beneficiary"), const_mem_fun<stake_entry, uint64_t, &stake_entry::by_beneficiary>>,
         indexed_by<name("account"), const_mem_fun<stake_entry, uint64_t, &stake_entry::by_account>>,
@@ -42,10 +44,13 @@ public:
     > stakes_table;
 
     [[eosio::action]]
-    void addstake(name from, name to, asset quantity);
+    void stake(name from, name to, asset quantity);
 
     [[eosio::action]]
     void unstake(name from, name to, asset quantity);
+
+    [[eosio::action]]
+    void reset();
 
     [[eosio::on_notify("hypha.hypha::transfer")]]
     void on_transfer(name from, name to, asset quantity, std::string memo);

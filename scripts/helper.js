@@ -127,7 +127,7 @@ const accountsMetadata = (network) => {
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
-      stake: account('stake.hypha', 'stake'),
+      staking: account('stake.hypha', 'staking'),
 
     }
   } else if (network == networks.telosMainnet) {
@@ -141,7 +141,7 @@ const accountsMetadata = (network) => {
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
-      stake: account('stake.hypha', 'stake'),
+      staking: account('stake.hypha', 'staking'),
 
     }
   } else if (network == networks.telosTestnet) {
@@ -163,7 +163,7 @@ const accountsMetadata = (network) => {
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('mtdhoxhyphaa', 'dao'),
       tier_vesting: account('vestngxhypha', 'tier_vesting'),
-      stake: account('stakexhypha1', 'stake'),
+      staking: account('stakexhypha1', 'staking'),
 
     }
   } else if (network == networks.eosMainnet) {
@@ -180,7 +180,7 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
-      stake: account('stake.hypha', 'stake'),
+      staking: account('stake.hypha', 'staking'),
 
     }
   } else if (network == networks.eosTestnet) {
@@ -195,7 +195,7 @@ const accountsMetadata = (network) => {
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('daoxhypha111', 'dao'),
       tier_vesting: account('vestngxhypha', 'tier_vesting'),
-      stake: account('stakexhypha1', 'stake'),
+      staking: account('stakexhypha1', 'staking'),
 
     }
   } else {

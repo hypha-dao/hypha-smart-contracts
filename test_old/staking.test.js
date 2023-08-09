@@ -1,7 +1,7 @@
 const { describe } = require('riteway');
-const { eos, names, sleep } = require('../scripts/helper'); // Replace with your own helper functions
+const { eos, names, sleep, isLocal } = require('../scripts/helper'); // Replace with your own helper functions
 
-const { stake, firstuser, seconduser, thirduser, fourthuser } = names;
+const { staking, firstuser, seconduser, thirduser, fourthuser, hyphatoken } = names;
 
 const setup = async () => {
   
@@ -11,49 +11,48 @@ const setup = async () => {
   }
 
   console.log("init contracts");
-  const contract = await eos.contract(stake);
+  const contract = await eos.contract(staking);
   const tokenContract = await eos.contract(hyphatoken);
 
   console.log("reset contract");
-  await contract.reset({ authorization: `${stake}@active` }); // Reset contract tables
+  await contract.reset({ authorization: `${staking}@active` }); // Reset contract tables
 
   return { contract, tokenContract };
 };
 
 describe('Stake Contract', async assert => {
-  //const contract = await setup();
 
   describe('Staking and Unstaking', async assert => {
     const { contract, tokenContract } = await setup();
 
     describe('Staking', async assert => {
-        const stakedAmount = "100.00 HYPHA";
+      const stakedAmount = "100.00 HYPHA";
 
-        await contract.stake(firstuser, fourthuser, stakedAmount, { authorization: `${firstuser}@active` });
+      await contract.addstake(firstuser, fourthuser, stakedAmount, { authorization: `${firstuser}@active` });
 
-        const accounts = await getAccountsTable();
-        const daoAccounts = await getDaoAccountsTable();
-        const stakes = await getStakesTable();
+      const accounts = await getAccountsTable();
+      const daoAccounts = await getDaoAccountsTable();
+      const stakes = await getStakesTable();
 
-        assert({
-            given: 'Staking action',
-            should: 'increase balance, create stake entry, and update daoaccount balance',
-            actual: {
-                accountBalance: accounts[firstuser].balance,
-                stakeEntry: stakes[0],
-                daoAccountBalance: daoAccounts[fourthuser].balance
-            },
-            expected: {
-                accountBalance: "9900.00 HYPHA", // Adjust this based on the previous account balance
-                stakeEntry: {
-                    id: 0,
-                    account_name: firstuser,
-                    beneficiary: fourthuser,
-                    quantity: stakedAmount
-                },
-                daoAccountBalance: stakedAmount
-            }
-        });
+      assert({
+          given: 'Staking action',
+          should: 'increase balance, create staking entry, and update daoaccount balance',
+          actual: {
+              accountBalance: accounts[firstuser].balance,
+              stakeEntry: stakes[0],
+              daoAccountBalance: daoAccounts[fourthuser].balance
+          },
+          expected: {
+              accountBalance: "9900.00 HYPHA", // Adjust this based on the previous account balance
+              stakeEntry: {
+                  id: 0,
+                  account_name: firstuser,
+                  beneficiary: fourthuser,
+                  quantity: stakedAmount
+              },
+              daoAccountBalance: stakedAmount
+          }
+      });
     });
 
     describe('Unstaking', async assert => {
@@ -67,7 +66,7 @@ describe('Stake Contract', async assert => {
 
         assert({
             given: 'Unstaking action',
-            should: 'decrease balance, remove stake entry, and update daoaccount balance',
+            should: 'decrease balance, remove staking entry, and update daoaccount balance',
             actual: {
                 accountBalance: accounts[firstuser].balance,
                 stakeEntry: stakes.length,

@@ -1,7 +1,19 @@
-#include "../include/stake.hpp"
+#include "../include/staking.hpp"
+
+void staking::reset()
+{
+  require_auth(get_self());
+  #ifdef LOCAL_TEST
+      utils::delete_table<accounts_table>(get_self(), get_self().value);
+      utils::delete_table<dao_accounts_table>(get_self(), get_self().value);
+      utils::delete_table<stakes_table>(get_self(), get_self().value);
+  #else
+      check(false, "reset is only active in testing");
+  #endif
+}
 
 [[eosio::action]]
-void stake::addstake(name from, name to, asset quantity) {
+void staking::stake(name from, name to, asset quantity) {
     require_auth(from);
 
     accounts_table accounts(get_self(), get_self().value);
@@ -43,7 +55,7 @@ void stake::addstake(name from, name to, asset quantity) {
 }
 
 [[eosio::action]]
-void stake::unstake(name from, name to, asset quantity) {
+void staking::unstake(name from, name to, asset quantity) {
     require_auth(from);
 
     stakes_table stakes(get_self(), get_self().value);
@@ -75,7 +87,7 @@ void stake::unstake(name from, name to, asset quantity) {
 }
 
 [[eosio::on_notify("hypha.hypha::transfer")]]
-void stake::on_transfer(name from, name to, asset quantity, std::string memo) {
+void staking::on_transfer(name from, name to, asset quantity, std::string memo) {
     if (to != get_self()) {
         // Ignore transfers not intended for this contract
         return;
