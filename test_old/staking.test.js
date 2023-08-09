@@ -20,6 +20,44 @@ const setup = async () => {
   return { contract, tokenContract };
 };
 
+const getAccountsEntry = async (account) => {
+  const accountsTable = await eos.getTableRows({
+    code: staking,
+    scope: staking,
+    table: 'accounts',
+    lower_bound: account,
+    upper_bound: account,
+    json: true
+  });
+  return accountsTable.rows[0];
+};
+
+const getDaoAccountsEntry = async (account) => {
+  const daoAccountsTable = await eos.getTableRows({
+    code: staking,
+    scope: staking,
+    table: 'daoaccounts',
+    lower_bound: account,
+    upper_bound: account,
+    json: true
+  });
+  return daoAccountsTable.rows[0];
+};
+
+const getStakeEntryForAccount = async (account) => {
+  const stakesTable = await eos.getTableRows({
+    code: staking,
+    scope: staking,
+    table: 'stakes',
+    index_position: 3,  // Use the index for 'account'
+    key_type: 'i64',
+    lower_bound: account,
+    upper_bound: account,
+    json: true
+  });
+  return stakesTable.rows.length > 0 ? stakesTable.rows[0] : null;
+};
+
 describe('Stake Contract', async assert => {
 
   describe('Staking and Unstaking', async assert => {
@@ -34,17 +72,17 @@ describe('Stake Contract', async assert => {
       console.log('stake')
       await contract.stake(firstuser, fourthuser, stakedAmount, { authorization: `${firstuser}@active` });
 
-      const accounts = await getAccountsTable();
-      const daoAccounts = await getDaoAccountsTable();
-      const stakes = await getStakesTable();
+      const accountsEntry = await getAccountsEntry(firstuser);
+      const daoAccountsEntry = await getDaoAccountsEntry(fourthuser);
+      const stakeEntry = await getStakeEntryForAccount(firstuser);
 
       assert({
           given: 'Staking action',
           should: 'increase balance, create staking entry, and update daoaccount balance',
           actual: {
-              accountBalance: accounts[firstuser].balance,
-              stakeEntry: stakes[0],
-              daoAccountBalance: daoAccounts[fourthuser].balance
+              accountBalance: accountsEntry.balance,
+              stakeEntry: stakeEntry,
+              daoAccountBalance: daoAccountsEntry.balance
           },
           expected: {
               accountBalance: "0.00 HYPHA", 
@@ -60,26 +98,32 @@ describe('Stake Contract', async assert => {
     });
 
     describe('Unstaking', async assert => {
-        const unstakedAmount = "50.00 HYPHA";
+        const unstakedAmount = "30.00 HYPHA";
 
         await contract.unstake(firstuser, fourthuser, unstakedAmount, { authorization: `${firstuser}@active` });
 
-        const accounts = await getAccountsTable();
-        const daoAccounts = await getDaoAccountsTable();
-        const stakes = await getStakesTable();
-
+        const accountsEntry = await getAccountsEntry(firstuser);
+        const daoAccountsEntry = await getDaoAccountsEntry(fourthuser);
+        const stakeEntry = await getStakeEntryForAccount(firstuser);
+  
+        
         assert({
             given: 'Unstaking action',
             should: 'decrease balance, remove staking entry, and update daoaccount balance',
             actual: {
-                accountBalance: accounts[firstuser].balance,
-                stakeEntry: stakes.length,
-                daoAccountBalance: daoAccounts[fourthuser].balance
+                accountBalance: accountsEntry.balance,
+                stakeEntry: stakeEntry,
+                daoAccountBalance: daoAccountsEntry.balance
             },
             expected: {
-                accountBalance: "9950.00 HYPHA", // Adjust this based on the previous account balance
-                stakeEntry: 0,
-                daoAccountBalance: "50.00 HYPHA" // Adjust this based on the previous staked amount
+              accountBalance: "30.00 HYPHA", 
+              stakeEntry: {
+                  id: 0,
+                  account_name: firstuser,
+                  beneficiary: fourthuser,
+                  quantity: "70.00 HYPHA", 
+              },
+              daoAccountBalance: "70.00 HYPHA"
             }
         });
     });
