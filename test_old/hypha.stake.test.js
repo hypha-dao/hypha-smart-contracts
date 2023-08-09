@@ -1,180 +1,104 @@
-const { describe } = require('riteway')
-const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep } = require('../scripts/helper')
+const { describe } = require('riteway');
+const { eos, names, sleep } = require('../scripts/helper'); // Replace with your own helper functions
 
-const { joinhypha, firstuser, seconduser, thirduser } = names
-var crypto = require('crypto');
+const { stake, firstuser, seconduser, thirduser, fourthuser } = names;
 
-const randomAccountName = () => {
-  let length = 12
-  var result = '';
-  var characters = 'abcdefghijklmnopqrstuvwxyz1234';
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+const setup = async () => {
+  
+  if (!isLocal()) {
+    console.log("only run unit tests on local - don't reset contracts on mainnet or testnet");
+    return;
   }
-  return result;
-}
 
-const generateSecret = async () => {
-  // Generate a random secret (32 bytes)
-  const secret = new Uint8Array(32);
-  crypto.getRandomValues(secret);
+  console.log("init contracts");
+  const contract = await eos.contract(stake);
+  const tokenContract = await eos.contract(hyphatoken);
 
-  // Convert the secret to a checksum256 string
-  const secretChecksum256 = await sha256(Buffer.from(secret));
+  console.log("reset contract");
+  await contract.reset({ authorization: `${stake}@active` }); // Reset contract tables
 
-  // Hash the secret using SHA256
-  // Note: sha256 needs to be called on a byte buffer so we take our secret and convert it
-  // back to a byte buffer, then hash that.
-  const hashedSecret = sha256(Buffer.from(secretChecksum256, 'hex'))
-
-  // verify here: 
-  // https://emn178.github.io/online-tools/sha256.html - set input type to "hex"
-  console.log('Generated Secret:', secretChecksum256)
-  console.log('Hashed Secret:', hashedSecret)
-
-  return {
-    secret: secretChecksum256,
-    hashedSecret
-  }
-}
-
+  return { contract, tokenContract };
+};
 
 describe('Stake Contract', async assert => {
+  //const contract = await setup();
 
-  if (!isLocal()) {
-    console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
-    return
-  }
+  describe('Staking and Unstaking', async assert => {
+    const { contract, tokenContract } = await setup();
 
+    describe('Staking', async assert => {
+        const stakedAmount = "100.00 HYPHA";
 
-  const contract = await eos.contract(joinhypha)
+        await contract.stake(firstuser, fourthuser, stakedAmount, { authorization: `${firstuser}@active` });
 
-  console.log("set oracle account authorized to create accounts")
-  await contract.setconfig(seconduser, seconduser, { authorization: `${joinhypha}@active` })
+        const accounts = await getAccountsTable();
+        const daoAccounts = await getDaoAccountsTable();
+        const stakes = await getStakesTable();
 
-  console.log("activate")
-  await contract.activate({ authorization: `${joinhypha}@active` })
+        assert({
+            given: 'Staking action',
+            should: 'increase balance, create stake entry, and update daoaccount balance',
+            actual: {
+                accountBalance: accounts[firstuser].balance,
+                stakeEntry: stakes[0],
+                daoAccountBalance: daoAccounts[fourthuser].balance
+            },
+            expected: {
+                accountBalance: "9900.00 HYPHA", // Adjust this based on the previous account balance
+                stakeEntry: {
+                    id: 0,
+                    account_name: firstuser,
+                    beneficiary: fourthuser,
+                    quantity: stakedAmount
+                },
+                daoAccountBalance: stakedAmount
+            }
+        });
+    });
 
-  console.log("create")
-  await contract.create(newAccount, newAccountPublicKey, { authorization: `${seconduser}@active` })
+    describe('Unstaking', async assert => {
+        const unstakedAmount = "50.00 HYPHA";
 
-  var anybodyCanCreateAnAccount = false
-  try {
-    const acct2 = randomAccountName()
-    console.log("creating acct " + acct2)
-    await contract.create(acct2, newAccountPublicKey, { authorization: `${firstuser}@active` })
-    anybodyCanCreateAnAccount = true;
-  } catch (err) {
-    console.log("expected error")
-  }
+        await contract.unstake(firstuser, fourthuser, unstakedAmount, { authorization: `${firstuser}@active` });
 
-  const config = await eos.getTableRows({
-    code: joinhypha,
-    scope: joinhypha,
-    table: 'config',
-    json: true
-  })
+        const accounts = await getAccountsTable();
+        const daoAccounts = await getDaoAccountsTable();
+        const stakes = await getStakesTable();
 
-  console.log("conig " + JSON.stringify(config))
-
-  const account = await eos.getAccount(newAccount)
-
-  console.log("new account exists: " + JSON.stringify(account))
-
-  assert({
-    given: 'create account',
-    should: 'a new account has been created on the blockchain',
-    actual: account.account_name,
-    expected: newAccount
-  })
-
-  assert({
-    given: 'create account by invalid oracle',
-    should: 'oracle cant create accounts',
-    actual: anybodyCanCreateAnAccount,
-    expected: false
-  })
-
-
-
-})
-
-const getLastInvitesRow = async () => await eos.getTableRows({
-  code: joinhypha,
-  scope: joinhypha,
-  table: 'invites',
-  json: true,
-  reverse: true,
-  limit: 1,
-})
-
-describe('test invite', async assert => {
-
-  if (!isLocal()) {
-    console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
-    return
-  }
-
-  const inviterAccount = firstuser
-  const beneficiaryAccount = thirduser
-  const secret = await generateSecret()
+        assert({
+            given: 'Unstaking action',
+            should: 'decrease balance, remove stake entry, and update daoaccount balance',
+            actual: {
+                accountBalance: accounts[firstuser].balance,
+                stakeEntry: stakes.length,
+                daoAccountBalance: daoAccounts[fourthuser].balance
+            },
+            expected: {
+                accountBalance: "9950.00 HYPHA", // Adjust this based on the previous account balance
+                stakeEntry: 0,
+                daoAccountBalance: "50.00 HYPHA" // Adjust this based on the previous staked amount
+            }
+        });
+    });
+});
   
-  const contract = await eos.contract(joinhypha)
+  describe('Transfer Notification', async assert => {
+    // Test cases for transfer notification
+    // Use assert to check expected behavior
+  });
 
-  console.log("set oracle account authorized to create accounts")
-  // await contract.setconfig(seconduser, seconduser, { authorization: `${joinhypha}@active` })
+  describe('Boundary Cases', async assert => {
+    // Test cases for edge cases and boundary values
+    // Use assert to check expected behavior
+  });
 
-  console.log("activate")
-  // await contract.activate({ authorization: `${joinhypha}@active` })
+  describe('Beneficiary Filtering', async assert => {
+    // Test cases for querying by beneficiary
+    // Use assert to check expected behavior
+  });
 
-  console.log("set contract")
-  await contract.setkv("dao.contract", ["name", "dao.hypha"], { authorization: `${joinhypha}@active` })
-
-  console.log("createinvite")
-
-  const lastInviteBeforeRows = getLastInvitesRow()
-  console.log("lastInviteBeforeRows " + JSON.stringify(lastInviteBeforeRows, null, 2))
-
-  await contract.createinvite(299, 'somedao', 'A Test Dao', inviterAccount, secret.hashedSecret, { authorization: `${inviterAccount}@active` })
-
-  const invites = await getLastInvitesRow()
-
-  console.log("invites " + JSON.stringify(invites, null, 2))
-  const lastInvite = invites.rows[0]
-
-  console.log("redeem invite")
-
-  await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
-
-  const lastInviteAfterRows = getLastInvitesRow()
-
-  console.log('b4: ' + JSON.stringify(lastInviteBeforeRows, null, 2))
-  console.log('after: ' + JSON.stringify(lastInviteAfterRows, null, 2))
-
-  assert({
-    given: 'create invite',
-    should: 'a new invite has been created',
-    actual: lastInvite,
-    expected: {
-      "invite_id": lastInvite.invite_id,
-      "dao_id": 299,
-      "dao_name": "somedao",
-      "dao_fullname": "A Test Dao",
-      "inviter": inviterAccount,
-      "hashed_secret": secret.hashedSecret
-    }
-  })
-
-  assert({
-    given: 'redeem invite',
-    should: 'the invite has been consumed',
-    actual: lastInviteAfterRows,
-    expected: lastInviteBeforeRows,
-  })
-
-
-
-
-})
-
+  describe('Table Updates', async assert => {
+    // Test cases for verifying table updates
+    // Use assert to check expected behavior
+  });
+});

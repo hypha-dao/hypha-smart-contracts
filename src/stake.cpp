@@ -1,7 +1,7 @@
-#include "stake.hpp"
+#include "../include/stake.hpp"
 
 [[eosio::action]]
-void stake::stake(name from, name to, asset quantity) {
+void stake::addstake(name from, name to, asset quantity) {
     require_auth(from);
 
     accounts_table accounts(get_self(), get_self().value);
@@ -99,5 +99,3 @@ void stake::on_transfer(name from, name to, asset quantity, std::string memo) {
         });
     }
 }
-
-EOSIO_DISPATCH(stake, (stake)(unstake)(on_transfer))

@@ -111,6 +111,8 @@ const buildFileMap = {
   'sale.wasm': 'hypha.sale.wasm',
   'tier_vesting.wasm': 'tier_vesting.wasm',
   'tier_vesting.abi': 'tier_vesting.abi',
+  'stake.wasm': 'stake.wasm',
+  'stake.abi': 'stake.abi',
 }
 
 function copyFiles(sourceDir, destinationDir, fileMap) {

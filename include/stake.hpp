@@ -31,6 +31,8 @@ public:
         asset quantity;
 
         uint64_t primary_key() const { return id; }
+        uint64_t by_beneficiary() const { return beneficiary.value; }
+        uint64_t by_account() const { return account_name.value; }
         uint64_t by_account_beneficiary() const { return (account_name.value << 32) | beneficiary.value; }
     };
     typedef eosio::multi_index<name("stakes"), stake_entry,
@@ -40,7 +42,7 @@ public:
     > stakes_table;
 
     [[eosio::action]]
-    void stake(name from, name to, asset quantity);
+    void addstake(name from, name to, asset quantity);
 
     [[eosio::action]]
     void unstake(name from, name to, asset quantity);
