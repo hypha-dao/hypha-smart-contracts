@@ -100,13 +100,13 @@ void staking::on_transfer(name from, name to, asset quantity, std::string memo) 
 
     if (account_itr == accounts.end()) {
         // Create a new account entry if it doesn't exist
-        accounts.emplace(from, [&](auto& acc) {
+        accounts.emplace(get_self(), [&](auto& acc) {
             acc.account_name = from;
             acc.balance = quantity;
         });
     } else {
         // Update the existing account's balance
-        accounts.modify(account_itr, from, [&](auto& acc) {
+        accounts.modify(account_itr, get_self(), [&](auto& acc) {
             acc.balance += quantity;
         });
     }

@@ -28,7 +28,11 @@ describe('Stake Contract', async assert => {
     describe('Staking', async assert => {
       const stakedAmount = "100.00 HYPHA";
 
-      await contract.addstake(firstuser, fourthuser, stakedAmount, { authorization: `${firstuser}@active` });
+      console.log('transfer ')
+      await tokenContract.transfer(firstuser, staking, stakedAmount, "initial transfer", { authorization: `${firstuser}@active` });
+
+      console.log('stake')
+      await contract.stake(firstuser, fourthuser, stakedAmount, { authorization: `${firstuser}@active` });
 
       const accounts = await getAccountsTable();
       const daoAccounts = await getDaoAccountsTable();
@@ -43,7 +47,7 @@ describe('Stake Contract', async assert => {
               daoAccountBalance: daoAccounts[fourthuser].balance
           },
           expected: {
-              accountBalance: "9900.00 HYPHA", // Adjust this based on the previous account balance
+              accountBalance: "0.00 HYPHA", 
               stakeEntry: {
                   id: 0,
                   account_name: firstuser,
