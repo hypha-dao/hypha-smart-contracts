@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const R = require('ramda')
-const { eos, isLocal, getBalance, accounts, permissions, sleep } = require('./helper')
+const { eos, isLocal, getBalance, accounts, contractPermissions, sleep } = require('./helper')
 const createAccount = require('./createAccount')
 
 const debug = process.env.DEBUG || false
@@ -338,8 +338,6 @@ const listPermissions = async (account) => {
 const createCoins = async (token) => {
   const { account, issuer, supply } = token
 
-  console.log("creating coins "+JSON.stringify(token, null, 2))
-
   try {
     await eos.transaction({
       actions: [
@@ -352,7 +350,8 @@ const createCoins = async (token) => {
           }],
           data: {
             issuer,
-            initial_supply: supply
+            initial_supply: supply,
+            max_supply: supply,
           }
         }
       ]
@@ -405,7 +404,7 @@ const transferCoins = async (token, recipient) => {
     
     console.log(`sent ${recipient.quantity} from ${token.issuer} to ${recipient.account}`)
 
-    console.log("remaining balance for "+token.issuer +" "+ JSON.stringify(await getBalance(token.issuer), null, 2))
+    //console.log("remaining balance for "+token.issuer +" "+ JSON.stringify(await getBalance(token.issuer), null, 2))
 
   } catch (err) {
     console.error(`cannot transfer from ${token.issuer} to ${recipient.account} (${recipient.quantity})\n* error: ` + err + `\n`)
@@ -470,8 +469,10 @@ const isCreateActorPermission = permission => permission.type == "createActorPer
 const isKeyPermission = permission => permission.key && !permission.actor
 
 const updatePermissions = async () => {
-  console.log("Updating permissions...[deprecated]")
-  await updatePermissionsList(permissions)
+  for (const contractName in contractPermissions) {
+    const permissionsList = contractPermissions[contractName];
+    await updatePermissionsList(permissionsList)
+  }
 }
 
 const updatePermissionsList = async (listOfPermissions) => {
@@ -517,19 +518,29 @@ const deployAllContracts = async () => {
     console.log(`owner ${accounts.owner.account} should exist before deployment`)
     return
   }
-
-  if (accounts.testtoken) {
-    await createCoins(accounts.testtoken)
-  }
-  if (accounts.hyphatoken) {
-    await createCoins(accounts.hyphatoken)
-  }
-
   const accountNames = Object.keys(accounts)
-  
+
+  // First, create all tokens
   for (let current = 0; current < accountNames.length; current++) {
     const accountName = accountNames[current]
     const account = accounts[accountName]
+    if (account.type === 'token') {
+      console.log("deploying token " + account.name + " to " + account.account)
+      await createAccount(account)
+      await deploy(account)
+      await createCoins(account)
+    }
+    await sleep(500)
+  }
+
+  // Then, create the other accounts
+  for (let current = 0; current < accountNames.length; current++) {
+    const accountName = accountNames[current]
+    const account = accounts[accountName]
+
+    if (account.type === 'token') {
+      continue;
+    }
 
     await createAccount(account)
 
@@ -541,7 +552,7 @@ const deployAllContracts = async () => {
       await transferCoins(accounts.hyphatoken, account)
     }
 
-    await sleep(1000)
+    await sleep(501)
   }
   
   await updatePermissions()

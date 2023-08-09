@@ -72,7 +72,7 @@ const saleKeys = {
 const salePublicKey = saleKeys[chainId]
 
 
-const account = (accountName, quantity = '0.0000 SEEDS', pubkey = activePublicKey) => ({
+const account = (accountName, quantity = '0.00 HYPHA', pubkey = activePublicKey) => ({
   type: 'account',
   account: accountName,
   creator: owner,
@@ -85,7 +85,7 @@ const account = (accountName, quantity = '0.0000 SEEDS', pubkey = activePublicKe
   quantity
 })
 
-const contract = (accountName, contractName, quantity = '0.0000 SEEDS') => ({
+const contract = (accountName, contractName, quantity = '0.00 HYPHA') => ({
   ...account(accountName, quantity),
   type: 'contract',
   name: contractName,
@@ -98,8 +98,8 @@ const contract = (accountName, contractName, quantity = '0.0000 SEEDS') => ({
 
 const testnetUserPubkey = "EOS8M3bWwv7jvDGpS2avYRiYh2BGJxt5VhfjXhbyAhFXmPtrSd591"
 
-const token = (accountName, issuer, supply) => ({
-  ...contract(accountName, 'token'),
+const token = (accountName, issuer, supply, name) => ({
+  ...contract(accountName, name),
   type: 'token',
   issuer,
   supply
@@ -109,15 +109,15 @@ const accountsMetadata = (network) => {
   if (network == networks.local) {
     return {
       owner: account(owner),
-      hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA'),
+      hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA', "hyphatoken"),
 
-      firstuser: account('seedsuseraaa', '10.00 HYPHA'),
-      seconduser: account('seedsuserbbb', '10.00 HYPHA'),
-      thirduser: account('seedsuserccc', '50.00 HYPHA'),
-      fourthuser: account('seedsuserxxx', '100.00 HYPHA'),
-      fifthuser: account('seedsuseryyy', '100.00 HYPHA'),
-      sixthuser: account('seedsuserzzz', '5.00 HYPHA'),
-      oracleuser: account('hyphaoracle1', '10.00 HYPHA'),
+      firstuser: account('seedsuseraaa', '10000000.00 HYPHA'),
+      seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
+      thirduser: account('seedsuserccc', '50000.00 HYPHA'),
+      fourthuser: account('seedsuserxxx', '100000.00 HYPHA'),
+      fifthuser: account('seedsuseryyy', '100000.00 HYPHA'),
+      sixthuser: account('seedsuserzzz', '5000.00 HYPHA'),
+      oracleuser: account('hyphaoracle1', '10000.00 HYPHA'),
       daoAccount: account('dao.hypha'),
 
       // for testing..
@@ -125,7 +125,6 @@ const accountsMetadata = (network) => {
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
-      hyphatoken: contract('token.hypha', 'hyphatoken'),
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
 
@@ -140,6 +139,7 @@ const accountsMetadata = (network) => {
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
+      tier_vesting: account('vestng.hypha', 'tier_vesting'),
 
     }
   } else if (network == networks.telosTestnet) {
@@ -148,19 +148,20 @@ const accountsMetadata = (network) => {
       oracleuser: account('hyphaoracle1'),
       daoAccount: account('mtdhoxhyphaa'),
 
-
-      firstuser: account('seedsuseraaa', '10000000.0000 SEEDS'),
-      seconduser: account('seedsuserbbb', '10000000.0000 SEEDS'),
-      thirduser: account('seedsuserccc', '5000000.0000 SEEDS'),
-      fourthuser: account('seedsuserxxx', '10000000.0000 SEEDS', testnetUserPubkey),
-      fifthuser: account('seedsuseryyy', '10000000.0000 SEEDS', testnetUserPubkey),
-      sixthuser: account('seedsuserzzz', '5000.0000 SEEDS', testnetUserPubkey),
+      firstuser: account('seedsuseraaa', '1000000.00 HYPHA'),
+      seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
+      thirduser: account('seedsuserccc', '10000.00 HYPHA'),
+      fourthuser: account('seedsuserxxx', '10000.00 HYPHA', testnetUserPubkey),
+      fifthuser: account('seedsuseryyy', '10000.00 HYPHA', testnetUserPubkey),
+      sixthuser: account('seedsuserzzz', '10000.00 HYPHA', testnetUserPubkey),
 
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('mtdhoxhyphaa', 'dao'),
+      tier_vesting: account('vestngxhypha', 'tier_vesting'),
+
 
     }
   } else if (network == networks.eosMainnet) {
@@ -176,6 +177,7 @@ const accountsMetadata = (network) => {
       /// not functional
       sale: contract('sale.hypha', 'sale'),
       daoContract: account('dao.hypha', 'dao'),
+      tier_vesting: account('vestng.hypha', 'tier_vesting'),
 
     }
   } else if (network == networks.eosTestnet) {
@@ -189,7 +191,7 @@ const accountsMetadata = (network) => {
       joinhypha: contract('joinxhypha11', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('daoxhypha111', 'dao'),
-
+      tier_vesting: account('vestngxhypha', 'tier_vesting'),
     }
   } else {
     throw new Error(`${network} deployment not supported`)
@@ -276,7 +278,15 @@ const contractPermissions = {
       target: `${accounts.paycpu.account}@payforcpu`,
       action: 'payforcpu'
     }
-  ]
+  ],
+
+  tier_vesting: [
+    {
+      target: `${accounts.tier_vesting.account}@active`,
+      actor: `${accounts.tier_vesting.account}@eosio.code`
+    },
+  ],
+
 }
 
 const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)
@@ -357,18 +367,6 @@ const getTelosBalance = async (user) => {
   return Number.parseInt(balance[0])
 }
 
-const getBalance = async (user) => {
-  const balance = await eos.getCurrencyBalance(names.token, user, 'SEEDS')
-  return Number.parseInt(balance[0])
-}
-
-const getBalanceFloat = async (user) => {
-  const balance = await eos.getCurrencyBalance(names.token, user, 'SEEDS')
-  var float = parseInt(Math.round(parseFloat(balance[0]) * 10000)) / 10000.0;
-
-  return float;
-}
-
 const initContracts = (accounts) =>
   Promise.all(
     Object.values(accounts).map(
@@ -428,7 +426,7 @@ const sendTransaction = async (actions) => {
 
 module.exports = {
   keyProvider, httpEndpoint,
-  eos, getEOSWithEndpoint, getBalance, getBalanceFloat, getTableRows, initContracts,
+  eos, getEOSWithEndpoint, getTableRows, initContracts,
   accounts, names, ownerPublicKey, activePublicKey, permissions, sha256, isLocal, ramdom64ByteHexString, createKeypair,
   testnetUserPubkey, getTelosBalance, fromHexString, allContractNames, allContracts, allBankAccountNames, sleep, asset, isTestnet,
   sendTransaction,
