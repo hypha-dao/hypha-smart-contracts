@@ -337,7 +337,7 @@ const listPermissions = async (account) => {
 
 const createCoins = async (token) => {
   const { account, issuer, supply } = token
-  
+
   try {
     await eos.transaction({
       actions: [
@@ -533,13 +533,7 @@ const deployAllContracts = async () => {
     await sleep(500)
   }
 
-  // if (accounts.testtoken) {
-  //   await createCoins(accounts.testtoken)
-  // }
-  // if (accounts.hyphatoken) {
-  //   await createCoins(accounts.hyphatoken)
-  // }
-
+  // Then, create the other accounts
   for (let current = 0; current < accountNames.length; current++) {
     const accountName = accountNames[current]
     const account = accounts[accountName]
