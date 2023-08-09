@@ -26,8 +26,6 @@ void tier_vesting::addtier(name tier_id, asset amount, std::string name)
   // Initialize the created_at with the current time
   auto current_time = eosio::current_time_point();
 
-  // TODO: build the total_amount balance by locks so it's always correct and reflecting existing locks
-
   // Add the tier to the table
   tiers.emplace(get_self(), [&](auto &row)
                 {
