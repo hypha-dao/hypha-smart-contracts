@@ -292,6 +292,13 @@ const contractPermissions = {
     },
   ],
 
+  staking: [
+    {
+      target: `${accounts.staking.account}@active`,
+      actor: `${accounts.staking.account}@eosio.code`
+    },
+  ],
+
 }
 
 const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)

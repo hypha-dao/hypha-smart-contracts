@@ -130,3 +130,27 @@ void staking::reset()
                         { acc.balance += quantity; });
     }
 }
+
+const name token_contract = "hypha.hypha"_n;
+
+[[eosio::action]]
+void staking::refund(name account) {
+    require_auth(account);
+
+    accounts_table accounts(get_self(), get_self().value);
+    auto account_itr = accounts.find(account.value);
+
+    check(account_itr != accounts.end(), "Account not found");
+    check(account_itr->balance.amount > 0, "No balance to refund");
+
+    asset balance_to_refund = account_itr->balance;
+    accounts.modify(account_itr, account, [&](auto &acc) {
+        acc.balance = asset(0, balance_to_refund.symbol);
+    });
+
+    action(
+        permission_level{get_self(), name("active")},
+        token_contract, name("transfer"),
+        std::make_tuple(get_self(), account, balance_to_refund, std::string("Refund"))
+    ).send();
+}

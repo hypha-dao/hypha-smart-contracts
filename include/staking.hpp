@@ -13,11 +13,16 @@ public:
 
     [[eosio::action]] void unstake(name from, name to, asset quantity);
 
+    [[eosio::action]] void refund(name account);
+
     [[eosio::action]] void reset();
 
     [[eosio::on_notify("hypha.hypha::transfer")]] void on_transfer(name from, name to, asset quantity, std::string memo);
 
 private:
+    
+    const name token_contract = "hypha.hypha"_n;
+
     struct [[eosio::table]] account
     {
         name account_name;
