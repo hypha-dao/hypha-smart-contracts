@@ -436,30 +436,12 @@ ACTION sale::setflag(name flagname, uint64_t value) {
 
 ACTION sale::pause() {
   require_auth(get_self());
-
-  auto fitr = flags.find(paused_flag.value);
-  if (fitr == flags.end()) {
-    flags.emplace(get_self(), [&](auto& item) {
-      item.param = paused_flag;
-      item.value = 1;
-    });
-  } else {
-    flags.modify(fitr, get_self(), [&](auto& item) {
-      item.param = paused_flag;
-      item.value = 1;
-    });
-  } 
+  setflag(paused_flag, 1);
 }
 
 ACTION sale::unpause() {
   require_auth(get_self());
-
-  auto fitr = flags.find(paused_flag.value);
-  if (fitr != flags.end()) {
-    flags.modify(fitr, get_self(), [&](auto& item) {
-      item.value = 0;
-    });
-  }
+  setflag(paused_flag, 0);
 }
 
 bool sale::is_paused() {
