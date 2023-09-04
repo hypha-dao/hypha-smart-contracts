@@ -53,7 +53,7 @@ CONTRACT sale : public contract {
 
     ACTION reset();
 
-    ACTION updatevol(uint64_t round_id, uint64_t volume);
+    // ACTION updatevol(uint64_t round_id, uint64_t volume);
 
     ACTION addwhitelist(name account);
 
@@ -112,6 +112,8 @@ CONTRACT sale : public contract {
       asset visitor_limit;  // legacy
       uint64_t timestamp;
     };
+    typedef singleton<"config"_n, configtable> configtables;
+    typedef eosio::multi_index<"config"_n, configtable> dump_for_config;
 
     TABLE payhistory_table {
       uint64_t id;
@@ -124,6 +126,9 @@ CONTRACT sale : public contract {
       uint64_t primary_key()const { return id; }
       uint64_t by_payment_id()const { return std::hash<std::string>{}(paymentId); }
     };
+    typedef eosio::multi_index<"payhistory"_n, payhistory_table,
+      indexed_by<"bypaymentid"_n,const_mem_fun<payhistory_table, uint64_t, &payhistory_table::by_payment_id>>
+    > payhistory_tables;
 
     TABLE round_table {
       uint64_t id;
@@ -132,20 +137,25 @@ CONTRACT sale : public contract {
 
       uint64_t primary_key()const { return id; }
     };
-    
+    typedef multi_index<"rounds"_n, round_table> round_tables;
+
     TABLE stattable {
       name buyer_account;
       uint64_t tokens_purchased;
       
       uint64_t primary_key()const { return buyer_account.value; }
     };
+    typedef multi_index<"dailystats"_n, stattable> stattables;
+
 
     TABLE soldtable {
       uint64_t id;
       uint64_t total_sold;
       uint64_t primary_key()const { return id; }
     };
-    
+    typedef singleton<"sold"_n, soldtable> soldtables;
+    typedef eosio::multi_index<"sold"_n, soldtable> dump_for_sold;
+
     TABLE price_table {
       uint64_t id;
       uint64_t current_round_id;
@@ -154,6 +164,8 @@ CONTRACT sale : public contract {
 
       uint64_t primary_key()const { return id; }
     };
+    typedef singleton<"price"_n, price_table> price_tables;
+    typedef eosio::multi_index<"price"_n, price_table> dump_for_price;
 
     TABLE price_history_table { 
       uint64_t id; 
@@ -162,7 +174,6 @@ CONTRACT sale : public contract {
       
       uint64_t primary_key()const { return id; } 
     }; 
-
     typedef eosio::multi_index<"pricehistory"_n, price_history_table> price_history_tables;
     
     TABLE flags_table { 
@@ -170,7 +181,6 @@ CONTRACT sale : public contract {
         uint64_t value; 
         uint64_t primary_key()const { return param.value; } 
       }; 
-
     typedef eosio::multi_index<"flags"_n, flags_table> flags_tables; 
 
     TABLE whitelist_table { 
@@ -179,40 +189,15 @@ CONTRACT sale : public contract {
         uint64_t primary_key()const { return account.value; } 
       }; 
     typedef eosio::multi_index<"whitelist"_n, whitelist_table> whitelist_tables; 
-
-    typedef singleton<"config"_n, configtable> configtables;
-    typedef eosio::multi_index<"config"_n, configtable> dump_for_config;
-
-    typedef singleton<"sold"_n, soldtable> soldtables;
-    typedef eosio::multi_index<"sold"_n, soldtable> dump_for_sold;
-
-    typedef singleton<"price"_n, price_table> price_tables;
-    typedef eosio::multi_index<"price"_n, price_table> dump_for_price;
-    
-    typedef multi_index<"dailystats"_n, stattable> stattables;
-    
-    typedef multi_index<"rounds"_n, round_table> round_tables;
-
-    typedef eosio::multi_index<"payhistory"_n, payhistory_table,
-      indexed_by<"bypaymentid"_n,const_mem_fun<payhistory_table, uint64_t, &payhistory_table::by_payment_id>>
-    > payhistory_tables;
-
+        
     configtables config;
-
     soldtables sold;
-
     price_tables price;
-
     price_history_tables pricehistory;
-
     round_tables rounds;
-
     stattables dailystats;
-
     payhistory_tables payhistory;
-
     flags_tables flags;
-
     whitelist_tables whitelist;
 
 };
@@ -223,12 +208,19 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
   } else if (code == receiver) {
       switch (action) {
           EOSIO_DISPATCH_HELPER(sale, 
-          (reset)(onperiod)(newpayment)
-          (addround)(initsale)(initrounds)(priceupdate)
-          (pause)(unpause)(setflag)
+          (reset)
+          (onperiod)
+          (newpayment)
+          (addround)
+          (initsale)
+          (initrounds)
+          (priceupdate)
+          (pause)
+          (unpause)
+          (setflag)
           (incprice)
-          (updatevol)
-          (addwhitelist)(remwhitelist)
+          (addwhitelist)
+          (remwhitelist)
           //(testhusd)
           )
       }
