@@ -123,6 +123,7 @@ const accountsMetadata = (network) => {
       // for testing..
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
+      launch_sale: contract('launch.hypha', 'launch_sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
@@ -137,6 +138,7 @@ const accountsMetadata = (network) => {
       daoAccount: account('dao.hypha'),
 
       sale: contract('sale.hypha', 'sale'),
+      launch_sale: contract('launch.hypha', 'launch_sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
@@ -159,6 +161,7 @@ const accountsMetadata = (network) => {
 
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
+      launch_sale: contract('salexhypha11', 'launch_sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('mtdhoxhyphaa', 'dao'),

@@ -107,8 +107,12 @@ const buildFileMap = {
   'joinhypha.wasm': 'hypha.joinhypha.wasm',
   'paycpu.abi': 'hypha.paycpu.abi',
   'paycpu.wasm': 'hypha.paycpu.wasm',
+  
   'sale.abi': 'hypha.sale.abi',
   'sale.wasm': 'hypha.sale.wasm',
+  'launch_sale.abi': 'hypha.sale.abi',
+  'launch_sale.wasm': 'hypha.sale.wasm',
+
   'tier_vesting.wasm': 'tier_vesting.wasm',
   'tier_vesting.abi': 'tier_vesting.abi',
   'staking.wasm': 'staking.wasm',

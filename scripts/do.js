@@ -25,6 +25,13 @@ const getContractLocation = (contract) => {
       source: `./src/hypha.${contract}.cpp`,
       include: ""
     }
+  // launch sale is just sale deployed to a different location
+  } else if (contract == 'launch_sale') {
+    return {
+      source: `./src/hypha.sale.cpp`,
+      include: "",
+      contractSourceName: "sale"
+    }
   } else if (contract == 'hyphatoken') {
     return {
       source: `./src/seeds.startoken.cpp`,
