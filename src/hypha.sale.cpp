@@ -8,8 +8,10 @@ void sale::reset() {
   unpause();
   setflag(tlos_paused_flag, 1);
 
+  #ifndef LOCAL_TEST
   check(false, "Comment this out- safety stop. Always check in uncommented. ");
-  
+  #endif
+
   sold.remove();
 
   auto pitr = payhistory.begin();
@@ -153,7 +155,7 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
 }
 
 void sale::send_tokens(name to, asset quantity, string memo) {
-  if (!is_launch_sale()) {
+  if (is_launch_sale()) {
 
     // Launch sale - send to vesting contract and add lock
     name vesting_contract = get_vesting_contract();
@@ -336,6 +338,8 @@ ACTION sale::addround(uint64_t volume, asset hypha_usd) {
     item.hypha_usd = hypha_usd;
     item.max_sold = prev_vol + volume; 
   });
+
+  update_price();
 }
 
 // ACTION sale::updatevol(uint64_t round_id, uint64_t volume) {
