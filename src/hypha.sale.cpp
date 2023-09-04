@@ -109,7 +109,6 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
 
   configtable c = config.get();
 
-  asset hypha_usd = c.hypha_usd;
   uint64_t tokens_purchased = 0;
   
   auto token_symbol = hypha_symbol;
