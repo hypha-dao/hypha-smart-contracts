@@ -2,9 +2,6 @@
 #include <eosio/asset.hpp>
 #include <eosio/transaction.hpp>
 #include <eosio/singleton.hpp>
-// #include <contracts.hpp>
-// #include <tables.hpp>
-// #include <tables/price_history_table.hpp>
 #include <cmath>
 
 using namespace eosio;
@@ -53,13 +50,15 @@ CONTRACT sale : public contract {
 
     ACTION reset();
 
-    // ACTION updatevol(uint64_t round_id, uint64_t volume);
 
     ACTION addwhitelist(name account);
 
     ACTION remwhitelist(name account);
 
-    //ACTION testhusd(name from, name to, asset quantity);
+    ACTION cfglaunch(name vesting_contract);
+
+    // ACTION updatevol(uint64_t round_id, uint64_t volume);
+    // ACTION testhusd(name from, name to, asset quantity);
 
   private:
 
@@ -70,9 +69,13 @@ CONTRACT sale : public contract {
     void update_price(); 
     void price_update_aux();
     bool is_paused();
+    bool is_launch_sale();
+    name get_vesting_contract();
     bool is_set(name flag);
     bool is_whitelisted(name account);
     bool is_less_than_limit(asset hypha_quantity);
+    void send_tokens(name to, asset quantity, string memo);
+
     uint64_t get_limit();
 
     void price_history_update(); 
@@ -86,6 +89,8 @@ CONTRACT sale : public contract {
     name paused_flag = "paused"_n;
     name tlos_paused_flag = "tlos.paused"_n;
     name whitelist_limit_flag = "whtlst.limit"_n;
+    name launch_sale_flag = "launch.sale"_n;
+    name vesting_contract_name_flag = "vesting"_n;
 
     name husd_contract = "husd.hypha"_n;
     name hypha_contract = "hypha.hypha"_n;

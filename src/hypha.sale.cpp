@@ -149,12 +149,41 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
 
   update_price();
 
-  action(
-    permission_level{get_self(), "active"_n},
-    hypha_contract, "transfer"_n,
-    make_tuple(get_self(), buyer, token_quantity, memo)
-  ).send();    
+  send_tokens(buyer, token_quantity, memo);
 }
+
+void sale::send_tokens(name to, asset quantity, string memo) {
+  if (!is_launch_sale()) {
+
+    // Launch sale - send to vesting contract and add lock
+    name vesting_contract = get_vesting_contract();
+    name tier_id = "launch"_n;
+
+    // Transfer coins to vesting contract
+    action(
+      permission_level{get_self(), "active"_n},
+      hypha_contract, "transfer"_n,
+      make_tuple(get_self(), vesting_contract, quantity, memo)
+    ).send();    
+
+    // Add lock
+    action(
+      permission_level{get_self(), "active"_n},
+      vesting_contract, "addlock"_n,
+      // void addlock(name sender, name owner, name tier_id, asset amount, std::string note);
+      make_tuple(get_self(), to, tier_id, quantity, memo)
+    ).send();    
+
+  } else {
+    // Transfer tokens to buyer
+    action(
+      permission_level{get_self(), "active"_n},
+      hypha_contract, "transfer"_n,
+      make_tuple(get_self(), to, quantity, memo)
+    ).send();    
+  }
+}
+
 
 void sale::onhusd(name from, name to, asset quantity, string memo) {
   if (
@@ -450,6 +479,25 @@ bool sale::is_paused() {
   }
   return false;
 }
+
+bool sale::is_launch_sale() {
+  auto fitr = flags.find(launch_sale_flag.value);
+  if (fitr != flags.end()) {
+    return fitr->value > 0;
+  }
+  return false;
+}
+
+ACTION sale::cfglaunch(name vesting_contract) {
+  setflag(vesting_contract_name_flag, vesting_contract.value);
+}
+
+name sale::get_vesting_contract() {
+  auto fitr = flags.find(vesting_contract_name_flag.value);
+  check(fitr != flags.end(), "No vesting contract defined - call 'cfglaunch(name vesting_contract)' action");
+  return name{fitr->value};
+}
+
 
 bool sale::is_less_than_limit(asset hypha_quantity) {
   auto fitr = flags.find(whitelist_limit_flag.value);
