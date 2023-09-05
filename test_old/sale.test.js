@@ -2,7 +2,7 @@ const { describe } = require('riteway')
 
 const { eos, names, getTableRows, initContracts } = require('../scripts/helper.js')
 
-const { owner, hyphatoken, tlostoken, sale, firstuser } = names
+const { owner, hyphatoken, tlostoken, tier_vesting, sale, launch_sale, firstuser } = names
 
 
 const getBalanceFloat = async (user) => {
@@ -86,7 +86,7 @@ describe('Sale', async assert => {
   await contracts.sale.newpayment(firstuser, "BTC", "0.00001133",  "0x9113affgf", parseInt(usd * 10000), { authorization: `${sale}@active` })
 
   let balanceAfter2 = await getBalanceFloat(firstuser)
-  // console.log("balanceAfter2 "+balanceAfter2)
+  console.log("balanceAfter2 "+balanceAfter2)
 
   assert({
     given: `sent ${usd} USD to sale`,
@@ -102,7 +102,7 @@ describe('Sale', async assert => {
     json: true,
   })
 
-  // console.log("soldAfterAfter "+JSON.stringify(soldAfterAfter, 0, 2))
+  console.log("soldAfterAfter "+JSON.stringify(soldAfterAfter, 0, 2))
 
   console.log("test exceed balance ")
 
@@ -137,6 +137,25 @@ describe('Sale', async assert => {
   } catch (err) {
     console.log("expected error: "+err);
   }
+
+  console.log("test rounds reset")
+  // test reset to one big round
+  // ACTION initrounds(uint64_t volume_per_round, asset initial_token_per_usd, asset linear_increment, uint64_t num_rounds);
+  await contracts.sale.unpause({ authorization: `${sale}@active` })
+  await contracts.sale.initrounds( (1000) * 100, "1.00 USD", "0.00 USD", 1, { authorization: `${sale}@active` })
+
+  const usd1 = 7
+  await contracts.sale.newpayment(firstuser, "BTC", "0.0001",  "0x0001111", parseInt(usd1 * 10000), { authorization: `${sale}@active` })
+
+  let sold1 = await eos.getTableRows({
+    code: sale,
+    scope: sale,
+    table: 'sold',
+    json: true,
+  })
+  console.log("sold1 "+JSON.stringify(sold1, 0, 2))
+  let balance1 = await getBalanceFloat(firstuser)
+  console.log("balance1 "+balance1)
 
   assert({
     given: `contract paused`,
@@ -178,6 +197,20 @@ describe('Sale', async assert => {
     should: `have error`,
     actual: canExceedBalance,
     expected: false
+  })
+
+  assert({
+    given: 'one round reset - sold',
+    should: 'sold 7 more tokens',
+    actual: sold1.rows[0].total_sold,
+    expected: soldAfterAfter.rows[0].total_sold + 7 * 100
+  })
+
+  assert({
+    given: 'one round reset - bought',
+    should: 'bought 7 more tokens for 7 usd',
+    actual: balance1,
+    expected: balanceAfter2 + 7
   })
 
 })
@@ -433,7 +466,7 @@ describe('whitelist and limits', async assert => {
   console.log(`test limit`)
   await contracts.sale.setflag("whtlst.limit",  1 * 100, { authorization: `${sale}@active` })
 
-    const balanceBefore = await getBalanceFloat(firstuser)
+  const balanceBefore = await getBalanceFloat(firstuser)
 
   let canBuyBelowLimit = false;
 
@@ -505,6 +538,95 @@ describe('whitelist and limits', async assert => {
     actual: noWhiteListBuy,
     expected: false
   })
+
+
+})
+
+const getLocksTable = async (lockId) => {
+  return eos.getTableRows({
+      code: tier_vesting,
+      scope: tier_vesting,
+      table: 'locks',
+      json: true
+  })
+}
+
+describe.only('launch sale mode - locks', async assert => {
+
+  const contracts = await initContracts({ tier_vesting, launch_sale, hyphatoken })
+  console.log(`reset`)
+  
+  await contracts.launch_sale.reset({ authorization: `${launch_sale}@active` })  
+  await contracts.tier_vesting.reset({ authorization: `${tier_vesting}@active` })  
+  
+  
+  console.log(`transfer to sale`)
+  await contracts.hyphatoken.transfer(owner, launch_sale, "1000.00 HYPHA", 'launch_sale unit test', { authorization: `${owner}@active` })
+
+  console.log(`init`)
+  await contracts.launch_sale.initrounds( (1000) * 100, "0.50 USD", "0.00 USD", 1, { authorization: `${launch_sale}@active` })
+  
+  console.log(`add "launch" tier - that's where tokens go`)
+  await contracts.tier_vesting.addtier("launch", "0.00 HYPHA", "Launch stakeholders", { authorization: `${tier_vesting}@active` })
+
+  console.log(`test limit`)
+  await contracts.launch_sale.cfglaunch(tier_vesting, { authorization: `${launch_sale}@active` })
+
+  const balanceBefore = await getBalanceFloat(firstuser)
+  const vestingBalance = await getBalanceFloat(tier_vesting)
+  const saleBalance = await getBalanceFloat(launch_sale)
+
+  console.log(`new payment`)
+  // await contracts.launch_sale.newpayment(firstuser, "BTC", "0.00001123",  "0x3affgf", parseInt(usd * 10000), { authorization: `${sale}@active` })
+
+  await contracts.launch_sale.newpayment(firstuser, "USD", "2.0",  "00000123", parseInt(2 * 10000), { authorization: `${launch_sale}@active` })
+
+  const balanceAfter = await getBalanceFloat(firstuser)
+  const vestingBalanceAfter = await getBalanceFloat(tier_vesting)
+  const saleBalanceAfter = await getBalanceFloat(launch_sale)
+  const locks = await getLocksTable();
+
+  // console.log("before: "+vestingBalance)
+  // console.log("after: "+vestingBalanceAfter)
+  // console.log("locks: "+JSON.stringify(locks, null, 2))
+
+  assert({
+    given: 'purchase user',
+    should: 'same balance',
+    actual: balanceAfter,
+    expected: balanceBefore
+  })
+
+  assert({
+    given: 'purchase vesting',
+    should: 'inc balance',
+    actual: vestingBalanceAfter,
+    expected: vestingBalance + 4
+  })
+
+  assert({
+    given: 'purchase sale',
+    should: 'dec balance',
+    actual: saleBalanceAfter,
+    expected: saleBalance - 4
+  })
+
+  assert({
+    given: 'purchase - check lock',
+    should: 'add lock',
+    actual: locks.rows[0],
+    expected: {
+      "lock_id": 0,
+      "owner": firstuser,
+      "tier_id": "launch",
+      "amount": "4.00 HYPHA",
+      "claimed_amount": "0.00 HYPHA",
+      "note": "00000123"
+    }
+  })
+
+
+
 
 
 })

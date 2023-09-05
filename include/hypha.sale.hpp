@@ -94,7 +94,12 @@ CONTRACT sale : public contract {
     name vesting_contract_name_flag = "vesting"_n;
 
     name husd_contract = "husd.hypha"_n;
-    name hypha_contract = "hypha.hypha"_n;
+
+    #ifdef IS_TELOS_TESTNET
+      name hypha_contract = "mtrwardhypha"_n; // testnet
+    #else
+      name hypha_contract = "hypha.hypha"_n;
+    #endif
 
     uint64_t asset_factor(asset quantity) {
       //return 100;
@@ -227,6 +232,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
           (incprice)
           (addwhitelist)
           (remwhitelist)
+          (cfglaunch)
           //(testhusd)
           )
       }

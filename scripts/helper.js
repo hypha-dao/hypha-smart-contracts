@@ -363,6 +363,7 @@ if (keyProvider.length == 0 || keyProvider[0] == null) {
 }
 
 const isLocal = () => { return chainId == networks.local }
+const isTelosTestnet = () => { return chainId == networks.telosTestnet }
 
 const config = {
   keyProvider,
@@ -467,6 +468,7 @@ module.exports = {
   eos, getEOSWithEndpoint, getTableRows, initContracts,
   accounts, names, ownerPublicKey, activePublicKey, permissions, sha256, isLocal, ramdom64ByteHexString, createKeypair,
   testnetUserPubkey, getTelosBalance, fromHexString, allContractNames, allContracts, allBankAccountNames, sleep, asset, isTestnet,
+  isTelosTestnet,
   sendTransaction,
   contractPermissions,
 }

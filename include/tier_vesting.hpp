@@ -29,8 +29,14 @@ public:
   [[eosio::action]]
   void removelock(uint64_t lock_id);
   
-  [[eosio::on_notify("hypha.hypha::transfer")]]
-  void onreceive(name from, name to, asset quantity, std::string memo);
+  #ifdef IS_TELOS_TESTNET
+    [[eosio::on_notify("mtrwardhypha::transfer")]]
+    void onreceive(name from, name to, asset quantity, std::string memo);
+  #else
+    [[eosio::on_notify("hypha.hypha::transfer")]]
+    void onreceive(name from, name to, asset quantity, std::string memo);
+  #endif
+
 
   [[eosio::action]]
   void reset();

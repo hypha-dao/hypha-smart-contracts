@@ -1,0 +1,1 @@
+throw "use sale test instead!"
