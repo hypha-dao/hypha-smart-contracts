@@ -33,7 +33,7 @@ const endpoints = {
 
 const ownerAccounts = {
   local: 'owner',
-  telosTestnet: 'hypha',
+  telosTestnet: 'hyphaoracle1',
   telosMainnet: 'hypha',
   eosMainnet: 'hypha',
   eosTestnet: 'hyphadaotest',
@@ -169,8 +169,8 @@ const accountsMetadata = (network) => {
       sixthuser: account('seedsuserzzz', '10000.00 HYPHA', testnetUserPubkey),
 
       login: contract('logintohypha', 'login'),
-      sale: contract('sale.hypha', 'sale'),
-      launch_sale: contract('salexhypha11', 'launch_sale'),
+      sale: contract('salexhypha11', 'sale'),
+      launch_sale: contract('launchxhypha', 'launch_sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('mtdhoxhyphaa', 'dao'),

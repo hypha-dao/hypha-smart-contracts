@@ -68,7 +68,7 @@ class Eos {
 
     isUnitTest = isLocal ? isLocal() : false
 
-    console.log("EOS - is unit test: " + isUnitTest)
+    //console.log("EOS - is unit test: " + isUnitTest)
   }
 
   static getEcc () {

@@ -273,7 +273,7 @@ program
   .description('set up launch sale')
   .action(async function () {
     console.log("setting permissions on launch sale " + launch_sale)
-    await batchCallFunc(launch_sale, [], permissionsAction)
+    await batchCallFunc("launch_sale", [], permissionsAction)
 
     const contract = await eos.contract(launch_sale)
     console.log("set vesting contract on " + launch_sale + " to: " + tier_vesting)
@@ -284,11 +284,11 @@ program
 
   program
   .command('config_tier_vesting')
-  .description('set up launch sale')
+  .description('set up tier vesting')
   .action(async function () {
 
-    console.log("setting permissions on launch sale " + launch_sale)
-    await batchCallFunc(tier_vesting, [], permissionsAction)
+    console.log("setting permissions tier vesting " + tier_vesting)
+    await batchCallFunc("tier_vesting", [], permissionsAction)
 
     //void addtier(name tier_id, asset amount, std::string name);
 
@@ -297,7 +297,7 @@ program
 
     const addTier = async (tier_id, total_amount, name ) => {
       console.log(tier_vesting + ": adding tier: " + tier_id + " name: " + name + " token: " + total_amount)
-      await contract.addtier(tier_id, total_amount, name, { authorization: `${launch_sale}@active` })
+      await contract.addtier(tier_id, total_amount, name, { authorization: `${tier_vesting}@active` })
     }
 
     await addTier("launch", "0.00 HYPHA", "Launch Stakeholders")
