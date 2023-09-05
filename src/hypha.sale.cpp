@@ -493,7 +493,14 @@ bool sale::is_launch_sale() {
 }
 
 ACTION sale::cfglaunch(name vesting_contract) {
-  setflag(vesting_contract_name_flag, vesting_contract.value);
+  if (vesting_contract == ""_n) {
+    setflag(launch_sale_flag, 0);
+    setflag(vesting_contract_name_flag, 0);
+  } else {
+    check(is_account(vesting_contract), "Vesting contract does not exist");
+    setflag(launch_sale_flag, 1);
+    setflag(vesting_contract_name_flag, vesting_contract.value);
+  }
 }
 
 name sale::get_vesting_contract() {

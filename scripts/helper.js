@@ -69,7 +69,16 @@ const saleKeys = {
   [networks.eosTestnet]: ['EOS6qQjjYCoTmFha6rUk9ciE9NLTK1pvM7YgG6rnX2BLcRYzb9FWg'],
 }
 
+const launchSaleKeys = {
+  [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', // normal dev key
+  [networks.telosTestnet]: 'EOS7yHExhTMu1m23vAXHzMSBG632ry7yeas73TwBvFf13bEZCXfPP',
+  [networks.telosMainnet]: 'EOS5S4SbC42m2PKYsaaTywjtfgrc2hsuguMG3tkLDr7xeqTiyrYS4',
+  [networks.eosMainnet]: [],
+  [networks.eosTestnet]: ['EOS6qQjjYCoTmFha6rUk9ciE9NLTK1pvM7YgG6rnX2BLcRYzb9FWg'],
+}
+
 const salePublicKey = saleKeys[chainId]
+const launchSalePublicKey = launchSaleKeys[chainId]
 
 
 const account = (accountName, quantity = '0.00 HYPHA', pubkey = activePublicKey) => ({
@@ -258,6 +267,20 @@ const contractPermissions = {
       parent: 'active'
     }, {
       target: `${accounts.sale.account}@newpayment`,
+      action: 'newpayment'
+    },
+  ],
+
+  launch_sale: [
+    {
+      target: `${accounts.launch_sale.account}@active`,
+      actor: `${accounts.launch_sale.account}@eosio.code`
+    }, {
+      target: `${accounts.launch_sale.account}@newpayment`,
+      key: launchSalePublicKey,
+      parent: 'active'
+    }, {
+      target: `${accounts.launch_sale.account}@newpayment`,
       action: 'newpayment'
     },
   ],

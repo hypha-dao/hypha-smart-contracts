@@ -4,7 +4,7 @@ const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows, contractPermissions } = require('./helper')
-const { joinhypha, oracleuser, paycpu, daoAccount } = names
+const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoAccount } = names
 
 const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
@@ -265,6 +265,47 @@ program
     })
 
     console.log("configuration of " + paycpu + ": " + JSON.stringify(res, null, 2))
+
+  })
+
+  program
+  .command('config_launch_sale')
+  .description('set up launch sale')
+  .action(async function () {
+    console.log("setting permissions on launch sale " + launch_sale)
+    await batchCallFunc(launch_sale, [], permissionsAction)
+
+    const contract = await eos.contract(launch_sale)
+    console.log("set vesting contract on " + launch_sale + " to: " + tier_vesting)
+    await contract.cfglaunch(tier_vesting, { authorization: `${launch_sale}@active` })
+    console.log("done");
+
+  })
+
+  program
+  .command('config_tier_vesting')
+  .description('set up launch sale')
+  .action(async function () {
+
+    console.log("setting permissions on launch sale " + launch_sale)
+    await batchCallFunc(tier_vesting, [], permissionsAction)
+
+    //void addtier(name tier_id, asset amount, std::string name);
+
+    const contract = await eos.contract(tier_vesting)
+    console.log("set adding tiers to: " + tier_vesting)
+
+    const addTier = async (tier_id, total_amount, name ) => {
+      console.log(tier_vesting + ": adding tier: " + tier_id + " name: " + name + " token: " + total_amount)
+      await contract.addtier(tier_id, total_amount, name, { authorization: `${launch_sale}@active` })
+    }
+
+    await addTier("launch", "0.00 HYPHA", "Launch Stakeholders")
+    await addTier("earlystakedh", "0.00 HYPHA", "Early Stakeholders")
+    await addTier("hypha.dao.tr", "0.00 HYPHA", "Hypha DAO Treasury")
+    await addTier("incentive", "0.00 HYPHA", "Incentives")
+    
+    console.log("done");
 
   })
 

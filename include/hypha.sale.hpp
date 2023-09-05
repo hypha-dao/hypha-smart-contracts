@@ -55,6 +55,7 @@ CONTRACT sale : public contract {
 
     ACTION remwhitelist(name account);
 
+    // call with "" to turn off
     ACTION cfglaunch(name vesting_contract);
 
     // ACTION updatevol(uint64_t round_id, uint64_t volume);

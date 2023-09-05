@@ -12,7 +12,7 @@ public:
   using contract::contract;
 
   [[eosio::action]]
-  void addtier(name tier_id, asset total_amount, std::string name);
+  void addtier(name tier_id, asset amount, std::string name);
 
   [[eosio::action]]
   void removetier(name tier_id);

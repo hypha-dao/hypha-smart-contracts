@@ -23,6 +23,9 @@ void tier_vesting::addtier(name tier_id, asset amount, std::string name)
   auto tier_itr = tiers.find(tier_id.value);
   check(tier_itr == tiers.end(), "Tier already exists");
 
+  // Prevent amount errors
+  check(amount.amount == 0, "amount must be initialized with zero, e.g. 0.00 HYPHA");
+
   // Initialize the created_at with the current time
   auto current_time = eosio::current_time_point();
 
