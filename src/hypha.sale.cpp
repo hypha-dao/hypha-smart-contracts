@@ -8,8 +8,10 @@ void sale::reset() {
   unpause();
   setflag(tlos_paused_flag, 1);
 
+  #ifndef LOCAL_TEST
   check(false, "Comment this out- safety stop. Always check in uncommented. ");
-  
+  #endif
+
   sold.remove();
 
   auto pitr = payhistory.begin();
@@ -109,7 +111,6 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
 
   configtable c = config.get();
 
-  asset hypha_usd = c.hypha_usd;
   uint64_t tokens_purchased = 0;
   
   auto token_symbol = hypha_symbol;
@@ -150,12 +151,41 @@ void sale::purchase_usd(name buyer, asset usd_quantity, string paymentSymbol, st
 
   update_price();
 
-  action(
-    permission_level{get_self(), "active"_n},
-    hypha_contract, "transfer"_n,
-    make_tuple(get_self(), buyer, token_quantity, memo)
-  ).send();    
+  send_tokens(buyer, token_quantity, memo);
 }
+
+void sale::send_tokens(name to, asset quantity, string memo) {
+  if (is_launch_sale()) {
+
+    // Launch sale - send to vesting contract and add lock
+    name vesting_contract = get_vesting_contract();
+    name tier_id = "launch"_n;
+
+    // Transfer coins to vesting contract
+    action(
+      permission_level{get_self(), "active"_n},
+      hypha_contract, "transfer"_n,
+      make_tuple(get_self(), vesting_contract, quantity, memo)
+    ).send();    
+
+    // Add lock
+    action(
+      permission_level{get_self(), "active"_n},
+      vesting_contract, "addlock"_n,
+      // void addlock(name sender, name owner, name tier_id, asset amount, std::string note);
+      make_tuple(get_self(), to, tier_id, quantity, memo)
+    ).send();    
+
+  } else {
+    // Transfer tokens to buyer
+    action(
+      permission_level{get_self(), "active"_n},
+      hypha_contract, "transfer"_n,
+      make_tuple(get_self(), to, quantity, memo)
+    ).send();    
+  }
+}
+
 
 void sale::onhusd(name from, name to, asset quantity, string memo) {
   if (
@@ -308,35 +338,37 @@ ACTION sale::addround(uint64_t volume, asset hypha_usd) {
     item.hypha_usd = hypha_usd;
     item.max_sold = prev_vol + volume; 
   });
+
+  update_price();
 }
 
-ACTION sale::updatevol(uint64_t round_id, uint64_t volume) {
-  require_auth(get_self());
+// ACTION sale::updatevol(uint64_t round_id, uint64_t volume) {
+//   require_auth(get_self());
 
-  price_table p = price.get_or_create(get_self(), price_table());
-  check(round_id > p.current_round_id, "cannot change volume on past or already started rounds, only on future rounds");
+//   price_table p = price.get_or_create(get_self(), price_table());
+//   check(round_id > p.current_round_id, "cannot change volume on past or already started rounds, only on future rounds");
 
-  uint64_t prev_vol = 0;
+//   uint64_t prev_vol = 0;
 
-  auto previtr = rounds.find(round_id - 1);
-  if (previtr != rounds.end()) {
-    prev_vol = previtr -> max_sold;
-  } else {
-    check(round_id == 0, "invalid round id - must be continuous");
-  }
+//   auto previtr = rounds.find(round_id - 1);
+//   if (previtr != rounds.end()) {
+//     prev_vol = previtr -> max_sold;
+//   } else {
+//     check(round_id == 0, "invalid round id - must be continuous");
+//   }
 
-  auto ritr = rounds.find(round_id);
+//   auto ritr = rounds.find(round_id);
 
-  while(ritr != rounds.end()) {
-    uint64_t max_sold = prev_vol + volume;
-    rounds.modify(ritr, _self, [&](auto& item) {
-        item.max_sold = max_sold;
-    });
-    prev_vol = max_sold;
-    ritr++;
-  }
+//   while(ritr != rounds.end()) {
+//     uint64_t max_sold = prev_vol + volume;
+//     rounds.modify(ritr, _self, [&](auto& item) {
+//         item.max_sold = max_sold;
+//     });
+//     prev_vol = max_sold;
+//     ritr++;
+//   }
 
-}
+// }
 
 ACTION sale::initsale() {
   require_auth(get_self());
@@ -436,30 +468,12 @@ ACTION sale::setflag(name flagname, uint64_t value) {
 
 ACTION sale::pause() {
   require_auth(get_self());
-
-  auto fitr = flags.find(paused_flag.value);
-  if (fitr == flags.end()) {
-    flags.emplace(get_self(), [&](auto& item) {
-      item.param = paused_flag;
-      item.value = 1;
-    });
-  } else {
-    flags.modify(fitr, get_self(), [&](auto& item) {
-      item.param = paused_flag;
-      item.value = 1;
-    });
-  } 
+  setflag(paused_flag, 1);
 }
 
 ACTION sale::unpause() {
   require_auth(get_self());
-
-  auto fitr = flags.find(paused_flag.value);
-  if (fitr != flags.end()) {
-    flags.modify(fitr, get_self(), [&](auto& item) {
-      item.value = 0;
-    });
-  }
+  setflag(paused_flag, 0);
 }
 
 bool sale::is_paused() {
@@ -469,6 +483,32 @@ bool sale::is_paused() {
   }
   return false;
 }
+
+bool sale::is_launch_sale() {
+  auto fitr = flags.find(launch_sale_flag.value);
+  if (fitr != flags.end()) {
+    return fitr->value > 0;
+  }
+  return false;
+}
+
+ACTION sale::cfglaunch(name vesting_contract) {
+  if (vesting_contract == ""_n) {
+    setflag(launch_sale_flag, 0);
+    setflag(vesting_contract_name_flag, 0);
+  } else {
+    check(is_account(vesting_contract), "Vesting contract does not exist");
+    setflag(launch_sale_flag, 1);
+    setflag(vesting_contract_name_flag, vesting_contract.value);
+  }
+}
+
+name sale::get_vesting_contract() {
+  auto fitr = flags.find(vesting_contract_name_flag.value);
+  check(fitr != flags.end(), "No vesting contract defined - call 'cfglaunch(name vesting_contract)' action");
+  return name{fitr->value};
+}
+
 
 bool sale::is_less_than_limit(asset hypha_quantity) {
   auto fitr = flags.find(whitelist_limit_flag.value);

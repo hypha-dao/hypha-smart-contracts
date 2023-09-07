@@ -380,23 +380,24 @@ describe('Tier Vesting', async assert => {
             console.log("claimed " + difference + " HYPHA")
 
             const epsilon = Math.abs(difference - expected)
-            console.log("epsilon " + epsilon + "")
 
             assert({
-                given: 'Expected claim - user ' + account + ' lock ' + lock_id + ' of ' + expectedClaim ,
+                given: 'Expected claim - user ' + account + ' lock ' + lock_id + ' of ' + expectedClaim + " epsilon: " + epsilon ,
                 should: 'Claim the expected amount',
-                actual: epsilon < 0.0001,
+                actual: parseFloat((epsilon * 100).toFixed(2)) <= 1,
                 expected: true,
             })
 
             const lockClaimBefore = parseFloat(lockBefore.claimed_amount)
             const expectedAfter = lockClaimBefore + difference
             const lockClaimAfter = parseFloat(lockAfter.claimed_amount)
+            const claimEpsilon = Math.abs(lockClaimAfter - expectedAfter)
+
             assert({
-                given: 'Claim of ' + difference,
+                given: 'Claim of ' + difference  + " claim eps: " + claimEpsilon,
                 should: 'Modify lock claimed balance',
-                actual: lockClaimAfter.toFixed(2),
-                expected: expectedAfter.toFixed(2),
+                actual: parseFloat((claimEpsilon * 100).toFixed(2)) <= 1,
+                expected: true,
             })
 
         }

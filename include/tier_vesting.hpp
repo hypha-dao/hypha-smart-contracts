@@ -12,7 +12,7 @@ public:
   using contract::contract;
 
   [[eosio::action]]
-  void addtier(name tier_id, asset total_amount, std::string name);
+  void addtier(name tier_id, asset amount, std::string name);
 
   [[eosio::action]]
   void removetier(name tier_id);
@@ -29,8 +29,14 @@ public:
   [[eosio::action]]
   void removelock(uint64_t lock_id);
   
-  [[eosio::on_notify("hypha.hypha::transfer")]]
-  void onreceive(name from, name to, asset quantity, std::string memo);
+  #ifdef IS_TELOS_TESTNET
+    [[eosio::on_notify("mtrwardhypha::transfer")]]
+    void onreceive(name from, name to, asset quantity, std::string memo);
+  #else
+    [[eosio::on_notify("hypha.hypha::transfer")]]
+    void onreceive(name from, name to, asset quantity, std::string memo);
+  #endif
+
 
   [[eosio::action]]
   void reset();

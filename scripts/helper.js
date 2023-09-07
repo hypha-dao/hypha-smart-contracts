@@ -33,7 +33,7 @@ const endpoints = {
 
 const ownerAccounts = {
   local: 'owner',
-  telosTestnet: 'hypha',
+  telosTestnet: 'hyphaoracle1',
   telosMainnet: 'hypha',
   eosMainnet: 'hypha',
   eosTestnet: 'hyphadaotest',
@@ -69,7 +69,16 @@ const saleKeys = {
   [networks.eosTestnet]: ['EOS6qQjjYCoTmFha6rUk9ciE9NLTK1pvM7YgG6rnX2BLcRYzb9FWg'],
 }
 
+const launchSaleKeys = {
+  [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', // normal dev key
+  [networks.telosTestnet]: 'EOS7yHExhTMu1m23vAXHzMSBG632ry7yeas73TwBvFf13bEZCXfPP',
+  [networks.telosMainnet]: 'EOS5S4SbC42m2PKYsaaTywjtfgrc2hsuguMG3tkLDr7xeqTiyrYS4',
+  [networks.eosMainnet]: [],
+  [networks.eosTestnet]: ['EOS6qQjjYCoTmFha6rUk9ciE9NLTK1pvM7YgG6rnX2BLcRYzb9FWg'],
+}
+
 const salePublicKey = saleKeys[chainId]
+const launchSalePublicKey = launchSaleKeys[chainId]
 
 
 const account = (accountName, quantity = '0.00 HYPHA', pubkey = activePublicKey) => ({
@@ -123,6 +132,7 @@ const accountsMetadata = (network) => {
       // for testing..
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
+      launch_sale: contract('launch.hypha', 'launch_sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
@@ -137,6 +147,7 @@ const accountsMetadata = (network) => {
       daoAccount: account('dao.hypha'),
 
       sale: contract('sale.hypha', 'sale'),
+      launch_sale: contract('launch.hypha', 'launch_sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
       daoContract: account('dao.hypha', 'dao'),
@@ -158,7 +169,8 @@ const accountsMetadata = (network) => {
       sixthuser: account('seedsuserzzz', '10000.00 HYPHA', testnetUserPubkey),
 
       login: contract('logintohypha', 'login'),
-      sale: contract('sale.hypha', 'sale'),
+      sale: contract('salexhypha11', 'sale'),
+      launch_sale: contract('launchxhypha', 'launch_sale'),
       joinhypha: contract('joinhypha111', 'joinhypha'),
       paycpu: contract('paycpuxhypha', 'paycpu'),
       daoContract: account('mtdhoxhyphaa', 'dao'),
@@ -259,6 +271,20 @@ const contractPermissions = {
     },
   ],
 
+  launch_sale: [
+    {
+      target: `${accounts.launch_sale.account}@active`,
+      actor: `${accounts.launch_sale.account}@eosio.code`
+    }, {
+      target: `${accounts.launch_sale.account}@newpayment`,
+      key: launchSalePublicKey,
+      parent: 'active'
+    }, {
+      target: `${accounts.launch_sale.account}@newpayment`,
+      action: 'newpayment'
+    },
+  ],
+
   joinhypha: [
     {
       target: `${accounts.joinhypha.account}@active`,
@@ -337,6 +363,7 @@ if (keyProvider.length == 0 || keyProvider[0] == null) {
 }
 
 const isLocal = () => { return chainId == networks.local }
+const isTelosTestnet = () => { return chainId == networks.telosTestnet }
 
 const config = {
   keyProvider,
@@ -441,6 +468,7 @@ module.exports = {
   eos, getEOSWithEndpoint, getTableRows, initContracts,
   accounts, names, ownerPublicKey, activePublicKey, permissions, sha256, isLocal, ramdom64ByteHexString, createKeypair,
   testnetUserPubkey, getTelosBalance, fromHexString, allContractNames, allContracts, allBankAccountNames, sleep, asset, isTestnet,
+  isTelosTestnet,
   sendTransaction,
   contractPermissions,
 }

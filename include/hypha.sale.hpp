@@ -2,9 +2,6 @@
 #include <eosio/asset.hpp>
 #include <eosio/transaction.hpp>
 #include <eosio/singleton.hpp>
-// #include <contracts.hpp>
-// #include <tables.hpp>
-// #include <tables/price_history_table.hpp>
 #include <cmath>
 
 using namespace eosio;
@@ -53,13 +50,16 @@ CONTRACT sale : public contract {
 
     ACTION reset();
 
-    ACTION updatevol(uint64_t round_id, uint64_t volume);
 
     ACTION addwhitelist(name account);
 
     ACTION remwhitelist(name account);
 
-    //ACTION testhusd(name from, name to, asset quantity);
+    // call with "" to turn off
+    ACTION cfglaunch(name vesting_contract);
+
+    // ACTION updatevol(uint64_t round_id, uint64_t volume);
+    // ACTION testhusd(name from, name to, asset quantity);
 
   private:
 
@@ -70,9 +70,13 @@ CONTRACT sale : public contract {
     void update_price(); 
     void price_update_aux();
     bool is_paused();
+    bool is_launch_sale();
+    name get_vesting_contract();
     bool is_set(name flag);
     bool is_whitelisted(name account);
     bool is_less_than_limit(asset hypha_quantity);
+    void send_tokens(name to, asset quantity, string memo);
+
     uint64_t get_limit();
 
     void price_history_update(); 
@@ -86,9 +90,16 @@ CONTRACT sale : public contract {
     name paused_flag = "paused"_n;
     name tlos_paused_flag = "tlos.paused"_n;
     name whitelist_limit_flag = "whtlst.limit"_n;
+    name launch_sale_flag = "launch.sale"_n;
+    name vesting_contract_name_flag = "vesting"_n;
 
     name husd_contract = "husd.hypha"_n;
-    name hypha_contract = "hypha.hypha"_n;
+
+    #ifdef IS_TELOS_TESTNET
+      name hypha_contract = "mtrwardhypha"_n; // testnet
+    #else
+      name hypha_contract = "hypha.hypha"_n;
+    #endif
 
     uint64_t asset_factor(asset quantity) {
       //return 100;
@@ -112,6 +123,8 @@ CONTRACT sale : public contract {
       asset visitor_limit;  // legacy
       uint64_t timestamp;
     };
+    typedef singleton<"config"_n, configtable> configtables;
+    typedef eosio::multi_index<"config"_n, configtable> dump_for_config;
 
     TABLE payhistory_table {
       uint64_t id;
@@ -124,6 +137,9 @@ CONTRACT sale : public contract {
       uint64_t primary_key()const { return id; }
       uint64_t by_payment_id()const { return std::hash<std::string>{}(paymentId); }
     };
+    typedef eosio::multi_index<"payhistory"_n, payhistory_table,
+      indexed_by<"bypaymentid"_n,const_mem_fun<payhistory_table, uint64_t, &payhistory_table::by_payment_id>>
+    > payhistory_tables;
 
     TABLE round_table {
       uint64_t id;
@@ -132,20 +148,25 @@ CONTRACT sale : public contract {
 
       uint64_t primary_key()const { return id; }
     };
-    
+    typedef multi_index<"rounds"_n, round_table> round_tables;
+
     TABLE stattable {
       name buyer_account;
       uint64_t tokens_purchased;
       
       uint64_t primary_key()const { return buyer_account.value; }
     };
+    typedef multi_index<"dailystats"_n, stattable> stattables;
+
 
     TABLE soldtable {
       uint64_t id;
       uint64_t total_sold;
       uint64_t primary_key()const { return id; }
     };
-    
+    typedef singleton<"sold"_n, soldtable> soldtables;
+    typedef eosio::multi_index<"sold"_n, soldtable> dump_for_sold;
+
     TABLE price_table {
       uint64_t id;
       uint64_t current_round_id;
@@ -154,6 +175,8 @@ CONTRACT sale : public contract {
 
       uint64_t primary_key()const { return id; }
     };
+    typedef singleton<"price"_n, price_table> price_tables;
+    typedef eosio::multi_index<"price"_n, price_table> dump_for_price;
 
     TABLE price_history_table { 
       uint64_t id; 
@@ -162,7 +185,6 @@ CONTRACT sale : public contract {
       
       uint64_t primary_key()const { return id; } 
     }; 
-
     typedef eosio::multi_index<"pricehistory"_n, price_history_table> price_history_tables;
     
     TABLE flags_table { 
@@ -170,7 +192,6 @@ CONTRACT sale : public contract {
         uint64_t value; 
         uint64_t primary_key()const { return param.value; } 
       }; 
-
     typedef eosio::multi_index<"flags"_n, flags_table> flags_tables; 
 
     TABLE whitelist_table { 
@@ -179,40 +200,15 @@ CONTRACT sale : public contract {
         uint64_t primary_key()const { return account.value; } 
       }; 
     typedef eosio::multi_index<"whitelist"_n, whitelist_table> whitelist_tables; 
-
-    typedef singleton<"config"_n, configtable> configtables;
-    typedef eosio::multi_index<"config"_n, configtable> dump_for_config;
-
-    typedef singleton<"sold"_n, soldtable> soldtables;
-    typedef eosio::multi_index<"sold"_n, soldtable> dump_for_sold;
-
-    typedef singleton<"price"_n, price_table> price_tables;
-    typedef eosio::multi_index<"price"_n, price_table> dump_for_price;
-    
-    typedef multi_index<"dailystats"_n, stattable> stattables;
-    
-    typedef multi_index<"rounds"_n, round_table> round_tables;
-
-    typedef eosio::multi_index<"payhistory"_n, payhistory_table,
-      indexed_by<"bypaymentid"_n,const_mem_fun<payhistory_table, uint64_t, &payhistory_table::by_payment_id>>
-    > payhistory_tables;
-
+        
     configtables config;
-
     soldtables sold;
-
     price_tables price;
-
     price_history_tables pricehistory;
-
     round_tables rounds;
-
     stattables dailystats;
-
     payhistory_tables payhistory;
-
     flags_tables flags;
-
     whitelist_tables whitelist;
 
 };
@@ -223,12 +219,20 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
   } else if (code == receiver) {
       switch (action) {
           EOSIO_DISPATCH_HELPER(sale, 
-          (reset)(onperiod)(newpayment)
-          (addround)(initsale)(initrounds)(priceupdate)
-          (pause)(unpause)(setflag)
+          (reset)
+          (onperiod)
+          (newpayment)
+          (addround)
+          (initsale)
+          (initrounds)
+          (priceupdate)
+          (pause)
+          (unpause)
+          (setflag)
           (incprice)
-          (updatevol)
-          (addwhitelist)(remwhitelist)
+          (addwhitelist)
+          (remwhitelist)
+          (cfglaunch)
           //(testhusd)
           )
       }

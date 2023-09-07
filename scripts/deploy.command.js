@@ -17,6 +17,11 @@ const deploy = async (name) => {
     // on mainnet or testnet need to be created manually. 
 
     await createAccount(account)
+
+    // on testnet for example, create an account like this
+    //
+    // cleos -u https://testnet.telos.net/ system newaccount --buy-ram-kbytes 1100 --stake-net "2.0000 TLOS" --stake-cpu "2.0000 TLOS" s33dst3stn3t salexhypha11 EOS8C9tXuPMkmB6EA7vDgGtzA99k1BN6UxjkGisC1QKpQ6YV7MFqm
+    //
   }
 
   if (!code)

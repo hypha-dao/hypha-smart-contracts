@@ -5,7 +5,7 @@ const fse = require('fs-extra')
 var fs = require('fs');
 var dir = './tmp';
 const path = require('path');
-const { isLocal } = require('./helper');
+const { isLocal, isTelosTestnet } = require('./helper');
 
 
 const existsAsync = promisify(fs.exists)
@@ -20,9 +20,10 @@ const command = ({ contract, source, include, dir, contractSourceName }) => {
 
   contractSourceName = contractSourceName ?? contract
 
-  if (process.env.COMPILER === 'local') {
-    const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
-    cmd = "eosio-cpp -abigen -I " + inc + " -contract " + contractSourceName + testingFlag + " -o ./artifacts/" + contract + ".wasm " + source;
+  const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
+  const testnetFlag = isTelosTestnet() ? " -DIS_TELOS_TESTNET" : ""
+if (process.env.COMPILER === 'local') {
+    cmd = "eosio-cpp -abigen -I " + inc + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source;
   } else {
     cmd = `docker run --rm --name eosio.cdt_v1.7.0-rc1 --volume ${volume}:/project -w /project eostudio/eosio.cdt:v1.7.0-rc1 /bin/bash -c "echo 'starting';eosio-cpp -abigen -I ${inc} -contract ${contract} -o ./artifacts/${contract}.wasm ${source}"`
   }
@@ -107,8 +108,12 @@ const buildFileMap = {
   'joinhypha.wasm': 'hypha.joinhypha.wasm',
   'paycpu.abi': 'hypha.paycpu.abi',
   'paycpu.wasm': 'hypha.paycpu.wasm',
+  
   'sale.abi': 'hypha.sale.abi',
   'sale.wasm': 'hypha.sale.wasm',
+  'launch_sale.abi': 'hypha.sale.abi',
+  'launch_sale.wasm': 'hypha.sale.wasm',
+
   'tier_vesting.wasm': 'tier_vesting.wasm',
   'tier_vesting.abi': 'tier_vesting.abi',
   'staking.wasm': 'staking.wasm',

@@ -22,29 +22,30 @@ function sleep (ms) {
 async function getNonce () {
   try {
     if (isUnitTest) {
-      await rpc.getRawAbi('policy.seeds')
-      const random = Math.random().toString(36).substring(4);
+      await rpc.getRawAbi('hypha.hypha')
+      const random = Math.random().toString(36).substring(6);
       return [{
         // this is a nonce action - prevents duplicate transaction errors - we borrow policy.seeds for this
-        account:"policy.seeds",
-        name:"create",
+        account:"hypha.hypha",
+        name:"transfer",
         authorization: [
           {
-            actor: 'policy.seeds',
+            actor: 'owner',
             permission: 'active'
           }
         ],
         data:{
-          account:"policy.seeds",
-          backend_user_id: random,
-          device_id: random,
-          signature: "",
+          from:"owner",
+          to: "seedsuserxxx",
+          quantity: "0.01 HYPHA",
+          memo: random,
           policy: "CREATED BY UNIT TEST"
         }
       }]
     }
     return []
   } catch (err) {
+    console.log("Error creating nonce: " + err)
     return []
   }
 }
@@ -67,6 +68,7 @@ class Eos {
 
     isUnitTest = isLocal ? isLocal() : false
 
+    //console.log("EOS - is unit test: " + isUnitTest)
   }
 
   static getEcc () {
@@ -144,7 +146,7 @@ class Eos {
               actions
             }, trxConfig)
           } else {
-            //console.log("Error on actions: "+JSON.stringify(actions))
+            console.log("Error on actions: "+JSON.stringify(actions))
             throw err
           }
         }
