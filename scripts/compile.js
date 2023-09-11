@@ -23,7 +23,7 @@ const command = ({ contract, source, include, dir, contractSourceName }) => {
   const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
   const testnetFlag = isTelosTestnet() ? " -DIS_TELOS_TESTNET" : ""
 if (process.env.COMPILER === 'local') {
-    cmd = "eosio-cpp -abigen -I " + inc + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source;
+    cmd = "eosio-cpp -abigen -I " + inc + " -I ./document-graph/include" + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source; 
   } else {
     cmd = `docker run --rm --name eosio.cdt_v1.7.0-rc1 --volume ${volume}:/project -w /project eostudio/eosio.cdt:v1.7.0-rc1 /bin/bash -c "echo 'starting';eosio-cpp -abigen -I ${inc} -contract ${contract} -o ./artifacts/${contract}.wasm ${source}"`
   }
@@ -68,28 +68,28 @@ const compile = async ({ contract, source, include = "", contractSourceName }) =
   const docGraphInclude = dir + 'include/document_graph'
   const docGraphSrc = dir + 'src/document_graph'
 
-  const docGraphIncludeFound = await existsAsync(docGraphInclude)
-  const docGraphSrcFound = await existsAsync(docGraphSrc)
+  // const docGraphIncludeFound = await existsAsync(docGraphInclude)
+  // const docGraphSrcFound = await existsAsync(docGraphSrc)
 
-  if (!docGraphIncludeFound) {
-    fse.copySync(dir + 'document-graph/include/document_graph', docGraphInclude, { overwrite: true }, (err) => {
-      if (err) {
-        throw new Error('' + err)
-      } else {
-        console.log("document graph submodule include prepared")
-      }
-    })
-  }
+  // if (!docGraphIncludeFound) {
+  //   fse.copySync(dir + 'document-graph/include/document_graph', docGraphInclude, { overwrite: true }, (err) => {
+  //     if (err) {
+  //       throw new Error('' + err)
+  //     } else {
+  //       console.log("document graph submodule include prepared")
+  //     }
+  //   })
+  // }
 
-  if (!docGraphSrcFound) {
-    fse.copySync(dir + 'document-graph/src/document_graph', docGraphSrc, { overwrite: true }, (err) => {
-      if (err) {
-        throw new Error('' + err)
-      } else {
-        console.log("document graph submodule src prepared")
-      }
-    })
-  }
+  // if (!docGraphSrcFound) {
+  //   fse.copySync(dir + 'document-graph/src/document_graph', docGraphSrc, { overwrite: true }, (err) => {
+  //     if (err) {
+  //       throw new Error('' + err)
+  //     } else {
+  //       console.log("document graph submodule src prepared")
+  //     }
+  //   })
+  // }
 
   // run compile
   const execCommand = command({ contract, source, include, dir, contractSourceName })

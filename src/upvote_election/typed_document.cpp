@@ -65,8 +65,8 @@ namespace hypha
     {
         auto [idx, docType] = document.getContentWrapper().get(SYSTEM, TYPE);
 
-        EOS_CHECK(idx != -1, "Content item labeled 'type' is required for this document but not found.");
-        EOS_CHECK(docType->getAs<eosio::name>() == getType(),
+        eosio::check(idx != -1, "Content item labeled 'type' is required for this document but not found.");
+        eosio::check(docType->getAs<eosio::name>() == getType(),
                 //   to_str("invalid document type. Expected: ", getType(),
                 //                "; actual: ", docType->getAs<eosio::name>(), " for document: ", getId())
                 // TODO

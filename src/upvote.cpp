@@ -6,6 +6,7 @@
 
 // #include "badges/badges.hpp"
 
+#include "upvote_election/hypha_common.hpp"
 #include "upvote_election/upvote_common.hpp"
 // #include "recurring_activity.hpp"
 
@@ -30,9 +31,15 @@
     using VoteGroup = hypha::upvote_election::VoteGroup;
     using VoteGroupData = hypha::upvote_election::VoteGroupData;
 
+    using DocumentGraph = hypha::DocumentGraph;
+    using ContentGroup = hypha::ContentGroup;
     using ContentGroups = hypha::ContentGroups;
     using ContentWrapper = hypha::ContentWrapper;
+    using Content = hypha::Content;
     using Document = hypha::Document;
+    using Edge = hypha::Edge;
+    using TypedDocument = hypha::TypedDocument;
+    
 
 namespace upvote_common = hypha::upvote_election::common;
 
@@ -45,68 +52,65 @@ using eosio::time_point;
 
 std::map<int64_t, ElectionRoundData> upvote::getRounds(ContentGroups& electionConfig, time_point& endDate) 
 {    
-    auto cw = ContentWrapper(electionConfig);
-    //Store rounds groups sorted by their round id, in case they aren't sorted
     std::map<int64_t, ElectionRoundData> rounds;
+    // auto cw = ContentWrapper(electionConfig);
+    // //Store rounds groups sorted by their round id, in case they aren't sorted
+    // std::map<int64_t, ElectionRoundData> rounds;
 
-    for (size_t i = 0; i < electionConfig.size(); ++i) {
-        auto& group = electionConfig[i];
-        if (cw.getGroupLabel(group) == upvote_common::groups::ROUND) {
+    // for (size_t i = 0; i < electionConfig.size(); ++i) {
+    //     auto& group = electionConfig[i];
+    //     if (cw.getGroupLabel(group) == upvote_common::groups::ROUND) {
             
-            ElectionRoundData data;
+    //         ElectionRoundData data;
 
-            data.passing_count = cw.getOrFail(
-                i,
-                upvote_common::items::PASSING_AMOUNT
-            ).second->getAs<int64_t>();
+    //         data.passing_count = cw.getOrFail(
+    //             i,
+    //             upvote_common::items::PASSING_AMOUNT
+    //         ).second->getAs<int64_t>();
 
-            EOS_CHECK(
-                data.passing_count >= 1,
-                "Passing count must be greater or equal to 1"
-            )
+    //         eosio::check(
+    //             data.passing_count >= 1,
+    //             "Passing count must be greater or equal to 1"
+    //         );
 
-            data.type = cw.getOrFail(
-                i,
-                upvote_common::items::ROUND_TYPE
-            ).second->getAs<std::string>();
+    //         data.type = cw.getOrFail(
+    //             i,
+    //             upvote_common::items::ROUND_TYPE
+    //         ).second->getAs<std::string>();
 
-            EOS_CHECK(
-                data.type == upvote_common::round_types::CHIEF || 
-                data.type == upvote_common::round_types::HEAD || 
-                data.type == upvote_common::round_types::DELEGATE,
-                // TODO fix string, print type
-                "Invalid round type: "
-            );
+    //         eosio::check(
+    //             data.type == upvote_common::round_types::CHIEF || 
+    //             data.type == upvote_common::round_types::HEAD || 
+    //             data.type == upvote_common::round_types::DELEGATE,
+    //             // TODO fix string, print type
+    //             "Invalid round type: "
+    //         );
 
-            auto roundId = cw.getOrFail(
-                i,
-                upvote_common::items::ROUND_ID
-            ).second->getAs<int64_t>();
+    //         auto roundId = cw.getOrFail(
+    //             i,
+    //             upvote_common::items::ROUND_ID
+    //         ).second->getAs<int64_t>();
             
-            //Let's check if the round was already defined
-            EOS_CHECK(
-                rounds.count(roundId) == 0,
-                "Duplicated round entry in election_config"
-            );
+    //         //Let's check if the round was already defined
+    //         eosio::check(
+    //             rounds.count(roundId) == 0,
+    //             "Duplicated round entry in election_config"
+    //         );
 
-            auto duration = cw.getOrFail(
-                i,
-                upvote_common::items::ROUND_DURATION
-            ).second->getAs<int64_t>();
+    //         auto duration = cw.getOrFail(
+    //             i,
+    //             upvote_common::items::ROUND_DURATION
+    //         ).second->getAs<int64_t>();
 
-            data.duration = duration;
+    //         data.duration = duration;
 
-            endDate += eosio::seconds(duration);
+    //         endDate += eosio::seconds(duration);
 
-            rounds.insert({roundId, data});
-        }
-    }
+    //         rounds.insert({roundId, data});
+    //     }
+    // }
 
     return rounds;
-}
-
-static constexpr int64_t getDelegatePower(int64_t roundId) {
-    return roundId * 1 << roundId;
 }
 
 void upvote::createRounds(name dao, UpvoteElection& election, std::map<int64_t, ElectionRoundData>& rounds, time_point startDate, time_point endDate) 
@@ -126,18 +130,18 @@ void upvote::createRounds(name dao, UpvoteElection& election, std::map<int64_t, 
         roundData.end_date = startDate;
 
         if (roundData.type == upvote_common::round_types::HEAD) {
-            EOS_CHECK(
+            eosio::check(
                 prevRound && prevRound->getType() == upvote_common::round_types::CHIEF,
                 "There has to be a Chief round previous to Head Delegate round"
             );
         }
         else {
             // TODO fix string
-            // EOS_CHECK(
+            // eosio::check(
             //     !hasChief,
             //     to_str("Cannot create ", roundData.type, "type rounds after a Chief round")
             // );
-            EOS_CHECK(
+            eosio::check(
                 !hasChief,
                 "Cannot create type rounds after a Chief round"
             );
@@ -153,7 +157,7 @@ void upvote::createRounds(name dao, UpvoteElection& election, std::map<int64_t, 
 
         if (prevRound) {
             
-            EOS_CHECK(
+            eosio::check(
                 prevRound->getPassingCount() > electionRound->getPassingCount(),
                 "Passing count has to be decremental"
             );
@@ -167,17 +171,17 @@ void upvote::createRounds(name dao, UpvoteElection& election, std::map<int64_t, 
         prevRound = std::move(electionRound);
     }
 
-    EOS_CHECK(
+    eosio::check(
         prevRound->getType() == upvote_common::round_types::CHIEF ||
         prevRound->getType() == upvote_common::round_types::HEAD,
         "Last round must be of type Chief or Head"
-    )
+    );
 
     //Verify we have a chief round
     election.getChiefRound();
 
     //At the end both start date and end date should be the same
-    EOS_CHECK(
+    eosio::check(
         startDate == endDate,
         // to_str("End date missmatch: ", startDate, " ", endDate)
         "End date missmatch: startDate == endDate"
@@ -198,7 +202,7 @@ void upvote::scheduleElectionUpdate(name dao, UpvoteElection& election, time_poi
         std::make_tuple(election.getId(), true)
     ));
 
-    EOS_CHECK (
+    eosio::check (
         date > eosio::current_time_point(),
         "Can only schedule for dates in the future"
     );
@@ -250,10 +254,10 @@ void upvote::assignDelegateBadges(
 
     auto createAssignment = [&](const std::string& title, uint64_t member, uint64_t badge) {
 
-        Member mem(dao, member);
+        // Member mem(dao, member);
         // auto memAccount = mem.getAccount();
 
-        // TODO: Check this rewrite of member mem.getAccount - get account name of member using member id
+        // TODO: This is a rewrite of member mem.getAccount
         Document doc = Document(dao, member);
         eosio::name memAccount = doc.getContentWrapper().getOrFail(DETAILS, MEMBER_STRING)->getAs<eosio::name>();
 
@@ -264,11 +268,11 @@ void upvote::assignDelegateBadges(
             eosio::name("propose"),
             std::make_tuple(
                 daoId, 
-                dao.get_self(), 
-                common::ASSIGN_BADGE,
+                dao, 
+                hypha::common::ASSIGN_BADGE,
                 ContentGroups{
                     ContentGroup{
-                        Content{ CONTENT_GROUP_LABEL, DETAILS },
+                        Content{ hypha::CONTENT_GROUP_LABEL, DETAILS },
                         Content{ TITLE, title },
                         Content{ DESCRIPTION, title },
                         Content{ ASSIGNEE, memAccount },
@@ -287,11 +291,11 @@ void upvote::assignDelegateBadges(
         }
     };
 
-    auto chiefBadgeEdge = Edge::get(dao.get_self(), dao.getRootID(), upvote_common::links::CHIEF_DELEGATE);
-    auto chiefBadge = TypedDocument::withType(dao, chiefBadgeEdge.getToNode(), common::BADGE_NAME);
+    auto chiefBadgeEdge = Edge::get(dao, getRootID(), upvote_common::links::CHIEF_DELEGATE);
+    auto chiefBadge = TypedDocument::withType(dao, chiefBadgeEdge.getToNode(), hypha::common::BADGE_NAME);
 
-    auto headBadgeEdge = Edge::get(dao.get_self(), dao.getRootID(), upvote_common::links::HEAD_DELEGATE);
-    auto headBadge = TypedDocument::withType(dao, headBadgeEdge.getToNode(), common::BADGE_NAME);
+    auto headBadgeEdge = Edge::get(dao, getRootID(), upvote_common::links::HEAD_DELEGATE);
+    auto headBadge = TypedDocument::withType(dao, headBadgeEdge.getToNode(), hypha::common::BADGE_NAME);
 
     for (auto& chief : chiefDelegates) {
         createAssignment("Chief Delegate", chief, chiefBadge.getID());
@@ -311,138 +315,140 @@ void upvote::importelct(uint64_t dao_id, bool deferred)
     //Schedule a trx to archive and to crate new badges
     eosio::transaction trx;
 
-    //Remove existing Head Delegate/Chief Delegate badges if any
-    auto cleanBadgesOf = [&](const name& badgeEdge) {
-        auto badgeId = Edge::get(get_self(), getRootID(), badgeEdge).getToNode();
+    // TODO
 
-        auto badgeAssignmentEdges = getGraph().getEdgesFrom(badgeId, common::ASSIGNMENT);
+    // //Remove existing Head Delegate/Chief Delegate badges if any
+    // auto cleanBadgesOf = [&](const name& badgeEdge) {
+    //     auto badgeId = Edge::get(get_self(), getRootID(), badgeEdge).getToNode();
 
-        //Filter out those that are not from the specified DAO
-        auto badgeAssignments = std::vector<uint64_t>{};
-        badgeAssignments.reserve(badgeAssignmentEdges.size());
+    //     auto badgeAssignmentEdges = getGraph().getEdgesFrom(badgeId, hypha::common::ASSIGNMENT);
 
-        std::transform(
-            badgeAssignmentEdges.begin(),
-            badgeAssignmentEdges.end(),
-            std::back_inserter(badgeAssignments),
-            [](const Edge& edge){
-                return edge.to_node;
-            }
-        );
+    //     //Filter out those that are not from the specified DAO
+    //     auto badgeAssignments = std::vector<uint64_t>{};
+    //     badgeAssignments.reserve(badgeAssignmentEdges.size());
 
-        badgeAssignments.erase(
-            std::remove_if(
-                badgeAssignments.begin(),
-                badgeAssignments.end(),
-                [&](uint64_t id) { 
-                    return !Edge::exists(get_self(), id, dao_id, common::DAO);
-                }
-            ),
-            badgeAssignments.end()
-        );
+    //     std::transform(
+    //         badgeAssignmentEdges.begin(),
+    //         badgeAssignmentEdges.end(),
+    //         std::back_inserter(badgeAssignments),
+    //         [](const Edge& edge){
+    //             return edge.to_node;
+    //         }
+    //     );
 
-        for (auto& id : badgeAssignments) {
-            auto doc = TypedDocument::withType(*this, id, common::ASSIGN_BADGE);
+    //     badgeAssignments.erase(
+    //         std::remove_if(
+    //             badgeAssignments.begin(),
+    //             badgeAssignments.end(),
+    //             [&](uint64_t id) { 
+    //                 return !Edge::exists(get_self(), id, dao_id, hypha::common::DAO);
+    //             }
+    //         ),
+    //         badgeAssignments.end()
+    //     );
 
-            auto cw = doc.getContentWrapper();
+    //     for (auto& id : badgeAssignments) {
+    //         auto doc = TypedDocument::withType("dao.hypha"_n, id, hypha::common::ASSIGN_BADGE);
 
-            cw.insertOrReplace(*cw.getGroupOrFail(SYSTEM), Content {
-                "force_archive",
-                1
-            });
+    //         auto cw = doc.getContentWrapper();
 
-            cw.insertOrReplace(*cw.getGroupOrFail(DETAILS), Content {
-                END_TIME,
-                eosio::current_time_point()
-            });
+    //         cw.insertOrReplace(*cw.getGroupOrFail(SYSTEM), Content {
+    //             "force_archive",
+    //             1
+    //         });
 
-            doc.update();
+    //         cw.insertOrReplace(*cw.getGroupOrFail(DETAILS), Content {
+    //             END_TIME,
+    //             eosio::current_time_point()
+    //         });
 
-            trx.actions.emplace_back(eosio::action(
-                eosio::permission_level(get_self(), eosio::name("active")),
-                get_self(),
-                eosio::name("archiverecur"),
-                std::make_tuple(id)
-            ));
-        }
-    };
+    //         doc.update();
 
-    cleanBadgesOf(upvote_common::links::HEAD_DELEGATE);
-    cleanBadgesOf(upvote_common::links::CHIEF_DELEGATE);
+    //         trx.actions.emplace_back(eosio::action(
+    //             eosio::permission_level(get_self(), eosio::name("active")),
+    //             get_self(),
+    //             eosio::name("archiverecur"),
+    //             std::make_tuple(id)
+    //         ));
+    //     }
+    // };
 
-    struct [[eosio::table("elect.state"), eosio::contract("genesis.eden")]] election_state_v0 {
-        name lead_representative;
-        std::vector<name> board;
-        eosio::block_timestamp_type last_election_time;  
-    };
+    // cleanBadgesOf(upvote_common::links::HEAD_DELEGATE);
+    // cleanBadgesOf(upvote_common::links::CHIEF_DELEGATE);
 
-    using election_state_singleton = eosio::singleton<"elect.state"_n, std::variant<election_state_v0>>;
+    // struct [[eosio::table("elect.state"), eosio::contract("genesis.eden")]] election_state_v0 {
+    //     name lead_representative;
+    //     std::vector<name> board;
+    //     eosio::block_timestamp_type last_election_time;  
+    // };
 
-    election_state_singleton election_s("genesis.eden"_n, 0);
-    auto state = election_s.get();
+    // using election_state_singleton = eosio::singleton<"elect.state"_n, std::variant<election_state_v0>>;
 
-    std::vector<uint64_t> chiefs;
-    std::optional<uint64_t> head = 0;
+    // election_state_singleton election_s("genesis.eden"_n, 0);
+    // auto state = election_s.get();
 
-    std::visit([&](election_state_v0& election){
+    // std::vector<uint64_t> chiefs;
+    // std::optional<uint64_t> head = 0;
+
+    // std::visit([&](election_state_v0& election){
         
-        //If we want to prevent head del to be twice in the board array
-        //we can use a simple find condition, for now it doesn't
-        //matter if the head del is duplicated as we only assign one head 
-        //variable
-        // if (std::find(
-        //     election.board.begin(), 
-        //     election.board.end(), 
-        //     election.lead_representative
-        // ) == election.board.end()) {
-        //     election.board.push_back(election.lead_representative);
-        // }
+    //     //If we want to prevent head del to be twice in the board array
+    //     //we can use a simple find condition, for now it doesn't
+    //     //matter if the head del is duplicated as we only assign one head 
+    //     //variable
+    //     // if (std::find(
+    //     //     election.board.begin(), 
+    //     //     election.board.end(), 
+    //     //     election.lead_representative
+    //     // ) == election.board.end()) {
+    //     //     election.board.push_back(election.lead_representative);
+    //     // }
 
-        for (auto& mem : election.board) {
-            if (mem) {
-                auto member = getOrCreateMember(mem);
+    //     for (auto& mem : election.board) {
+    //         if (mem) {
+    //             auto member = getOrCreateMember(mem);
 
-                //Make community member if not core or communnity member already
-                if (!Member::isMember(*this, dao_id, mem) &&
-                    !Member::isCommunityMember(*this, dao_id, mem)) {
-                    Edge(get_self(), get_self(), dao_id, member.getID(), common::COMMEMBER);
-                }
+    //             //Make community member if not core or communnity member already
+    //             if (!Member::isMember(getDaoName(), dao_id, mem) &&
+    //                 !Member::isCommunityMember(getDaoName(), dao_id, mem)) {
+    //                 Edge(get_self(), get_self(), dao_id, member.getID(), common::COMMEMBER);
+    //             }
 
-                if (mem == election.lead_representative) {
-                    head = member.getID();
-                }
-                else {
-                    chiefs.push_back(member.getID());
-                }
-            }
-        }
-    }, state);
+    //             if (mem == election.lead_representative) {
+    //                 head = member.getID();
+    //             }
+    //             else {
+    //                 chiefs.push_back(member.getID());
+    //             }
+    //         }
+    //     }
+    // }, state);
 
-    //Send election id as 0 meaning that election was done outside
-    assignDelegateBadges(*this, dao_id, 0, chiefs, head, &trx);
+    // //Send election id as 0 meaning that election was done outside
+    // assignDelegateBadges(getDaoName(), dao_id, 0, chiefs, head, &trx);
 
-    //Trigger all cleanup and propose actions
-    if (deferred) {
-        constexpr auto aditionalDelaySec = 5; // TODO: 5 seconds delay is a lot! Why?
-        trx.delay_sec = aditionalDelaySec;
+    // //Trigger all cleanup and propose actions
+    // if (deferred) {
+    //     constexpr auto aditionalDelaySec = 5; // TODO: 5 seconds delay is a lot! Why?
+    //     trx.delay_sec = aditionalDelaySec;
 
-        //auto dhoSettings = getSettingsDocument();
+    //     //auto dhoSettings = getSettingsDocument();
 
 
-        // multiple DAOs could be firing simultaneously - we should
-        // use a hash of the object, or another unique id of the object
+    //     // multiple DAOs could be firing simultaneously - we should
+    //     // use a hash of the object, or another unique id of the object
 
-        auto nextID = getUniqueTxId(); // dhoSettings->getSettingOrDefault("next_schedule_id", int64_t(0));
+    //     auto nextID = getUniqueTxId(); // dhoSettings->getSettingOrDefault("next_schedule_id", int64_t(0));
 
-        trx.send(nextID, get_self());
+    //     trx.send(nextID, get_self());
 
-        // dhoSettings->setSetting(Content{"next_schedule_id", nextID + 1});
-    }
-    else {
-        for (auto& action : trx.actions) {
-            action.send();
-        }
-    }
+    //     // dhoSettings->setSetting(Content{"next_schedule_id", nextID + 1});
+    // }
+    // else {
+    //     for (auto& action : trx.actions) {
+    //         action.send();
+    //     }
+    // }
     
 }
 // #endif
@@ -454,7 +460,7 @@ void upvote::importelct(uint64_t dao_id, bool deferred)
 void upvote::updateupvelc(uint64_t election_id, bool reschedule)
 {
     //eosio::require_auth();
-    UpvoteElection election(*this, election_id);
+    UpvoteElection election(getDaoName(), election_id);
 
     auto status = election.getStatus();
 
@@ -489,7 +495,9 @@ void upvote::updateupvelc(uint64_t election_id, bool reschedule)
             election.setCurrentRound(&startRound);
 
             //Setup all candidates
-            auto delegates = getGraph().getEdgesFrom(daoId, badges::common::links::DELEGATE);
+            // inline constexpr auto DELEGATE = eosio::name("delegate"); 
+            // auto delegates = getGraph().getEdgesFrom(daoId, badges::common::links::DELEGATE);
+            auto delegates = getGraph().getEdgesFrom(daoId, eosio::name("delegate"));
 
             std::vector<uint64_t> delegateIds;
             delegateIds.reserve(delegates.size());
@@ -501,10 +509,10 @@ void upvote::updateupvelc(uint64_t election_id, bool reschedule)
 
             setupCandidates(startRound.getId(), delegateIds);
 
-            scheduleElectionUpdate(*this, election, startRound.getEndDate());
+            scheduleElectionUpdate(getDaoName(), election, startRound.getEndDate());
         }
         else if (reschedule) {
-            scheduleElectionUpdate(*this, election, start);
+            scheduleElectionUpdate(getDaoName(), election, start);
         }
     }
     else if (status == upvote_common::upvote_status::ONGOING) {
@@ -530,7 +538,7 @@ void upvote::updateupvelc(uint64_t election_id, bool reschedule)
                     nextRound->addCandidate(winner);
                 }
 
-                scheduleElectionUpdate(*this, election, nextRound->getEndDate());
+                scheduleElectionUpdate(getDaoName(), election, nextRound->getEndDate());
             }
             else {
                 Edge::get(get_self(), daoId, election.getId(), upvote_common::links::ONGOING_ELECTION).erase();
@@ -553,11 +561,11 @@ void upvote::updateupvelc(uint64_t election_id, bool reschedule)
                         chiefs.end()
                     );
 
-                    assignDelegateBadges(*this, daoId, election.getId(), chiefs, winners.at(0));
+                    assignDelegateBadges(getDaoName(), daoId, election.getId(), chiefs, winners.at(0));
                 }
                 //No head delegate
                 else {
-                    assignDelegateBadges(*this, daoId, election.getId(), winners, std::nullopt);
+                    assignDelegateBadges(getDaoName(), daoId, election.getId(), winners, std::nullopt);
                 }
                 
 
@@ -565,14 +573,14 @@ void upvote::updateupvelc(uint64_t election_id, bool reschedule)
             }
         }
         else if (reschedule){
-            scheduleElectionUpdate(*this, election, end);
+            scheduleElectionUpdate(getDaoName(), election, end);
         }
     }
     else {
-        EOS_CHECK(
+        eosio::check(
             false,
             "Election already finished or canceled"
-        )   
+        );
     }
 
     election.update();
@@ -580,7 +588,7 @@ void upvote::updateupvelc(uint64_t election_id, bool reschedule)
 
 void upvote::cancelupvelc(uint64_t election_id)
 {
-    UpvoteElection election(*this, election_id);
+    UpvoteElection election(getDaoName(), election_id);
 
     auto daoId = election.getDaoID();
 
@@ -590,7 +598,7 @@ void upvote::cancelupvelc(uint64_t election_id)
 
     bool isOngoing = status == upvote_common::upvote_status::ONGOING;
 
-    EOS_CHECK(
+    eosio::check(
         isOngoing ||
         status == upvote_common::upvote_status::UPCOMING,
         // to_str("Cannot cancel election with ", status, " status")
@@ -617,22 +625,25 @@ void upvote::castelctnvote(uint64_t round_id, name voter, std::vector<uint64_t> 
     //TODO: Cancel existing Delegate badges
 
     //Verify round_id is the same as the current round
-    ElectionRound round(*this, round_id);
+    ElectionRound round(getDaoName(), round_id);
 
     UpvoteElection election = round.getElection();
 
     //Current round has to be defined
     auto currentRound = election.getCurrentRound();
 
-    EOS_CHECK(
+    eosio::check(
         currentRound.getId() == round_id,
         "You can only vote on the current round"
     );
 
     auto memberId = getMemberID(voter);
 
-    EOS_CHECK(
-        badges::hasVoterBadge(*this, election.getDaoID(), memberId) ||
+    // we need to do a badge check...
+    // TODO: we need to do a badge check
+    eosio::check(
+        true ||
+        // badges::hasVoterBadge(getDaoName(), election.getDaoID(), memberId) ||
         //Just enable voting to candidates if the round is not the first one
         (currentRound.isCandidate(memberId) && currentRound.getDelegatePower() > 0),
         "Only registered voters are allowed to perform this action"
@@ -645,11 +656,11 @@ void upvote::castelctnvote(uint64_t round_id, name voter, std::vector<uint64_t> 
         return;
     }
 
-    if (auto voteGroup = VoteGroup::getFromRound(*this, round_id, memberId)) {
+    if (auto voteGroup = VoteGroup::getFromRound(getDaoName(), round_id, memberId)) {
         voteGroup->castVotes(round, std::move(voted));
     }
     else {
-        VoteGroup group(*this, memberId, VoteGroupData{
+        VoteGroup group(getDaoName(), memberId, VoteGroupData{
             .round_id = static_cast<int64_t>(round_id)
         });
 
@@ -716,16 +727,16 @@ void upvote::createupvelc(uint64_t dao_id, ContentGroups& election_config)
     //Will calculate also what is the endDate for the upvote election
     auto rounds = getRounds(election_config, endDate);
 
-    UpvoteElection upvoteElection(*this, dao_id, UpvoteElectionData{
+    UpvoteElection upvoteElection(getDaoName(), dao_id, UpvoteElectionData{
         .start_date = startDate,
         .end_date = endDate,
         .status = upvote_common::upvote_status::UPCOMING,
         .duration = duration
     });
 
-    createRounds(*this, upvoteElection, rounds, startDate, endDate);
+    createRounds(getDaoName(), upvoteElection, rounds, startDate, endDate);
 
-    scheduleElectionUpdate(*this, upvoteElection, startDate);
+    scheduleElectionUpdate(getDaoName(), upvoteElection, startDate);
 }
 
 void upvote::editupvelc(uint64_t election_id, ContentGroups& election_config)
@@ -733,13 +744,13 @@ void upvote::editupvelc(uint64_t election_id, ContentGroups& election_config)
     //TODO: Change existing delegate badges
     //end time according to the new upvoteElection.getEndDate(), 
     //also reschedule for archive
-    UpvoteElection upvoteElection(*this, election_id);
+    UpvoteElection upvoteElection(getDaoName(), election_id);
     auto daoId = upvoteElection.getDaoID();
     
     verifyDaoType(daoId);
     checkAdminsAuth(daoId);
 
-    EOS_CHECK(
+    eosio::check(
         upvoteElection.getStatus() == upvote_common::upvote_status::UPCOMING,
         "Only upcoming elections can be edited"
     );
@@ -771,53 +782,57 @@ void upvote::editupvelc(uint64_t election_id, ContentGroups& election_config)
     upvoteElection.validate();
     upvoteElection.update();
 
-    createRounds(*this, upvoteElection, rounds, startDate, endDate);
+    createRounds(getDaoName(), upvoteElection, rounds, startDate, endDate);
 
-    scheduleElectionUpdate(*this, upvoteElection, startDate);
+    scheduleElectionUpdate(getDaoName(), upvoteElection, startDate);
 }
 
 // } // namespace hypha
 
+uint64_t upvote::getRootID()
+{
+    name root_name = hypha::common::DHO_ROOT_NAME;
+    dao_table daos(getDaoName(), getDaoName().value); 
+
+    auto itr = daos.find(root_name.value);
+    eosio::check(itr != daos.end(), "Name not found in the table of dao.hypha contract");
+
+    return itr->id;
+
+}
+
+uint64_t upvote::getMemberID(const name& memberName)
+{
+    members_table members(getDaoName(), getDaoName().value); 
+    auto itr = members.find(memberName.value);
+    eosio::check(itr != members.end(), "There is no member with name");
+
+  return itr->id;
+}
 
 
-// // TODO: we either need this or some clever method to 
-// // get the data we nede without importing the Settings object
-// // We only need this to get the next schedule ID
-// // NIK
+void upvote::verifyDaoType(uint64_t dao_id) 
+{
+  //Verify dao_id belongs to a DAO
+  TypedDocument::withType(getDaoName(), dao_id, hypha::common::DAO);
+}
 
-// // only need it for this:
-// //     auto nextID = dhoSettings->getSettingOrDefault("next_schedule_id", int64_t(0));
+void upvote::checkAdminsAuth(uint64_t dao_id)
+{
+    // TODO
 
-// Settings* dao::getSettingsDocument(uint64_t daoID)
-// {
-//   TRACE_FUNCTION();
+  //Contract account has admin perms over all DAO's
+  if (eosio::has_auth(get_self())) {
+    return;
+  }
 
-//   //Check if it'S already loaded in cache
-//   for (auto& settingsDoc : m_settingsDocs) {
-//     if (settingsDoc->getRootID() == daoID) {
-//       return settingsDoc.get();
-//     }
-//   }
+//   auto adminEdges = m_documentGraph.getEdgesFrom(dao_id, common::ADMIN);
 
-//   //If not then we have to load it
-//   auto edges = m_documentGraph.getEdgesFromOrFail(daoID, common::SETTINGS_EDGE);
-//   EOS_CHECK(edges.size() == 1, "There should only exists only 1 settings edge from a dao node");
-
-//   m_settingsDocs.emplace_back(std::make_unique<Settings>(
-//     *this,
-//     edges[0].to_node,
-//     daoID
-//     ));
-
-//   return m_settingsDocs.back().get();
-// }
-
-// Settings* dao::getSettingsDocument()
-// {
-//   TRACE_FUNCTION();
-
-//   return getSettingsDocument(getRootID());
-// }
-
-
-// // #endif
+//   eosio::check(
+//     std::any_of(adminEdges.begin(), adminEdges.end(), [this](const Edge& adminEdge) {
+//       Member member(getDaoName(), adminEdge.to_node);
+//       return eosio::has_auth(member.getAccount());
+//     }),
+//     to_str("Only admins of the dao are allowed to perform this action")
+//   );
+}

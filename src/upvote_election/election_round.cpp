@@ -15,7 +15,7 @@ using namespace upvote_election::common;
 static void validateStartDate(const time_point& startDate)
 {
     //Only valid if start date is in the future
-    EOS_CHECK(
+    eosio::check(
         startDate > eosio::current_time_point(),
         "Election start date must be in the future"
     )
@@ -24,7 +24,7 @@ static void validateStartDate(const time_point& startDate)
 static void validateEndDate(const time_point& startDate, const time_point& endDate)
 {
     //Only valid if start date is in the future
-    EOS_CHECK(
+    eosio::check(
         endDate > startDate,
         // to_str("End date must happen after start date: ", startDate, " to ", endDate)
         "End date must happen after start date: to "
@@ -38,7 +38,7 @@ ElectionRound::ElectionRound(name dao, uint64_t id)
 ElectionRound::ElectionRound(name dao, uint64_t election_id, Data data)
     : TypedDocument(dao, types::ELECTION_ROUND)
 {
-    EOS_CHECK(
+    eosio::check(
         data.delegate_power >= 0,
         "Delegate Power must be greater or equal to 0"
     );
@@ -54,7 +54,7 @@ ElectionRound::ElectionRound(name dao, uint64_t election_id, Data data)
     auto type = getType();
 
     if (type == round_types::CHIEF) {
-        EOS_CHECK(
+        eosio::check(
             !Edge::getIfExists(dao, election_id, links::CHIEF_ROUND).first,
             "There is another chief delegate round already"
         )
@@ -70,7 +70,7 @@ ElectionRound::ElectionRound(name dao, uint64_t election_id, Data data)
         );
     }
     else if (type == round_types::HEAD) {
-        EOS_CHECK(
+        eosio::check(
             !Edge::getIfExists(dao, election_id, links::HEAD_ROUND).first,
             "There is another head delegate round already"
         )
@@ -84,7 +84,7 @@ ElectionRound::ElectionRound(name dao, uint64_t election_id, Data data)
             links::HEAD_ROUND
         );
 
-        EOS_CHECK(
+        eosio::check(
             getPassingCount() == 1,
             "There can be only 1 Head Delegate"
         )
@@ -140,7 +140,7 @@ std::vector<uint64_t> ElectionRound::getWinners()
 
 void ElectionRound::setNextRound(ElectionRound* nextRound) const
 {
-    EOS_CHECK(
+    eosio::check(
         !getNextRound(),
         "Election Round already has next round set"
     );

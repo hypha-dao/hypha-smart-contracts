@@ -18,7 +18,7 @@ UpvoteElection::UpvoteElection(dao& dao, uint64_t id)
 static void validateStartDate(const time_point& startDate)
 {
     //Only valid if start date is in the future
-    EOS_CHECK(
+    eosio::check(
         startDate > eosio::current_time_point(),
         "Election start date must be in the future"
     )
@@ -27,11 +27,11 @@ static void validateStartDate(const time_point& startDate)
 static void validateEndDate(const time_point& startDate, const time_point& endDate)
 {
     //Only valid if start date is in the future
-    // EOS_CHECK(
+    // eosio::check(
     //     endDate > startDate,
     //     to_str("End date must happen after start date: ", startDate, " to ", endDate)
     // ); // TODO
-    EOS_CHECK(
+    eosio::check(
         endDate > startDate,
         "End date must happen after start date"
     );
@@ -49,13 +49,13 @@ UpvoteElection::UpvoteElection(dao& dao, uint64_t dao_id, Data data)
     //Also check there are no ongoing elections
     //TODO: Might want to check if there is an ongoing election, it will
     //finish before the start date so then it is valid
-    EOS_CHECK(
+    eosio::check(
         dao.getGraph().getEdgesFrom(dao_id, links::ONGOING_ELECTION).empty(),
         "There is an ongoing election for this DAO"
     )
 
     //Validate that there are no other upcoming elections
-    EOS_CHECK(
+    eosio::check(
         dao.getGraph().getEdgesFrom(dao_id, links::UPCOMING_ELECTION).empty(),
         "DAOs can only have 1 upcoming election"
     )
@@ -120,7 +120,7 @@ std::vector<ElectionRound> UpvoteElection::getRounds() const
         rounds.emplace_back(getDao(), next->getId());
     }
 
-    EOS_CHECK(
+    eosio::check(
         rounds.size() >= 2,
         "There has to be at least 2 election rounds"
     );

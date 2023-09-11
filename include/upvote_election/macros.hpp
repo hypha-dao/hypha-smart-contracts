@@ -1,5 +1,5 @@
 #pragma once
-#include "./hypha_common.hpp"
+#include "hypha_common.hpp"
 
 #define __NARG__(...)  __NARG_I_(__VA_ARGS__,__RSEQ_N())
 #define __NARG_I_(...) __ARG_N(__VA_ARGS__)
@@ -135,6 +135,3 @@ DECLARE_DATA_STRUCT(structName, __VA_ARGS__)\
 DECLARE_METHODS(__VA_ARGS__)\
 private:\
 DECLARE_CONVERT(structName, __VA_ARGS__)
-
-
-#define EOS_CHECK(condition, message) eosio::check(false, message);

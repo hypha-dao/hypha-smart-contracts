@@ -10,11 +10,11 @@ namespace hypha::upvote_election {
 
 using namespace upvote_election::common;
 
-VoteGroup::VoteGroup(dao& dao, uint64_t id)
+VoteGroup::VoteGroup(name dao, uint64_t id)
     : TypedDocument(dao, id, types::ELECTION_VOTE_GROUP)
 {}
 
-VoteGroup::VoteGroup(dao& dao, uint64_t memberId, Data data)
+VoteGroup::VoteGroup(name dao, uint64_t memberId, Data data)
     : TypedDocument(dao, types::ELECTION_VOTE_GROUP)
 {
     auto cgs = convert(std::move(data));
@@ -49,12 +49,12 @@ uint64_t VoteGroup::getOwner()
     ).getFromNode();
 }
 
-std::optional<VoteGroup> VoteGroup::getFromRound(dao& dao, uint64_t roundId, uint64_t memberId)
+std::optional<VoteGroup> VoteGroup::getFromRound(name dao, uint64_t roundId, uint64_t memberId)
 {
     auto groups = dao.getGraph().getEdgesFrom(memberId, common::links::ELECTION_GROUP);
 
     for (auto& group : groups) {
-        if (Edge::exists(dao.get_self(), group.getToNode(), roundId, links::ROUND)) {
+        if (Edge::exists(dao, group.getToNode(), roundId, links::ROUND)) {
             return VoteGroup(dao, group.getToNode());
         }
     }
@@ -67,7 +67,7 @@ void VoteGroup::castVotes(ElectionRound& round, std::vector<uint64_t> members)
     auto roundId = getRoundID();
     auto power = round.getAccountPower(getOwner());
 
-    EOS_CHECK(
+    eosio::check(
         roundId == round.getId(),
         "Missmatch between stored round id and round parameter"
     );
@@ -90,7 +90,7 @@ void VoteGroup::castVotes(ElectionRound& round, std::vector<uint64_t> members)
 
     for (auto memId : members) {
         //Verify member is a candidate
-        EOS_CHECK(
+        eosio::check(
             round.isCandidate(memId),
             "Member must be a candidate to be voted"
         );
