@@ -118,6 +118,8 @@ const buildFileMap = {
   'tier_vesting.abi': 'tier_vesting.abi',
   'staking.wasm': 'staking.wasm',
   'staking.abi': 'staking.abi',
+  'upvote.wasm': 'upvote.wasm',
+  'upvote.abi': 'upvote.abi',
 }
 
 function copyFiles(sourceDir, destinationDir, fileMap) {

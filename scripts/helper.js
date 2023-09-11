@@ -138,6 +138,7 @@ const accountsMetadata = (network) => {
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
+      upvote: account('upvote.hypha', 'upvote'),
 
     }
   } else if (network == networks.telosMainnet) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	eostest "github.com/digital-scarcity/eos-go-test"
 	eos "github.com/eoscanada/eos-go"
@@ -60,7 +61,7 @@ func CreateEdge(ctx context.Context, api *eos.API,
 			ActionData: eos.NewActionDataFromHexData([]byte(actionBinary)),
 		}}
 
-	return eostest.ExecTrx(ctx, api, actions)
+	return eostest.ExecWithRetry(ctx, api, actions)
 }
 
 // RemoveEdge ...
@@ -80,30 +81,78 @@ func RemoveEdge(ctx context.Context, api *eos.API,
 			EdgeName: edgeName,
 		}),
 	}}
-	return eostest.ExecTrx(ctx, api, actions)
+	return eostest.ExecWithRetry(ctx, api, actions)
 }
 
-// GetAllEdges retrieves all edges from table
-func GetAllEdges(ctx context.Context, api *eos.API, contract eos.AccountName) ([]Edge, error) {
+// // GetAllEdges retrieves all edges from table
+// func GetAllEdges(ctx context.Context, api *eos.API, contract eos.AccountName) ([]Edge, error) {
+// 	var edges []Edge
+// 	var request eos.GetTableRowsRequest
+// 	request.Code = string(contract)
+// 	request.Scope = string(contract)
+// 	request.Table = "edges"
+// 	request.Limit = 100000
+// 	request.JSON = true
+// 	response, err := api.GetTableRows(ctx, request)
+// 	if err != nil {
+// 		log.Println("Error with GetTableRows: ", err)
+// 		return []Edge{}, err
+// 	}
+
+// 	err = response.JSONToStructs(&edges)
+// 	if err != nil {
+// 		log.Println("Error with JSONToStructs: ", err)
+// 		return []Edge{}, err
+// 	}
+// 	return edges, nil
+// }
+
+func getEdgeRange(ctx context.Context, api *eos.API, contract eos.AccountName, id, count int) ([]Edge, bool, error) {
 	var edges []Edge
 	var request eos.GetTableRowsRequest
+
+	if id > 0 {
+		request.LowerBound = strconv.Itoa(id)
+	}
 	request.Code = string(contract)
 	request.Scope = string(contract)
 	request.Table = "edges"
-	request.Limit = 1000
+	request.Limit = uint32(count)
 	request.JSON = true
 	response, err := api.GetTableRows(ctx, request)
 	if err != nil {
-		log.Println("Error with GetTableRows: ", err)
-		return []Edge{}, err
+		return []Edge{}, false, fmt.Errorf("retrieving edge range %v", err)
 	}
 
 	err = response.JSONToStructs(&edges)
 	if err != nil {
-		log.Println("Error with JSONToStructs: ", err)
-		return []Edge{}, err
+		return []Edge{}, false, fmt.Errorf("edge json to structs %v", err)
 	}
-	return edges, nil
+	return edges, response.More, nil
+}
+
+// GetAllEdges reads all documents and returns them in a slice
+func GetAllEdges(ctx context.Context, api *eos.API, contract eos.AccountName) ([]Edge, error) {
+
+	var allEdges []Edge
+
+	batchSize := 1000
+
+	batch, more, err := getEdgeRange(ctx, api, contract, 0, batchSize)
+	if err != nil {
+		return []Edge{}, fmt.Errorf("cannot get initial range of edges %v", err)
+	}
+	allEdges = append(allEdges, batch...)
+
+	for more {
+		batch, more, err = getEdgeRange(ctx, api, contract, int(batch[len(batch)-1].ID), batchSize)
+		if err != nil {
+			return []Edge{}, fmt.Errorf("cannot get range of edges %v", err)
+		}
+		allEdges = append(allEdges, batch...)
+	}
+
+	return allEdges, nil
 }
 
 // EdgeExists checks to see if the edge exists
@@ -142,7 +191,7 @@ func EdgeExists(ctx context.Context, api *eos.API, contract eos.AccountName,
 // 			Strict:   true,
 // 		}),
 // 	}}
-// 	return eostest.ExecTrx(ctx, api, actions)
+// 	return eostest.ExecWithRetry(ctx, api, actions)
 // }
 
 // RemoveEdgesFromAndTo ...
@@ -162,5 +211,5 @@ func EdgeExists(ctx context.Context, api *eos.API, contract eos.AccountName,
 // 			Strict:   true,
 // 		}),
 // 	}}
-// 	return eostest.ExecTrx(ctx, api, actions)
+// 	return eostest.ExecWithRetry(ctx, api, actions)
 // }

@@ -6,83 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
 
 	eostest "github.com/digital-scarcity/eos-go-test"
 	eos "github.com/eoscanada/eos-go"
 )
-
-// FlexValueVariant may hold a name, int64, asset, string, or time_point
-var FlexValueVariant = eos.NewVariantDefinition([]eos.VariantType{
-	{Name: "monostate", Type: int64(0)},
-	{Name: "name", Type: eos.Name("")},
-	{Name: "string", Type: ""},
-	{Name: "asset", Type: (*eos.Asset)(nil)}, // Syntax for pointer to a type, could be any struct
-	{Name: "time_point", Type: eos.TimePoint(0)},
-	{Name: "int64", Type: int64(0)},
-	{Name: "checksum256", Type: eos.Checksum256([]byte("0"))},
-})
-
-// GetVariants returns the definition of types compatible with FlexValue
-func GetVariants() *eos.VariantDefinition {
-	return FlexValueVariant
-}
-
-// FlexValue may hold any of the common EOSIO types
-// name, int64, asset, string, time_point, or checksum256
-type FlexValue struct {
-	eos.BaseVariant
-}
-
-func (fv *FlexValue) String() string {
-	switch v := fv.Impl.(type) {
-	case eos.Name:
-		return string(v)
-	case int64:
-		return fmt.Sprint(v)
-	case *eos.Asset:
-		return v.String()
-	case string:
-		return v
-	case eos.TimePoint:
-		return v.String()
-	case eos.Checksum256:
-		return v.String()
-	default:
-		panic(fmt.Errorf("received an unexpected type %T for metadata variant %T", v, fv))
-	}
-}
-
-// IsEqual evaluates if the two FlexValues have the same types and values (deep compare)
-func (fv *FlexValue) IsEqual(fv2 *FlexValue) bool {
-
-	if fv.TypeID != fv2.TypeID {
-		log.Println("FlexValue types inequal: ", fv.TypeID, " vs ", fv2.TypeID)
-		return false
-	}
-
-	if fv.String() != fv2.String() {
-		log.Println("FlexValue Values.String() inequal: ", fv.String(), " vs ", fv2.String())
-		return false
-	}
-
-	return true
-}
-
-// MarshalJSON translates to []byte
-func (fv *FlexValue) MarshalJSON() ([]byte, error) {
-	return fv.BaseVariant.MarshalJSON(FlexValueVariant)
-}
-
-// UnmarshalJSON translates flexValueVariant
-func (fv *FlexValue) UnmarshalJSON(data []byte) error {
-	return fv.BaseVariant.UnmarshalJSON(data, FlexValueVariant)
-}
-
-// UnmarshalBinary ...
-func (fv *FlexValue) UnmarshalBinary(decoder *eos.Decoder) error {
-	return fv.BaseVariant.UnmarshalBinaryVariant(decoder, FlexValueVariant)
-}
 
 // ContentNotFoundError is used when content matching
 // a specific label is requested but not found in a document
@@ -94,30 +21,6 @@ type ContentNotFoundError struct {
 func (c *ContentNotFoundError) Error() string {
 	return fmt.Sprintf("content label not found: %v in document: %v", c.Label, c.DocumentHash.String())
 }
-
-// ContentItem ...
-type ContentItem struct {
-	Label string     `json:"label"`
-	Value *FlexValue `json:"value"`
-}
-
-// IsEqual evalutes if the label, value type and value impl are the same
-func (c *ContentItem) IsEqual(c2 ContentItem) bool {
-	if strings.Compare(c.Label, c2.Label) != 0 {
-		log.Println("ContentItem labels inequal: ", c.Label, " vs ", c2.Label)
-		return false
-	}
-
-	if !c.Value.IsEqual(c2.Value) {
-		log.Println("ContentItems inequal: ", c.Value, " vs ", c2.Value)
-		return false
-	}
-
-	return true
-}
-
-// ContentGroup ...
-type ContentGroup []ContentItem
 
 // Document is a node in the document graph
 // A document may hold any arbitrary, EOSIO compatible data
@@ -168,7 +71,7 @@ func newDocumentTrx(ctx context.Context, api *eos.API,
 			ActionData: eos.NewActionDataFromHexData([]byte(actionBinary)),
 		}}
 
-	_, err = eostest.ExecTrx(ctx, api, actions)
+	_, err = eostest.ExecWithRetry(ctx, api, actions)
 	if err != nil {
 		return Document{}, fmt.Errorf("execute transaction %v: %v", fileName, err)
 	}
@@ -204,8 +107,67 @@ func (d *Document) GetContent(label string) (*FlexValue, error) {
 	}
 }
 
+// GetContentFromGroup returns a FlexValue of the content with the matching label
+// or an instance of ContentNotFoundError
+func (d *Document) GetContentFromGroup(groupLabel, label string) (*FlexValue, error) {
+	for _, contentGroup := range d.ContentGroups {
+		for _, content := range contentGroup {
+			if content.Label == label {
+				return content.Value, nil
+			}
+		}
+	}
+	return nil, &ContentNotFoundError{
+		Label:        label,
+		DocumentHash: d.Hash,
+	}
+}
+
+// GetContentGroup returns a ContentGroup matching the label
+// or an instance of ContentNotFoundError
+func (d *Document) GetContentGroup(label string) (*ContentGroup, error) {
+	for _, contentGroup := range d.ContentGroups {
+		for _, content := range contentGroup {
+			if content.Label == "content_group_label" {
+				if content.Value.String() == label {
+					return &contentGroup, nil
+				}
+				break // found label but wrong value, go to next group
+			}
+		}
+	}
+	return nil, &ContentNotFoundError{
+		Label:        label,
+		DocumentHash: d.Hash,
+	}
+}
+
+// GetNodeLabel returns a string for the node label
+func (d *Document) GetNodeLabel() string {
+	nodeLabel, err := d.GetContentFromGroup("system", "node_label")
+	if err != nil {
+		return ""
+	}
+	return nodeLabel.String()
+}
+
+// GetType return the document type; fails if it does not exist or is not an eos.Name type
+func (d *Document) GetType() (eos.Name, error) {
+	typeValue, err := d.GetContentFromGroup("system", "type")
+	if err != nil {
+		return eos.Name(""), nil
+		// return eos.Name(""), fmt.Errorf("document type does not exist in system group of document: %v", err)
+	}
+
+	typeValueName, err := typeValue.Name()
+	if err != nil {
+		return eos.Name(""), fmt.Errorf("document type is not an eos.Name value: %v", err)
+	}
+
+	return typeValueName, nil
+}
+
 // IsEqual is a deep equal comparison of two documents
-//
 func (d *Document) IsEqual(d2 Document) bool {
 
 	// ensure the same number of content groups
@@ -288,5 +250,5 @@ func EraseDocument(ctx context.Context, api *eos.API,
 			Hash: hash,
 		}),
 	}}
-	return eostest.ExecTrx(ctx, api, actions)
+	return eostest.ExecWithRetry(ctx, api, actions)
 }
