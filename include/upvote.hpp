@@ -1,4 +1,8 @@
+#pragma once 
+
 #include <eosio/eosio.hpp>
+#include <eosio/singleton.hpp>
+
 #include <vector>
 
 #include <graph_common.hpp>
@@ -9,25 +13,24 @@
 #include <document_graph/content_wrapper.hpp>
 #include <document_graph/document_graph.hpp>
 
-#include "upvote_election/upvote_election.hpp"
-#include "upvote_election/election_round.hpp"
-#include "upvote_election/vote_group.hpp"
-#include "upvote_election/typed_document.hpp"
+#include <upvote_election/upvote_election.hpp>
+#include <upvote_election/election_round.hpp>
+#include <upvote_election/vote_group.hpp>
+#include <upvote_election/typed_document.hpp>
+#include <upvote_election/graph.hpp>
 
-#include "upvote_election/macros.hpp"
+#include <upvote_election/macros.hpp>
 
+using namespace hypha::upvote_election;
+using namespace hypha;
 class [[eosio::contract]] upvote : public eosio::contract {
 public:
     using eosio::contract::contract;
 
-    using UpvoteElection = hypha::upvote_election::UpvoteElection;
-    using UpvoteElectionData = hypha::upvote_election::UpvoteElectionData;
-    using ElectionRound = hypha::upvote_election::ElectionRound;
-    using ElectionRoundData = hypha::upvote_election::ElectionRoundData;
-    using VoteGroup = hypha::upvote_election::VoteGroup;
-    using VoteGroupData = hypha::upvote_election::VoteGroupData;
-    using ContentGroups = hypha::ContentGroups;
-    using DocumentGraph = hypha::DocumentGraph;
+    upvote(name receiver, name code, datastream<const char*> ds)
+      : contract(receiver, code, ds),
+        counters(receiver, receiver.value)
+        {}
 
     [[eosio::action]]
     void createupvelc(uint64_t dao_id, hypha::ContentGroups& election_config);
@@ -47,6 +50,20 @@ public:
     [[eosio::action]]
     void importelct(uint64_t dao_id, bool deferred);
 
+      TABLE ElectionVote
+      {
+         uint64_t account_id;
+         //uint64_t round_id;
+         uint64_t total_amount; 
+         uint64_t primary_key() const { return account_id; }
+         uint64_t by_amount() const { return total_amount; }
+      };
+
+      typedef multi_index<name("electionvote"), ElectionVote,
+                          eosio::indexed_by<name("byamount"),
+                          eosio::const_mem_fun<ElectionVote, uint64_t, &ElectionVote::by_amount>>>
+              election_vote_table;
+
 private:
 
     void createRounds(name dao, UpvoteElection& election, std::map<int64_t, ElectionRoundData>& rounds, time_point startDate, time_point endDate);
@@ -58,15 +75,6 @@ private:
     void verifyDaoType(uint64_t daoID);
     void checkAdminsAuth(uint64_t daoID);
     uint64_t getMemberID(const name& memberName);
-
-    name getDaoName() {
-        // TODO: Make this configurable, maybe in a table etc
-        return "dao.hypha"_n;
-    }
-
-    hypha::DocumentGraph getGraph() {
-        return hypha::DocumentGraph(getDaoName());
-    }
 
     int64_t getDelegatePower(int64_t roundId) {
         return roundId * 1 << roundId;  
@@ -85,22 +93,12 @@ private:
 
     counter_table counters;
 
-      TABLE ElectionVote
-      {
-         uint64_t account_id;
-         //uint64_t round_id;
-         uint64_t total_amount; 
-         uint64_t primary_key() const { return account_id; }
-         uint64_t by_amount() const { return total_amount; }
-      };
-
-      typedef multi_index<name("electionvote"), ElectionVote,
-                          eosio::indexed_by<name("byamount"),
-                          eosio::const_mem_fun<ElectionVote, uint64_t, &ElectionVote::by_amount>>>
-              election_vote_table;
 
 
+    // 
     // external table definitions
+    // These are defined in the dao contract
+    //
     TABLE NameToID {
         uint64_t id;
         eosio::name name;
@@ -113,17 +111,16 @@ private:
                             eosio::const_mem_fun<NameToID, uint64_t, &NameToID::by_id>>>
             dao_table;
 
-    /// This table definition is from dao.hypha
-    // TABLE MemberToId {
-    //     uint64_t id;
-    //     name name;
+    TABLE MemberToId {
+        uint64_t id;
+        name name;
 
-    //     uint64_t primary_key() const { return name.value; }
-    //     uint64_t by_id() const { return id; }
-    // };
-    typedef eosio::multi_index<eosio::name("members"), NameToID,
+        uint64_t primary_key() const { return name.value; }
+        uint64_t by_id() const { return id; }
+    };
+    typedef eosio::multi_index<eosio::name("members"), MemberToId,
                             eosio::indexed_by<eosio::name("bydocid"),
-                            eosio::const_mem_fun<NameToID, uint64_t, &NameToID::by_id>>>
+                            eosio::const_mem_fun<MemberToId, uint64_t, &MemberToId::by_id>>>
             members_table;
 
 };

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "./typed_document.hpp"
-
-#include "./macros.hpp"
+#include "upvote_election/typed_document.hpp"
+#include "upvote_election/macros.hpp"
+#include <upvote_election/graph.hpp>
 
 namespace hypha::upvote_election
 {

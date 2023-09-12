@@ -2,6 +2,7 @@
 
 #include "typed_document.hpp"
 #include "macros.hpp"
+#include <upvote_election/graph.hpp>
 
 namespace hypha::upvote_election
 {

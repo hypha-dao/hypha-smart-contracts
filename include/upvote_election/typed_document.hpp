@@ -1,8 +1,9 @@
 #pragma once
-#include <document_graph/document.hpp>
 #include <eosio/name.hpp>
-// #include <config/config.hpp>
+#include <document_graph/document.hpp>
+#include <upvote_election/hypha_common.hpp>
 
+// #include <config/config.hpp>
 // This can be rewritten to take a name - the dao contract name- as parameter, instead of a dao class.
 
 using eosio::name;
@@ -21,7 +22,7 @@ namespace hypha
             virtual ~TypedDocument();
             void update();
             void erase();
-            name& getDao() const;
+            name getDao() const;
             static Document withType(name dao, uint64_t id, eosio::name type);
         protected:
             TypedDocument(name dao, eosio::name type);

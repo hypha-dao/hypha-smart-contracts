@@ -2,7 +2,7 @@
 // #include <dao.hpp>
 // #include <logger/logger.hpp>
 
-#include "../../include/upvote/typed_document.hpp"
+#include <upvote_election/typed_document.hpp>
 
 // TODO we can rename this class ExternalDocument and give it functions
 // to interact with the dao contract from the outside - if that makes sense
@@ -71,7 +71,7 @@ namespace hypha
                 //                "; actual: ", docType->getAs<eosio::name>(), " for document: ", getId())
                 // TODO
                   "invalid document type."
-        )
+        );
 
         //For now we don't require a node label
         //getNodeLabel();
