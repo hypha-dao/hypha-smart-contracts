@@ -136,7 +136,9 @@ function copyFiles(sourceDir, destinationDir, fileMap) {
       const destinationFile = fileMap[file]
       if (!destinationFile) {
         console.log('incomplete map missing ' + file + ' map: ' + fileMap)
-        throw 'incomplete map'
+        console.log('ignored')
+        return
+        //throw 'incomplete map'
       }
       const destinationPath = path.join(destinationDir, destinationFile);
 
