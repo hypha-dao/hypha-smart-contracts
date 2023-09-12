@@ -23,7 +23,32 @@ const command = ({ contract, source, include, dir, contractSourceName }) => {
   const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
   const testnetFlag = isTelosTestnet() ? " -DIS_TELOS_TESTNET" : ""
 if (process.env.COMPILER === 'local') {
-    cmd = "eosio-cpp -abigen -I " + inc + " -I ./document-graph/include" + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source; 
+    if (contractSourceName == "upvote") {
+
+      // TODO - grab additional source files and additional import locations using the contract name
+      // list impportDirectories = ["include", "./document-graph/include", ...]
+      // list sourcefiles = ["./src/upvote_election/election_round.cpp", "./src/upvote_election/graph.cpp", ...]
+      // then generate the command from that
+
+      cmd = ```eosio-cpp -abigen -I ./include -I ./document-graph/include -contract ${contractSourceName + testingFlag + testnetFlag} -o ./artifacts/upvote.wasm \
+      ./src/upvote.cpp \
+      ./src/upvote_election/election_round.cpp \
+      ./src/upvote_election/graph.cpp \
+      ./src/upvote_election/typed_document.cpp \
+      ./src/upvote_election/upvote_election.cpp \
+      ./src/upvote_election/vote_group.cpp \
+      ./document-graph/src/document_graph/content.cpp \
+      ./document-graph/src/document_graph/content_wrapper.cpp \
+      ./document-graph/src/document_graph/document.cpp \
+      ./document-graph/src/document_graph/document_graph.cpp \
+      ./document-graph/src/document_graph/edge.cpp \
+      ./document-graph/src/document_graph/util.cpp \
+      ./document-graph/src/logger/logger.cpp \
+      ```
+    } else {
+      // normal contracts...
+      cmd = "eosio-cpp -abigen -I " + inc + " -I ./document-graph/include" + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source; 
+    }
   } else {
     cmd = `docker run --rm --name eosio.cdt_v1.7.0-rc1 --volume ${volume}:/project -w /project eostudio/eosio.cdt:v1.7.0-rc1 /bin/bash -c "echo 'starting';eosio-cpp -abigen -I ${inc} -contract ${contract} -o ./artifacts/${contract}.wasm ${source}"`
   }
