@@ -1,14 +1,5 @@
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
-#include "./utils.hpp"
-
-#include <document_graph/content.hpp>
-#include <document_graph/document.hpp>
-#include <document_graph/edge.hpp>
-#include <document_graph/util.hpp>
-#include <document_graph/content_wrapper.hpp>
-#include <document_graph/document_graph.hpp>
-#include <upvote_election/typed_document.hpp>
 
 using namespace eosio;
 
@@ -29,10 +20,6 @@ public:
 
 private:
     
-    void dummyFunction() {
-        auto chiefBadge = hypha::TypedDocument::withType("daoxxxx"_n, 23, "badge"_n);
-    }
-
     const name token_contract = "hypha.hypha"_n;
 
     struct [[eosio::table]] account
