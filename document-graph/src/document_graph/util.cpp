@@ -1,6 +1,6 @@
 #include <document_graph/util.hpp>
 
-#include "document_graph/content.hpp"
+#include <document_graph/content.hpp>
 
 namespace hypha
 {
