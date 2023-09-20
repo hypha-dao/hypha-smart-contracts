@@ -53,7 +53,7 @@ if (process.env.COMPILER === 'local') {
 
     } else {
       // normal contracts...
-      cmd = "eosio-cpp -abigen -I " + inc + " -I ./document-graph/include" + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source; 
+      cmd = "eosio-cpp -abigen -O=s --lto-opt=O3 --no-missing-ricardian-clause --fmerge-all-constants -I " + inc + " -I ./document-graph/include" + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source; 
     }
   } else {
     cmd = `docker run --rm --name eosio.cdt_v1.7.0-rc1 --volume ${volume}:/project -w /project eostudio/eosio.cdt:v1.7.0-rc1 /bin/bash -c "echo 'starting';eosio-cpp -abigen -I ${inc} -contract ${contract} -o ./artifacts/${contract}.wasm ${source}"`

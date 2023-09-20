@@ -3,6 +3,7 @@
 // #include <logger/logger.hpp>
 
 #include <upvote_election/typed_document.hpp>
+#include <upvote_election/graph.hpp>
 
 // TODO we can rename this class ExternalDocument and give it functions
 // to interact with the dao contract from the outside - if that makes sense
@@ -67,14 +68,8 @@ namespace hypha
 
         eosio::check(idx != -1, "Content item labeled 'type' is required for this document but not found.");
         eosio::check(docType->getAs<eosio::name>() == getType(),
-                //   to_str("invalid document type. Expected: ", getType(),
-                //                "; actual: ", docType->getAs<eosio::name>(), " for document: ", getId())
-                // TODO
                   "invalid document type."
         );
-
-        //For now we don't require a node label
-        //getNodeLabel();
     }
 
     ContentGroups& TypedDocument::processContent(ContentGroups& content)
@@ -116,16 +111,13 @@ namespace hypha
     }
     void TypedDocument::update()
     {
-        // TODL: call dao.hypha
+        // TODO: call dao.hypha
         document.update();
     }
 
     void TypedDocument::erase()
     {
-        // TODL: call dao.hypha
-        
-        // previois code:
-        // m_dao.getGraph().eraseDocument(getId());
+        getGraph().eraseDocument(getId());
     }
 
     eosio::name TypedDocument::getType()

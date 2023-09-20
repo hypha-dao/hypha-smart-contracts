@@ -22,26 +22,26 @@ function sleep (ms) {
 async function getNonce () {
   try {
     if (isUnitTest) {
-      await rpc.getRawAbi('hypha.hypha')
-      const random = Math.random().toString(36).substring(6);
-      return [{
-        // this is a nonce action - prevents duplicate transaction errors - we borrow policy.seeds for this
-        account:"hypha.hypha",
-        name:"transfer",
-        authorization: [
-          {
-            actor: 'owner',
-            permission: 'active'
-          }
-        ],
-        data:{
-          from:"owner",
-          to: "seedsuserxxx",
-          quantity: "0.01 HYPHA",
-          memo: random,
-          policy: "CREATED BY UNIT TEST"
-        }
-      }]
+      // await rpc.getRawAbi('hypha.hypha')
+      // const random = Math.random().toString(36).substring(6);
+      // return [{
+      //   // this is a nonce action - prevents duplicate transaction errors - we borrow policy.seeds for this
+      //   account:"hypha.hypha",
+      //   name:"transfer",
+      //   authorization: [
+      //     {
+      //       actor: 'owner',
+      //       permission: 'active'
+      //     }
+      //   ],
+      //   data:{
+      //     from:"owner",
+      //     to: "seedsuserxxx",
+      //     quantity: "0.01 HYPHA",
+      //     memo: random,
+      //     policy: "CREATED BY UNIT TEST"
+      //   }
+      // }]
     }
     return []
   } catch (err) {

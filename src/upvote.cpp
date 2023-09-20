@@ -809,3 +809,13 @@ void upvote::checkAdminsAuth(uint64_t dao_id)
 //     to_str("Only admins of the dao are allowed to perform this action")
 //   );
 }
+
+void upvote::test()
+{
+  require_auth(get_self());
+  Document::document_table d_t(getDaoName(), getDaoName().value);
+
+  uint64_t nextId = d_t.available_primary_key();
+  print("Next available primary key: ", nextId);
+
+}

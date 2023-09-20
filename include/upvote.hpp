@@ -50,6 +50,9 @@ public:
     [[eosio::action]]
     void importelct(uint64_t dao_id, bool deferred);
 
+    [[eosio::action]]
+    void test();
+
       TABLE ElectionVote
       {
          uint64_t account_id;
@@ -79,6 +82,7 @@ private:
     int64_t getDelegatePower(int64_t roundId) {
         return roundId * 1 << roundId;  
     }
+
 
 
     // unique IDs for deferred actions
