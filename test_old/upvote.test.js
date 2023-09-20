@@ -173,6 +173,9 @@ describe('run upvote election', async assert => {
   console.log("set intial settings ")
   await initializeDHO()
 
+  console.log("create calendar ")
+  await contract.createcalen({ authorization: `${daoContract}@active` })
+
   // create dao
   console.log("create dao " + "testdao")
   const params = createDAOParams({
