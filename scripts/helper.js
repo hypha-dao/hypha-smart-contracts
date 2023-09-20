@@ -119,6 +119,8 @@ const accountsMetadata = (network) => {
     return {
       owner: account(owner),
       hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA', "hyphatoken"),
+      voice_token: contract('voice.hypha', 'voice_token'),
+      husd_token: contract('voice.hypha', 'voice_token'),
 
       firstuser: account('seedsuseraaa', '10000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
@@ -301,6 +303,8 @@ const contractPermissions = {
     }
   ],
 
+  // owner     1:    1 EOS6TzH8pWkRqzdQLpVz7W2awY2CycTckkkjEi9FvormYTiVff5iz, 1 dao.hypha@active
+  // active     1:    1 EOS6TzH8pWkRqzdQLpVz7W2awY2CycTckkkjEi9FvormYTiVff5iz, 1 dao.hypha@active, 1 dao.hypha@eosio.code, 1 voice.hypha@eosio.code
   paycpu: [
     {
       target: `${accounts.paycpu.account}@payforcpu`,
@@ -323,6 +327,35 @@ const contractPermissions = {
     {
       target: `${accounts.staking.account}@active`,
       actor: `${accounts.staking.account}@eosio.code`
+    },
+  ],
+
+  // External contracts / binaries permissions
+
+  hyphatoken: [
+    {
+      target: `${accounts.hyphatoken.account}@active`,
+      actor: `${accounts.hyphatoken.account}@eosio.code`
+    }, {
+      target: `${accounts.hyphatoken.account}@active`,
+      actor: `${accounts.daoAccount.account}@eosio.code`,
+    }
+  ],
+
+  voice_token: [
+    {
+      target: `${accounts.voice_token.account}@active`,
+      actor: `${accounts.voice_token.account}@eosio.code`
+    }, {
+      target: `${accounts.voice_token.account}@active`,
+      actor: `${accounts.daoAccount.account}@eosio.code`,
+    }
+  ],
+
+  daoAccount: [
+    {
+      target: `${accounts.daoAccount.account}@active`,
+      actor: `${accounts.daoAccount.account}@eosio.code`
     },
   ],
 
