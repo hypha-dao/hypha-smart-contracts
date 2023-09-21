@@ -120,7 +120,7 @@ const accountsMetadata = (network) => {
       owner: account(owner),
       hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA', "hyphatoken"),
       voice_token: contract('voice.hypha', 'voice_token'),
-      husd_token: contract('voice.hypha', 'voice_token'),
+      husd_token: contract('husd.hypha', 'husd_token'),
 
       firstuser: account('seedsuseraaa', '10000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
@@ -350,7 +350,11 @@ const contractPermissions = {
       target: `${accounts.voice_token.account}@active`,
       actor: `${accounts.daoAccount.account}@eosio.code`,
     }
-  ],
+    // , { // I DONT THINK WE NEED THIS SINCE WE HAVE code permission
+    //   target: `${accounts.voice_token.account}@active`,
+    //   actor: `${accounts.daoAccount.account}@active`,
+    // }
+],
 
   daoAccount: [
     {

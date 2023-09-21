@@ -1,4 +1,4 @@
-const { eos } = require('./helper')
+const { eos, isLocal } = require('./helper')
 
 const createAccount = async ({ account, publicKey, stakes, creator }) => {
 
@@ -38,45 +38,47 @@ const createAccount = async ({ account, publicKey, stakes, creator }) => {
                 }
             ]
         })
-
-        try {
-            await eos.transaction({
-                actions: [
-                    {
-                        account: 'eosio',
-                        name: 'buyrambytes',
-                        authorization: [{
-                            actor: creator,
-                            permission: 'active',
-                        }],
-                        data: {
-                            payer: creator,
-                            receiver: account,
-                            bytes: stakes.ram,
+        if (!isLocal()) {
+            try {
+                await eos.transaction({
+                    actions: [
+                        {
+                            account: 'eosio',
+                            name: 'buyrambytes',
+                            authorization: [{
+                                actor: creator,
+                                permission: 'active',
+                            }],
+                            data: {
+                                payer: creator,
+                                receiver: account,
+                                bytes: stakes.ram,
+                            },
                         },
-                    },
-                    {
-                        account: 'eosio',
-                        name: 'delegatebw',
-                        authorization: [{
-                            actor: creator,
-                            permission: 'active',
-                        }],
-                        data: {
-                            from: creator,
-                            receiver: account,
-                            stake_net_quantity: stakes.net,
-                            stake_cpu_quantity: stakes.cpu,
-                            transfer: false,
+                        {
+                            account: 'eosio',
+                            name: 'delegatebw',
+                            authorization: [{
+                                actor: creator,
+                                permission: 'active',
+                            }],
+                            data: {
+                                from: creator,
+                                receiver: account,
+                                stake_net_quantity: stakes.net,
+                                stake_cpu_quantity: stakes.cpu,
+                                transfer: false,
+                            }
                         }
-                    }
-                ]
-            })
-        } catch (error) {
-            console.error("unknown delegatebw action " + error)
+                    ]
+                })
+            } catch (error) {
+                console.error("unknown delegatebw action " + error)
+            }
+
         }
 
-        console.log(`${account} created`)
+        // console.log(`${account} created`)
     } catch (err) {
         if (("" + err).indexOf("as that name is already taken") != -1) {
             console.error(`account ${account} already created`)

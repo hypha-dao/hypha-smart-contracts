@@ -1,9 +1,16 @@
 const { describe } = require('riteway')
-const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep } = require('../scripts/helper')
+const { eos, names, getTableRows, isLocal, getBalance, sleep } = require('../scripts/helper')
 
 const { daoContract, owner, firstuser, seconduser, thirduser, voice_token, husd_token, hyphatoken } = names
 var crypto = require('crypto');
 const { create } = require('domain');
+const createAccount = require('../scripts/createAccount');
+
+const devKeyPair = { 
+  private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
+  public:"EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV" 
+}
+const newAccountPublicKey = devKeyPair.public
 
 const randomAccountName = () => {
   let length = 12
@@ -14,6 +21,18 @@ const randomAccountName = () => {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
+}
+
+const randomSymbolName = (prefix) => {
+  let length = 6
+  var result = '';
+  var characters = 'abcdefghijklmnopqrstuvwxyz1234'.toUpperCase();
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  console.log("SYMBOL " + prefix + ": " + (prefix+result))
+  return prefix + result;
 }
 
 const runAction = async ({contractName = "dao.hypha", action, data, actor}) => {
@@ -57,13 +76,6 @@ const Types = {
   TimePoint: 'time_point',
 } 
 
-const sleepFor = async (ms) => {
-  console.log("Sleeping for:", ms/1000, "seconds");
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, ms);
-  })
-}
-
 const setSetting = async (setting, value) => {
   return runAction({action: 'setsetting', data: { 
     key: setting, 
@@ -73,78 +85,43 @@ const setSetting = async (setting, value) => {
 
 const initializeDHO = async () => {
 
-
-  await sleepFor(2000);
-
   result = await setSetting('governance_token_contract', [Types.Name, voice_token]);
   
-  console.log('Set DHO setting result:', result);
-
   result = await setSetting('reward_token_contract', [Types.Name, hyphatoken]);
   
-  console.log('Set DHO setting result:', result);
-
   result = await setSetting('peg_token_contract', [Types.Name, husd_token]);
   
-  console.log('Set DHO setting result:', result);
-
   result = await setSetting('treasury_contract', [Types.Name, 'mttrsryhypha']);
   
-  console.log('Set setting result:', result);
+  result = await setSetting('period_duration_sec', [Types.Int, 604800]);
 
-  await sleepFor(2000);
+  result = await setSetting('next_schedule_id', [Types.Int, parseInt(Math.random() * 1000000)]);
+
+  result = await setSetting('init_period_count', [Types.Int, 10]); // optional - will use 30 if not set
+    
+  await sleep(1000);
 }
 
+const createMultipleAccounts = async (num) => {
+  let result = []
 
-const createDAOParams = ({
-  dao_name,
-  dao_title,
-  dao_description,
-  voting_duration_sec,
-  peg_token,
-  voice_token,
-  reward_token,
-  reward_token_max_supply,
-  reward_to_peg_ratio,
-  period_duration_sec,
-  onboarder_account,
-  voting_alignment_x100,
-  voting_quorum_x100,
-  period_count,
-  primary_color,
-}) => {
-    return [[
-      getItem('content_group_label', 'details', Types.String),
-      getItem('dao_name', dao_name, Types.Name),
-      getItem('dao_title', dao_title, Types.String),
-      getItem('dao_description', dao_description, Types.String),
-      getItem('voting_duration_sec', voting_duration_sec, Types.Int),
-      getItem('peg_token', peg_token, Types.Asset),
-      getItem('voice_token', voice_token, Types.Asset),
-      getItem('reward_token', reward_token, Types.Asset),
-      getItem('reward_token_max_supply', reward_token_max_supply, Types.Asset),
-      getItem('reward_to_peg_ratio', reward_to_peg_ratio, Types.Asset),
-      getItem('period_duration_sec', period_duration_sec, Types.Int),
-      getItem('voting_alignment_x100', voting_alignment_x100, Types.Int),
-      getItem('voting_quorum_x100', voting_quorum_x100, Types.Int),
-      getItem('voice_token_decay_period', 200, Types.Int),
-      getItem('voice_token_decay_per_period_x10M', 200000000, Types.Int),
-      getItem('voice_token_multiplier', 3, Types.Int),
-      getItem('treasury_token_multiplier', 2, Types.Int),
-      getItem('utility_token_multiplier', 1, Types.Int),
-      getItem('onboarder_account', onboarder_account, Types.Name),
-      getItem('period_count', period_count, Types.Int),
-      getItem('content_group_label', 'style', Types.String),
-      getItem('primary_color', primary_color, Types.String),
-      getItem('secondary_color', primary_color, Types.String),
-      getItem('text_color', primary_color, Types.String),
-      getItem('logo', 'random.png', Types.String),
-      getItem('content_group_label', 'settings', Types.String),
-      getItem('governance_token_contract', "voice.hypha", Types.String),
-      
-    ]]
-  
+  for (let i = 0; i < num; i++) {
+    const member = randomAccountName()
+          
+    await createAccount({
+      account: member, 
+      publicKey: newAccountPublicKey, 
+      creator: owner
+    })
+
+    result.push(member)
+  }
+  return result
 }
+
+////////////////////////////////////////////////////////////////////////
+/////////// Main unit test
+////////////////////////////////////////////////////////////////////////
 
 describe('run upvote election', async assert => {
 
@@ -153,63 +130,489 @@ describe('run upvote election', async assert => {
     return
   }
 
-  const newAccount = randomAccountName()
-  console.log("New account " + newAccount)
-  const keyPair = await createKeypair()
-  console.log("new account keys: " + JSON.stringify(keyPair, null, 2))
-  const newAccountPublicKey = keyPair.public
-
+  const daoOwnerAccount = randomAccountName()
+  const newDaoName = randomAccountName()
+  
+  console.log("New account " + daoOwnerAccount)
+  console.log("New dao " + newDaoName)
+  
   const contract = await eos.contract(daoContract)
+
+  // create newaccount
+  await createAccount({
+    account: daoOwnerAccount, 
+    publicKey: newAccountPublicKey, 
+    creator: owner
+  })
+  await sleep(1000);
 
   // reset contract
   console.log("reset " + daoContract)
   await contract.reset({ authorization: `${daoContract}@active` })
+  await sleep(500);
 
   // create root
   console.log("create root " + daoContract)
   await contract.createroot('test root', { authorization: `${daoContract}@active` });
+  await sleep(1000);
 
   // init initial settings
   console.log("set intial settings ")
   await initializeDHO()
 
+
   console.log("create calendar ")
-  await contract.createcalen({ authorization: `${daoContract}@active` })
+  await contract.createcalen(true, { authorization: `${daoContract}@active` })
+
+  await sleep(2000);
 
   // create dao
-  console.log("create dao " + "testdao")
-  const params = createDAOParams({
-    contract: daoContract,
-    dao_name: "testdao",
-    dao_title: "Test Ttle",
-    dao_description: "Test descriptuin",
-    voting_duration_sec: 60,
-    peg_token: "10.00 HUSD",
-    voice_token: "10.00 HVOICE",
-    reward_token: "100.00 HYPHA",
-    reward_token_max_supply: "1.00 HYPHA",
-    reward_to_peg_ratio: "1.0 HUSD",
-    period_duration_sec: 500,
-    onboarder_account: owner,
-    voting_alignment_x100: 80,
-    voting_quorum_x100: 20,
-    period_count: 12,
-    primary_color: "#000000",
+  console.log("create dao " + newDaoName + " with owner " + daoOwnerAccount)
+  const daoParams = getCreateDaoData({
+    dao_name: newDaoName,
+    onboarder_account: daoOwnerAccount,
   })
-  console.log("DAO params " + JSON.stringify(params, null, 2))
-  await contract.createdao(params, { authorization: `${owner}@active` });
+  // console.log("DAO params " + JSON.stringify(params, null, 2))
 
+  await contract.createdao(daoParams, { authorization: `${daoOwnerAccount}@active` });
+
+  const getDaoEntry = async (daoName) => {
+    const accountsTable = await eos.getTableRows({
+      code: daoContract,
+      scope: daoContract,
+      table: 'daos',
+      lower_bound: daoName,
+      upper_bound: daoName,
+      json: true
+    });
+    return accountsTable.rows[0];
+  };
+
+  const daoObj = await getDaoEntry(newDaoName)
+  console.log("id: " + daoObj.id)
 
   assert({
-    given: 'create account',
-    should: 'a new account has been created on the blockchain',
-    actual: account.account_name,
-    expected: newAccount
+    given: 'create dao',
+    should: 'a new dao has been created',
+    actual: daoObj.name,
+    expected: newDaoName
   })
+
+  const members = await createMultipleAccounts(10)
+
+  console.log("created members: " + members)
+
+  // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
+  for (let member of members) {
+    await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
+    console.log("enrolled member: " + member)
+  }
 
 
 })
 
 
+const getCreateDaoData = ({
+  dao_name,
+  onboarder_account,
+  voting_duration_sec = 604800,
+  period_duration_sec = 604800,
+}) => {
+  return JSON.parse(`
+  [
+       [
+          {
+             "label":"content_group_label",
+             "value":[
+                "string",
+                "details"
+             ]
+          },
+          {
+             "label":"dao_name",
+             "value":[
+                "name",
+                "${dao_name}"
+             ]
+          },
+          {
+             "label":"dao_title",
+             "value":[
+                "string",
+                "DAO title for ${dao_name}"
+             ]
+          },
+          {
+             "label":"dao_description",
+             "value":[
+                "string",
+                "Dao Description Test"
+             ]
+          },
+          {
+             "label":"is_template",
+             "value":[
+                "int64",
+                "0"
+             ]
+          },
+          {
+             "label":"dao_template",
+             "value":[
+                "int64",
+                "0"
+             ]
+          },
+          {
+             "label":"voice_token",
+             "value":[
+                "asset",
+                "1.00 VOICE"
+             ]
+          },
+          {
+             "label":"use_seeds",
+             "value":[
+                "int64",
+                "0"
+             ]
+          },
+          {
+             "label":"voting_duration_sec",
+             "value":[
+                "int64",
+                "${voting_duration_sec}"
+             ]
+          },
+          {
+             "label":"period_duration_sec",
+             "value":[
+                "int64",
+                "${period_duration_sec}"
+             ]
+          },
+          {
+             "label":"voting_alignment_x100",
+             "value":[
+                "int64",
+                "80"
+             ]
+          },
+          {
+             "label":"voting_quorum_x100",
+             "value":[
+                "int64",
+                "20"
+             ]
+          },
+          {
+             "label":"voice_token_decay_period",
+             "value":[
+                "int64",
+                "604800"
+             ]
+          },
+          {
+             "label":"voice_token_decay_per_period_x10M",
+             "value":[
+                "int64",
+                "100000"
+             ]
+          },
+          {
+             "label":"utility_token_multiplier",
+             "value":[
+                "int64",
+                "0"
+             ]
+          },
+          {
+             "label":"voice_token_multiplier",
+             "value":[
+                "int64",
+                "0"
+             ]
+          },
+          {
+             "label":"treasury_token_multiplier",
+             "value":[
+                "int64",
+                "0"
+             ]
+          },
+          {
+             "label":"onboarder_account",
+             "value":[
+                "name",
+                "${onboarder_account}"
+             ]
+          },
+          {
+             "label":"dao_url",
+             "value":[
+                "string",
+                "dao_url_${dao_name}"
+             ]
+          },
+          {
+             "label":"skip_peg_token_create",
+             "value":[
+                "int64",
+                "1"
+             ]
+          },
+          {
+             "label":"skip_reward_token_create",
+             "value":[
+                "int64",
+                "1"
+             ]
+          }
+       ],
+       [
+          {
+             "label":"content_group_label",
+             "value":[
+                "string",
+                "core_members"
+             ]
+          }
+       ],
+       [
+          {
+             "label":"content_group_label",
+             "value":[
+                "string",
+                "style"
+             ]
+          },
+          {
+             "label":"logo",
+             "value":[
+                "string",
+                ""
+             ]
+          },
+          {
+             "label":"primary_color",
+             "value":[
+                "string",
+                "#242f5d"
+             ]
+          },
+          {
+             "label":"secondary_color",
+             "value":[
+                "string",
+                "#3f64ee"
+             ]
+          },
+          {
+             "label":"text_color",
+             "value":[
+                "string",
+                "#ffffff"
+             ]
+          }
+       ]
+    ]`)
+}
 
-
+const createDaoData = `
+[
+     [
+        {
+           "label":"content_group_label",
+           "value":[
+              "string",
+              "details"
+           ]
+        },
+        {
+           "label":"dao_name",
+           "value":[
+              "name",
+              "a11111111111"
+           ]
+        },
+        {
+           "label":"dao_title",
+           "value":[
+              "string",
+              "DAO 1"
+           ]
+        },
+        {
+           "label":"dao_description",
+           "value":[
+              "string",
+              "Dao Description 1"
+           ]
+        },
+        {
+           "label":"is_template",
+           "value":[
+              "int64",
+              "0"
+           ]
+        },
+        {
+           "label":"dao_template",
+           "value":[
+              "int64",
+              "0"
+           ]
+        },
+        {
+           "label":"voice_token",
+           "value":[
+              "asset",
+              "1.00 VOICE"
+           ]
+        },
+        {
+           "label":"use_seeds",
+           "value":[
+              "int64",
+              "0"
+           ]
+        },
+        {
+           "label":"voting_duration_sec",
+           "value":[
+              "int64",
+              "604800"
+           ]
+        },
+        {
+           "label":"period_duration_sec",
+           "value":[
+              "int64",
+              "604800"
+           ]
+        },
+        {
+           "label":"voting_alignment_x100",
+           "value":[
+              "int64",
+              "80"
+           ]
+        },
+        {
+           "label":"voting_quorum_x100",
+           "value":[
+              "int64",
+              "20"
+           ]
+        },
+        {
+           "label":"voice_token_decay_period",
+           "value":[
+              "int64",
+              "604800"
+           ]
+        },
+        {
+           "label":"voice_token_decay_per_period_x10M",
+           "value":[
+              "int64",
+              "100000"
+           ]
+        },
+        {
+           "label":"utility_token_multiplier",
+           "value":[
+              "int64",
+              "0"
+           ]
+        },
+        {
+           "label":"voice_token_multiplier",
+           "value":[
+              "int64",
+              "0"
+           ]
+        },
+        {
+           "label":"treasury_token_multiplier",
+           "value":[
+              "int64",
+              "0"
+           ]
+        },
+        {
+           "label":"onboarder_account",
+           "value":[
+              "name",
+              "owner"
+           ]
+        },
+        {
+           "label":"dao_url",
+           "value":[
+              "string",
+              "dao1_dao_short_url"
+           ]
+        },
+        {
+           "label":"skip_peg_token_create",
+           "value":[
+              "int64",
+              "1"
+           ]
+        },
+        {
+           "label":"skip_reward_token_create",
+           "value":[
+              "int64",
+              "1"
+           ]
+        }
+     ],
+     [
+        {
+           "label":"content_group_label",
+           "value":[
+              "string",
+              "core_members"
+           ]
+        }
+     ],
+     [
+        {
+           "label":"content_group_label",
+           "value":[
+              "string",
+              "style"
+           ]
+        },
+        {
+           "label":"logo",
+           "value":[
+              "string",
+              ""
+           ]
+        },
+        {
+           "label":"primary_color",
+           "value":[
+              "string",
+              "#242f5d"
+           ]
+        },
+        {
+           "label":"secondary_color",
+           "value":[
+              "string",
+              "#3f64ee"
+           ]
+        },
+        {
+           "label":"text_color",
+           "value":[
+              "string",
+              "#ffffff"
+           ]
+        }
+     ]
+  ]`

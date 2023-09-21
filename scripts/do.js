@@ -38,6 +38,12 @@ const getContractLocation = (contract) => {
       include: "",
       contractSourceName: "startoken"
     }
+  } else if (contract == 'husd_token') {
+    return {
+      source: `./src/seeds.startoken.cpp`,
+      include: "",
+      contractSourceName: "startoken"
+    }
   } else if (contract == 'joinhypha') {
     return {
       source: `./src/hypha.accountcreator.cpp`,
@@ -179,6 +185,15 @@ program
   .description('Run unit tests for deployed contract')
   .action(async function (contract, moreContracts) {
     await batchCallFunc(contract, moreContracts, test)
+  })
+
+  program
+  .command('init_upvote')
+  .description('Init unit tests for upvote')
+  .action(async function () {
+    await batchCallFunc("dao", [], deployAction)
+    await batchCallFunc("hyphatoken", ["husd_token", "voice_token"], runAction)
+    await batchCallFunc("dao", ["hyphatoken", "husd_token", "voice_token"], permissionsAction)
   })
 
   program
