@@ -4,7 +4,7 @@ const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows, contractPermissions } = require('./helper')
-const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoAccount } = names
+const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoContract } = names
 
 const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
@@ -261,8 +261,8 @@ program
   .action(async function () {
     const contract = await eos.contract(paycpu)
 
-    console.log("set dao contract on " + paycpu + " to: " + daoAccount)
-    await contract.configure(daoAccount, { authorization: `${paycpu}@active` })
+    console.log("set dao contract on " + paycpu + " to: " + daoContract)
+    await contract.configure(daoContract, { authorization: `${paycpu}@active` })
     console.log("done");
 
   })

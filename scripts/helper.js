@@ -129,15 +129,14 @@ const accountsMetadata = (network) => {
       fifthuser: account('seedsuseryyy', '100000.00 HYPHA'),
       sixthuser: account('seedsuserzzz', '5000.00 HYPHA'),
       oracleuser: account('hyphaoracle1', '10000.00 HYPHA'),
-      daoAccount: account('dao.hypha'),
 
       // for testing..
+      daoContract: account('dao.hypha', 'dao'),
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       launch_sale: contract('launch.hypha', 'launch_sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
-      daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
       upvote: account('upvote.hypha', 'upvote'),
@@ -147,7 +146,6 @@ const accountsMetadata = (network) => {
     return {
       owner: account(owner),
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('dao.hypha'),
 
       sale: contract('sale.hypha', 'sale'),
       launch_sale: contract('launch.hypha', 'launch_sale'),
@@ -162,7 +160,6 @@ const accountsMetadata = (network) => {
     return {
       owner: account(owner),
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('mtdhoxhyphaa'),
 
       firstuser: account('seedsuseraaa', '1000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
@@ -184,7 +181,6 @@ const accountsMetadata = (network) => {
   } else if (network == networks.eosMainnet) {
     return {
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('dao.hypha'),
 
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
@@ -201,7 +197,6 @@ const accountsMetadata = (network) => {
   } else if (network == networks.eosTestnet) {
     return {
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('daoxhypha111'),
 
       // we don't deploy sale contract on EOS, but defining it here
       sale: contract('sale.hypha', 'sale'),
@@ -293,12 +288,12 @@ const contractPermissions = {
       target: `${accounts.joinhypha.account}@active`,
       actor: `${accounts.joinhypha.account}@eosio.code`
     }, {
-      target: `${accounts.daoAccount.account}@autoenroll`,
+      target: `${accounts.daoContract.account}@autoenroll`,
       actor: `${accounts.joinhypha.account}@eosio.code`,
       parent: 'active',
       type: 'createActorPermission'
     }, {
-      target: `${accounts.daoAccount.account}@autoenroll`,
+      target: `${accounts.daoContract.account}@autoenroll`,
       action: 'autoenroll'
     }
   ],
@@ -338,7 +333,7 @@ const contractPermissions = {
       actor: `${accounts.hyphatoken.account}@eosio.code`
     }, {
       target: `${accounts.hyphatoken.account}@active`,
-      actor: `${accounts.daoAccount.account}@eosio.code`,
+      actor: `${accounts.daoContract.account}@eosio.code`,
     }
   ],
 
@@ -348,20 +343,20 @@ const contractPermissions = {
       actor: `${accounts.voice_token.account}@eosio.code`
     }, {
       target: `${accounts.voice_token.account}@active`,
-      actor: `${accounts.daoAccount.account}@eosio.code`,
+      actor: `${accounts.daoContract.account}@eosio.code`,
     }
     // , { // I DONT THINK WE NEED THIS SINCE WE HAVE code permission
     //   target: `${accounts.voice_token.account}@active`,
-    //   actor: `${accounts.daoAccount.account}@active`,
+    //   actor: `${accounts.daoContract.account}@active`,
     // }
 ],
 
-  daoAccount: [
-    {
-      target: `${accounts.daoAccount.account}@active`,
-      actor: `${accounts.daoAccount.account}@eosio.code`
-    },
-  ],
+daoContract: [
+  {
+    target: `${accounts.daoContract.account}@active`,
+    actor: `${accounts.daoContract.account}@eosio.code`
+  },
+],
 
 }
 

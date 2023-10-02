@@ -119,6 +119,18 @@ const createMultipleAccounts = async (num) => {
   return result
 }
 
+const getLastDocuments = async (num) => {
+   const data = await eos.getTableRows({
+     code: daoContract,
+     scope: daoContract,
+     table: 'documents',
+     limit: num,
+     reverse: true,
+     json: true,
+   });
+   return data.rows;
+ };
+
 ////////////////////////////////////////////////////////////////////////
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
@@ -198,7 +210,12 @@ describe('run upvote election', async assert => {
     expected: newDaoName
   })
 
-  const members = await createMultipleAccounts(10)
+  console.log("init system badges")
+  const mem = await contract.initSysBadges({ authorization: `${daoOwnerAccount}@active` })
+  const docs = await getLastDocuments(5)
+  console.log("badges initialized " + JSON.stringify(docs, null, 2))
+
+  const members = await createMultipleAccounts(30)
 
   console.log("created members: " + members)
 
@@ -206,7 +223,23 @@ describe('run upvote election', async assert => {
   for (let member of members) {
     await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
     console.log("enrolled member: " + member)
+
   }
+
+  // Give the members delegate badges
+
+
+  // Create an upvote election with short rounds
+
+  // Read groups ?? and start voting
+  // We could use the "print" outputs to figure out who's in which round
+  // we need to get the member IDs of members to be able to vote for them
+  // maybe that's in the members table?
+
+  // Advance to the next round
+
+  // Check winners each round until last round
+  
 
 
 })
