@@ -5,6 +5,7 @@ const { daoContract, owner, firstuser, seconduser, thirduser, voice_token, husd_
 var crypto = require('crypto');
 const { create } = require('domain');
 const createAccount = require('../scripts/createAccount');
+const { title } = require('process');
 
 const devKeyPair = {
    private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
@@ -141,6 +142,12 @@ const getLastDocuments = async (num) => {
 
 describe('run upvote election', async assert => {
 
+   const test = badgeAssignmentPropData({
+      assignee: "foo",
+      badgeId: 1,
+      badgeTitle: "foobar",
+      startPeriodId: 20,
+})
 
    if (!isLocal()) {
       console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
@@ -175,8 +182,8 @@ describe('run upvote election', async assert => {
    console.log("badges initialized " + JSON.stringify(docs, null, 2))
    const delegateBadge = docs.find(item => JSON.stringify(item.content_groups).indexOf("Upvote Delegate Badge") != -1);
    const delegateBadgeId = delegateBadge.id
-   console.log("delegate badge " + JSON.stringify(delegateBadge, null, 2))
-   console.log("delegate badge id " + delegateBadgeId)
+   // console.log("delegate badge " + JSON.stringify(delegateBadge, null, 2))
+   // console.log("delegate badge id " + delegateBadgeId)
    const hasDelegateBadge = JSON.stringify(docs).indexOf("Upvote Delegate Badge") != -1;
 
    await sleep(1000);
@@ -235,6 +242,13 @@ describe('run upvote election', async assert => {
       expected: true,
    })
 
+   assert({
+      given: 'init calendars',
+      should: 'has start period',
+      actual: startPeriodDoc != undefined,
+      expected: true,
+   })
+
    const members = await createMultipleAccounts(30)
 
    console.log("created members: " + members)
@@ -246,22 +260,25 @@ describe('run upvote election', async assert => {
 
       // Give the members delegate badges
 
-      //ACTION propose(uint64_t dao_id, const name &proposer, const name &proposal_type, ContentGroups &content_groups, bool publish);
 
       const badgeProposalData = badgeAssignmentPropData({
          assignee: member,
          badgeTitle: "Delegate Badge",
-         badgeId: badgeId,
-         startPeriodId: startPeriodId,
+         badgeId: delegateBadge.id,
+         startPeriodId: startPeriodDoc.id,
       })
 
-      console.log("propose delegate badge for member: " + member)
+
+
+      console.log("propose delegate badge for member: " + JSON.stringify(badgeProposalData, null, 2))
+      //ACTION propose(uint64_t dao_id, const name &proposer, const name &proposal_type, ContentGroups &content_groups, bool publish);
 
       await contract.propose(
          daoObj.id,
          member,
          "assignbadge",
          badgeProposalData,
+         true,
          { authorization: `${member}@active` }
       )
 
@@ -491,7 +508,7 @@ const getCreateDaoData = ({
 }
 
 const createDaoData = `
-[
+
      [
         {
            "label":"content_group_label",
@@ -689,57 +706,57 @@ const createDaoData = `
      ]
   ]`
 
-const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId }) => `[
+const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId }) => JSON.parse(`
+[
    [
-      [
-         "value":[
-            "string",
-            "details"
-         ],
-         "label":"content _group_label"
-      ],
-      [
-         "label":"assignee",
-         "value":[
-            "name",
-            "${assignee}"
-         ]
-      ],
-      [
-         "value":[
-            "string",
-            "${badgeTitle}"
-         ],
-         "label":"title"
-      ],
-      [
-         "value":[
-            "string",
-            "This badge ensures that the organization is aligned with our shared vision and goals.
-	In case of misalignment, the holder has the power to negate a positive outcome of a proposal."
-         ],
-         "label":"description"
-      ],
-      [
-         "label":"badge",
-         "value":[
-            "int64",
-            ${badgeId}
-         ]
-      ],
-      [
-         "value":[
-            "int64",
-            ${startPeriodId}
-         ],
-         "label":"start_period"
-      ],
-      [
-         "label":"period _count",
-         "value":[
-            "int64",
-            24
-         ]
-      ]
+     {
+       "value": [
+         "string",
+         "details"
+       ],
+       "label": "content_group_label"
+     },
+     {
+       "label": "assignee",
+       "value": [
+         "name",
+         "${assignee}"
+       ]
+     },
+     {
+       "value": [
+         "string",
+         "${badgeTitle}"
+       ],
+       "label": "title"
+     },
+     {
+       "value": [
+         "string",
+         "This badge ensures that the organization is aligned with our shared vision and goals. In case of misalignment, the holder has the power to negate a positive outcome of a proposal."
+       ],
+       "label": "description"
+     },
+     {
+       "label": "badge",
+       "value": [
+         "int64",
+         ${badgeId}
+       ]
+     },
+     {
+       "value": [
+         "int64",
+         ${startPeriodId}
+       ],
+       "label": "start_period"
+     },
+     {
+       "label": "period_count",
+       "value": [
+         "int64",
+         24
+       ]
+     }
    ]
-]`
+ ]`)
