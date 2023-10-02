@@ -166,6 +166,9 @@ describe('run upvote election', async assert => {
   // create root
   console.log("create root " + daoContract)
   await contract.createroot('test root', { authorization: `${daoContract}@active` });
+  const docs = await getLastDocuments(5)
+  console.log("badges initialized " + JSON.stringify(docs, null, 2))
+
   await sleep(1000);
 
   // init initial settings
@@ -209,11 +212,6 @@ describe('run upvote election', async assert => {
     actual: daoObj.name,
     expected: newDaoName
   })
-
-  console.log("init system badges")
-  const mem = await contract.initSysBadges({ authorization: `${daoOwnerAccount}@active` })
-  const docs = await getLastDocuments(5)
-  console.log("badges initialized " + JSON.stringify(docs, null, 2))
 
   const members = await createMultipleAccounts(30)
 
