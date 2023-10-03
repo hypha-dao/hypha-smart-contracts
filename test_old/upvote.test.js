@@ -38,7 +38,7 @@ const randomSymbolName = (prefix) => {
 
 const runAction = async ({ contractName = "dao.hypha", action, data, actor }) => {
 
-   console.log("About to run action:", action, "with data:", JSON.stringify(data));
+   // console.locleg("About to run action:", action, "with data:", JSON.stringify(data));
 
    actor = actor ?? contractName
 
@@ -140,6 +140,18 @@ const getLastDocuments = async (num) => {
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
 
+describe('test stuff', async assert => {
+
+const time = new Date().toLocaleString()
+console.log("date format: " + time)
+
+const result1 = Date.parse(time + "");
+console.log("date: " + result1)
+if (Number.isNaN(result1)) {
+    throw new Error('Invalid time format');
+}
+//return result1;
+})
 describe('run upvote election', async assert => {
 
    const test = badgeAssignmentPropData({
@@ -162,6 +174,11 @@ describe('run upvote election', async assert => {
 
    const contract = await eos.contract(daoContract)
 
+   // reset contract
+   console.log("reset " + daoContract)
+   await contract.reset({ authorization: `${daoContract}@active` })
+   await sleep(500);
+   
    // create newaccount
    await createAccount({
       account: daoOwnerAccount,
@@ -170,16 +187,13 @@ describe('run upvote election', async assert => {
    })
    await sleep(1000);
 
-   // reset contract
-   console.log("reset " + daoContract)
-   await contract.reset({ authorization: `${daoContract}@active` })
-   await sleep(500);
 
    // create root
    console.log("create root " + daoContract)
    await contract.createroot('test root', { authorization: `${daoContract}@active` });
    const docs = await getLastDocuments(5)
-   console.log("badges initialized " + JSON.stringify(docs, null, 2))
+   // console.log("badges initialized " + JSON.stringify(docs, null, 2))
+   console.log("badges initialized ")
    const delegateBadge = docs.find(item => JSON.stringify(item.content_groups).indexOf("Upvote Delegate Badge") != -1);
    const delegateBadgeId = delegateBadge.id
    // console.log("delegate badge " + JSON.stringify(delegateBadge, null, 2))
@@ -226,7 +240,7 @@ describe('run upvote election', async assert => {
    };
 
    const daoObj = await getDaoEntry(newDaoName)
-   console.log("id: " + daoObj.id)
+   console.log("DAO id: " + daoObj.id + " Name: " + newDaoName)
 
    assert({
       given: 'create dao',
@@ -253,6 +267,27 @@ describe('run upvote election', async assert => {
 
    console.log("created members: " + members)
 
+   // create an upvote election
+   
+   // ACTION createupvelc(uint64_t dao_id, ContentGroups& election_config)
+
+   let now = new Date();
+   let time = new Date(now.getTime() + 10000).toISOString()
+
+   console.log("now: " + now.toISOString())
+   console.log("up elec: " + time)
+   // NOTE: The date string is "2023-10-03T03:39:53.250Z" but for some reason
+   // eosjs insists of appending a 'Z' so we have to remove the Z first.
+   if (time.endsWith("Z")) {
+      time = time.slice(0, -1)
+   }
+
+   let data = upvoteElectionDoc(time)
+
+   // console.log("elect data: \n" + JSON.stringify(data, null, 2) + "\n")
+   console.log("create upvote election")
+   await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
+   
    // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
    for (let member of members) {
       await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
@@ -267,8 +302,6 @@ describe('run upvote election', async assert => {
          badgeId: delegateBadge.id,
          startPeriodId: startPeriodDoc.id,
       })
-
-
 
       console.log("propose delegate badge for member: " + JSON.stringify(badgeProposalData, null, 2))
       //ACTION propose(uint64_t dao_id, const name &proposer, const name &proposal_type, ContentGroups &content_groups, bool publish);
@@ -706,8 +739,7 @@ const createDaoData = `
      ]
   ]`
 
-const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId }) => JSON.parse(`
-[
+const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId }) => JSON.parse(`[
    [
      {
        "value": [
@@ -733,7 +765,7 @@ const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId 
      {
        "value": [
          "string",
-         "This badge ensures that the organization is aligned with our shared vision and goals. In case of misalignment, the holder has the power to negate a positive outcome of a proposal."
+         "some text."
        ],
        "label": "description"
      },
@@ -759,4 +791,31 @@ const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId 
        ]
      }
    ]
- ]`)
+]`)
+
+ const upvoteElectionDoc = (time) => JSON.parse(`[
+   [
+       { "label": "content_group_label", "value": ["string", "details"] },
+       { "label": "upvote_start_date_time", "value": ["time_point", "${time}"] },
+       { "label": "upvote_duration", "value": ["int64", 7776000] },
+       { "label": "duration", "value": ["int64", 3600] }
+   ]
+]`)
+// const upvoteElectionDoc = () => JSON.parse(`[
+//    [
+//        { "label": "content_group_label", "value": ["string", "details"] },
+//        { "label": "upvote_start_date_time", "value": ["time_point", "${new Date().toISOString()}"] },
+//        { "label": "upvote_duration", "value": ["int64", 7776000] },
+//        { "label": "duration", "value": ["int64", 3600] }
+//    ]
+// ]`)
+// const upvoteElectionDoc = () => `
+// [
+//    [
+//        { "label": "content_group_label", "value": ["string", "details"] },
+//        { "label": "upvote_start_date_time", "value": ["timepoint", "2023-10-02T05:12:00.000"] },
+//        { "label": "upvote_duration", "value": ["int64", 7776000] },
+//        { "label": "duration", "value": ["int64", 3600] }
+//    ]
+// ]`
+
