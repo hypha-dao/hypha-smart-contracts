@@ -6,6 +6,7 @@ var crypto = require('crypto');
 const { create } = require('domain');
 const createAccount = require('../scripts/createAccount');
 const { title } = require('process');
+const { updateDocumentCache, updateEdgesCache, documentCache } = require('./docGraph');
 
 const devKeyPair = {
    private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
@@ -154,13 +155,6 @@ if (Number.isNaN(result1)) {
 })
 describe('run upvote election', async assert => {
 
-   const test = badgeAssignmentPropData({
-      assignee: "foo",
-      badgeId: 1,
-      badgeTitle: "foobar",
-      startPeriodId: 20,
-})
-
    if (!isLocal()) {
       console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
       return
@@ -272,7 +266,7 @@ describe('run upvote election', async assert => {
    // ACTION createupvelc(uint64_t dao_id, ContentGroups& election_config)
 
    let now = new Date();
-   let time = new Date(now.getTime() + 10000).toISOString()
+   let time = new Date(now.getTime() + 5000).toISOString()
 
    console.log("now: " + now.toISOString())
    console.log("up elec: " + time)
@@ -288,6 +282,13 @@ describe('run upvote election', async assert => {
    console.log("create upvote election")
    await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
    
+   const docs3 = await getLastDocuments(20)
+   //console.log("upvote election: " + JSON.stringify(docs3, null, 2))
+
+   const electionDocType = "upvt.electn"
+   const upElecDoc = docs3.find(item => JSON.stringify(item.content_groups).indexOf(electionDocType) != -1);
+   console.log("election ID: " + upElecDoc.id)
+
    // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
    for (let member of members) {
       await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
@@ -303,9 +304,8 @@ describe('run upvote election', async assert => {
          startPeriodId: startPeriodDoc.id,
       })
 
-      console.log("propose delegate badge for member: " + JSON.stringify(badgeProposalData, null, 2))
+      //console.log("propose delegate badge for member: " + JSON.stringify(badgeProposalData, null, 2))
       //ACTION propose(uint64_t dao_id, const name &proposer, const name &proposal_type, ContentGroups &content_groups, bool publish);
-
       await contract.propose(
          daoObj.id,
          member,
@@ -314,11 +314,18 @@ describe('run upvote election', async assert => {
          true,
          { authorization: `${member}@active` }
       )
+      console.log("added delegate badge for " + member)
 
    }
+   await updateDocumentCache()
+   await updateEdgesCache()
 
+   
 
-   // Create an upvote election with short rounds
+   // kick off upvote election
+   // ACTION updateupvelc(uint64_t election_id, bool reschedule);
+   await contract.updateupvelc(upElecDoc.id, false, { authorization: `${daoOwnerAccount}@active` });
+
 
    // Read groups ?? and start voting
    // We could use the "print" outputs to figure out who's in which round
@@ -801,21 +808,4 @@ const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId 
        { "label": "duration", "value": ["int64", 3600] }
    ]
 ]`)
-// const upvoteElectionDoc = () => JSON.parse(`[
-//    [
-//        { "label": "content_group_label", "value": ["string", "details"] },
-//        { "label": "upvote_start_date_time", "value": ["time_point", "${new Date().toISOString()}"] },
-//        { "label": "upvote_duration", "value": ["int64", 7776000] },
-//        { "label": "duration", "value": ["int64", 3600] }
-//    ]
-// ]`)
-// const upvoteElectionDoc = () => `
-// [
-//    [
-//        { "label": "content_group_label", "value": ["string", "details"] },
-//        { "label": "upvote_start_date_time", "value": ["timepoint", "2023-10-02T05:12:00.000"] },
-//        { "label": "upvote_duration", "value": ["int64", 7776000] },
-//        { "label": "duration", "value": ["int64", 3600] }
-//    ]
-// ]`
 
