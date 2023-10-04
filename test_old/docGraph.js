@@ -67,7 +67,6 @@ async function updateDocumentCache() {
 
             // Update the cache with the newly fetched data.
             for (const row of response.rows) {
-                console.log("adding row " + row.id)
                 documentCache[row.id] = row;
                 lowerBound = row.id + 1; // Update the lower bound for the next iteration
             }
@@ -82,7 +81,7 @@ async function updateDocumentCache() {
 // Function to update the cache for the "edges" table (similar to the "updateDocumentCache" function).
 async function updateEdgesCache() {
     try {
-        let lowerBound = edgesCache.size > 0 ? edgesCache[edgesCache.size - 1].id + 1 : 0; // Start from the highest cached ID + 1
+        let lowerBound = edgesCache.length > 0 ? edgesCache[edgesCache.length - 1].id + 1 : 0; // Start from the highest cached ID + 1
 
         while (true) {
             const response = await getTableRows({
@@ -125,7 +124,7 @@ function findEdgesByToNodeAndEdgeName(toNode, edgeName) {
 
 function findEdgeById(id) {
     const res = edgesCache.filter(edge => edge.id === id);
-    if (res.size() > 0) {
+    if (res.length > 0) {
         return res[0]
     } else {
         console.log("edge id " + id + " not found")
@@ -133,4 +132,4 @@ function findEdgeById(id) {
     }
 }
 
-module.exports = { documentCache, updateDocumentCache, updateEdgesCache, findEdgeById, findEdgesByFromNodeAndEdgeName, findEdgesByToNodeAndEdgeName }
+module.exports = { documentCache, edgesCache, updateDocumentCache, updateEdgesCache, findEdgeById, findEdgesByFromNodeAndEdgeName, findEdgesByToNodeAndEdgeName }

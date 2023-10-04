@@ -6,7 +6,7 @@ var crypto = require('crypto');
 const { create } = require('domain');
 const createAccount = require('../scripts/createAccount');
 const { title } = require('process');
-const { updateDocumentCache, updateEdgesCache, documentCache } = require('./docGraph');
+const { updateDocumentCache, updateEdgesCache, documentCache, findEdgesByFromNodeAndEdgeName, edgesCache } = require('./docGraph');
 
 const devKeyPair = {
    private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
@@ -280,15 +280,80 @@ describe('run upvote election', async assert => {
 
    // console.log("elect data: \n" + JSON.stringify(data, null, 2) + "\n")
    console.log("create upvote election")
-   await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
+   const createTx = await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
    
+
+
    const docs3 = await getLastDocuments(20)
-   //console.log("upvote election: " + JSON.stringify(docs3, null, 2))
+   console.log("upvote election: " + JSON.stringify(createTx, null, 2))
 
    const electionDocType = "upvt.electn"
    const upElecDoc = docs3.find(item => JSON.stringify(item.content_groups).indexOf(electionDocType) != -1);
    console.log("election ID: " + upElecDoc.id)
 
+   sleep(1000)
+
+   // read all data into caches
+   await updateDocumentCache()
+   await updateEdgesCache()
+
+   const ELECTION_EDGE = "ue.election"
+   // inline constexpr auto UPCOMING_ELECTION = eosio::name("ue.upcoming");
+   // inline constexpr auto ONGOING_ELECTION = eosio::name("ue.ongoing");
+   // inline constexpr auto PREVIOUS_ELECTION = eosio::name("ue.previous");
+   const START_ROUND = "ue.startrnd"
+   // inline constexpr auto CURRENT_ROUND = eosio::name("ue.currnd");
+   const ELECTION_ROUND = "ue.round"
+   // inline constexpr auto ELECTION_ROUND_MEMBER = eosio::name("ue.rd.member");
+   // inline constexpr auto ELECTION_GROUP_LINK = eosio::name("ue.group.lnk");
+   // inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
+   // inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
+   // inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
+   // inline constexpr auto ELECTION_GROUP = eosio::name("ue.elctngrp");
+   // inline constexpr auto UP_VOTE_VOTE = eosio::name("ue.vote");
+   // inline constexpr auto UPVOTE_GROUP_WINNER = eosio::name("ue.winner");
+   // inline constexpr auto VOTE = eosio::name("vote"); // ?? 
+   // inline constexpr auto CHIEF_DELEGATE = eosio::name("ue.chiefdel");
+   // inline constexpr auto HEAD_DELEGATE = eosio::name("ue.headdel");
+   const electionEdge = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
+   const electionDoc = documentCache[electionEdge.to_node]
+
+   console.log("el edge" + JSON.stringify(electionEdge, null, 2))
+   console.log("el doc " + electionDoc.id)
+   console.log("el doc 1" + JSON.stringify(electionDoc, null, 2))
+
+   const startRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)
+   const electionRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
+
+   assert({
+      given: 'create upvote election',
+      should: 'has start round',
+      actual: startRoundEdges.length,
+      expected: 1,
+   })
+
+   assert({
+      given: 'create upvote election',
+      should: 'has election round',
+      actual: electionRoundEdges.length,
+      expected: 1,
+   })
+
+   const startRoundEdge = startRoundEdges[0]
+   const electionRoundEdge = electionRoundEdges[0]
+
+   console.log("startRoundEdge " + JSON.stringify(startRoundEdge, null, 2))
+   console.log("electionRoundEdge " + JSON.stringify(electionRoundEdge, null, 2))
+
+   const startRound =  documentCache[startRoundEdge.to_node]
+
+   console.log("start round " + JSON.stringify(startRound))
+
+   // console.log("all edges " + electionDoc.id + " " + JSON.stringify(edgesCache, null, 2))
+   // console.log("all docs " + electionDoc.id + " " + JSON.stringify(documentCache, null, 2))
+
+
+   /*
    // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
    for (let member of members) {
       await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
@@ -315,16 +380,14 @@ describe('run upvote election', async assert => {
          { authorization: `${member}@active` }
       )
       console.log("added delegate badge for " + member)
-
    }
-   await updateDocumentCache()
-   await updateEdgesCache()
+*/
 
    
 
    // kick off upvote election
    // ACTION updateupvelc(uint64_t election_id, bool reschedule);
-   await contract.updateupvelc(upElecDoc.id, false, { authorization: `${daoOwnerAccount}@active` });
+   // await contract.updateupvelc(upElecDoc.id, false, { authorization: `${daoOwnerAccount}@active` });
 
 
    // Read groups ?? and start voting
