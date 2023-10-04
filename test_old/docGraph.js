@@ -41,7 +41,7 @@ const edgesCache = [];
 // Function to update the cache for the "documents" table with the latest data.
 async function updateDocumentCache() {
     try {
-        let lowerBound = documentCache.size > 0 ? Math.max(...documentCache.keys()) + 1 : 0; // Start from the highest cached ID + 1
+        let lowerBound = 0 //documentCache.size > 0 ? Math.max(...documentCache.keys()) + 1 : 0; // Start from the highest cached ID + 1
 
         const params = {
             code: daoContract,
@@ -81,7 +81,7 @@ async function updateDocumentCache() {
 // Function to update the cache for the "edges" table (similar to the "updateDocumentCache" function).
 async function updateEdgesCache() {
     try {
-        let lowerBound = edgesCache.length > 0 ? edgesCache[edgesCache.length - 1].id + 1 : 0; // Start from the highest cached ID + 1
+        let lowerBound = 0 // edgesCache.length > 0 ? edgesCache[edgesCache.length - 1].id + 1 : 0; // Start from the highest cached ID + 1
 
         while (true) {
             const response = await getTableRows({

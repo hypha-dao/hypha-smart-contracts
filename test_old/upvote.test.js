@@ -25,6 +25,18 @@ const randomAccountName = () => {
    return result;
 }
 
+const getBitcoinBlockHeader = async () => {
+   var requestOptions = {
+      method: 'GET',
+      redirect: 'follow'
+   };
+
+   const rawResponse = await fetch("https://blockstream.info/api/blocks/tip/hash", requestOptions)
+   const res = await rawResponse.text();
+   return res;
+
+}
+
 const randomSymbolName = (prefix) => {
    let length = 6
    var result = '';
@@ -143,15 +155,10 @@ const getLastDocuments = async (num) => {
 
 describe('test stuff', async assert => {
 
-const time = new Date().toLocaleString()
-console.log("date format: " + time)
+   const foo = await getBitcoinBlockHeader()
 
-const result1 = Date.parse(time + "");
-console.log("date: " + result1)
-if (Number.isNaN(result1)) {
-    throw new Error('Invalid time format');
-}
-//return result1;
+   console.log("header: " + foo)
+
 })
 describe('run upvote election', async assert => {
 
@@ -172,7 +179,7 @@ describe('run upvote election', async assert => {
    console.log("reset " + daoContract)
    await contract.reset({ authorization: `${daoContract}@active` })
    await sleep(500);
-   
+
    // create newaccount
    await createAccount({
       account: daoOwnerAccount,
@@ -262,7 +269,7 @@ describe('run upvote election', async assert => {
    console.log("created members: " + members)
 
    // create an upvote election
-   
+
    // ACTION createupvelc(uint64_t dao_id, ContentGroups& election_config)
 
    let now = new Date();
@@ -281,11 +288,10 @@ describe('run upvote election', async assert => {
    // console.log("elect data: \n" + JSON.stringify(data, null, 2) + "\n")
    console.log("create upvote election")
    const createTx = await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
-   
-
+   const consoleText = createTx.processed.action_traces[0].console;
+   console.log("upvote election: " + JSON.stringify(consoleText, null, 2))
 
    const docs3 = await getLastDocuments(20)
-   console.log("upvote election: " + JSON.stringify(createTx, null, 2))
 
    const electionDocType = "upvt.electn"
    const upElecDoc = docs3.find(item => JSON.stringify(item.content_groups).indexOf(electionDocType) != -1);
@@ -317,10 +323,7 @@ describe('run upvote election', async assert => {
    // inline constexpr auto HEAD_DELEGATE = eosio::name("ue.headdel");
    const electionEdge = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
    const electionDoc = documentCache[electionEdge.to_node]
-
-   console.log("el edge" + JSON.stringify(electionEdge, null, 2))
-   console.log("el doc " + electionDoc.id)
-   console.log("el doc 1" + JSON.stringify(electionDoc, null, 2))
+   console.log("election doc " + electionDoc.id)
 
    const startRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)
    const electionRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
@@ -345,12 +348,33 @@ describe('run upvote election', async assert => {
    console.log("startRoundEdge " + JSON.stringify(startRoundEdge, null, 2))
    console.log("electionRoundEdge " + JSON.stringify(electionRoundEdge, null, 2))
 
-   const startRound =  documentCache[startRoundEdge.to_node]
+   const startRound = documentCache[startRoundEdge.to_node]
 
    console.log("start round " + JSON.stringify(startRound))
 
    // console.log("all edges " + electionDoc.id + " " + JSON.stringify(edgesCache, null, 2))
    // console.log("all docs " + electionDoc.id + " " + JSON.stringify(documentCache, null, 2))
+
+   // ACTION uesubmitseed(uint64_t dao_id, eosio::checksum256 seed, name account);
+   const blockChainHeaderHash = await getBitcoinBlockHeader();
+   console.log("latest block header: " + blockChainHeaderHash)
+
+   const seedres = await contract.uesubmitseed(daoObj.id, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
+   const text2 = seedres.processed.action_traces[0].console;
+   console.log("seedres: " + JSON.stringify(text2, null, 2))
+
+   await updateDocumentCache()
+   await updateEdgesCache()
+
+   const electionDoc2 = documentCache[electionEdge.to_node]
+   console.log("election doc " + JSON.stringify(electionDoc2, null, 2))
+
+   assert({
+      given: 'seed was set correctly',
+      should: 'has election round',
+      actual: JSON.stringify(electionDoc2, null, 2).indexOf(blockChainHeaderHash) != -1,
+      expected: true,
+   })
 
 
    /*
@@ -383,7 +407,7 @@ describe('run upvote election', async assert => {
    }
 */
 
-   
+
 
    // kick off upvote election
    // ACTION updateupvelc(uint64_t election_id, bool reschedule);
@@ -863,7 +887,7 @@ const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId 
    ]
 ]`)
 
- const upvoteElectionDoc = (time) => JSON.parse(`[
+const upvoteElectionDoc = (time) => JSON.parse(`[
    [
        { "label": "content_group_label", "value": ["string", "details"] },
        { "label": "upvote_start_date_time", "value": ["time_point", "${time}"] },
