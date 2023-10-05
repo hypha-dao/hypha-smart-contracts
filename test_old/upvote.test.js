@@ -7,6 +7,7 @@ const { create } = require('domain');
 const createAccount = require('../scripts/createAccount');
 const { title } = require('process');
 const { updateDocumentCache, updateEdgesCache, documentCache, findEdgesByFromNodeAndEdgeName, edgesCache } = require('./docGraph');
+const { group } = require('console');
 
 const devKeyPair = {
    private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
@@ -149,17 +150,50 @@ const getLastDocuments = async (num) => {
 };
 
 
+const updateGraph = async () => {
+   await updateDocumentCache()
+   await updateEdgesCache()
+}
+
+// Now we do some voting in our groups
+const getContentGroup = (label, contentArr) => {
+   // we expect there to be an array of arrays
+   for (arr of contentArr) {
+      for (obj of arr) {
+         if (obj.label == "content_group_label") {
+            if (obj.value[1] == label) {
+               return arr
+            }
+         }
+      }
+   }
+} 
+const getValueFromContentGroup = (label, contentGroup) => {
+   // a content group is an array of label/value pairs, where value is an array size 2 [type, value]
+   for (obj of contentGroup) {
+      if (obj.label == label) {
+         return obj.value[1] 
+      }
+   }
+} 
+
 ////////////////////////////////////////////////////////////////////////
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
 
 describe('test stuff', async assert => {
 
-   const foo = await getBitcoinBlockHeader()
+   // const foo = await getBitcoinBlockHeader()
 
-   console.log("header: " + foo)
+   // console.log("header: " + foo)
+
+  // await updateEdgesCache()
+  // console.log(" cache " + edgesCache.length)
+  // console.log(" edges " + JSON.stringify(edgesCache, null, 2))
+
 
 })
+
 describe('run upvote election', async assert => {
 
    if (!isLocal()) {
@@ -300,8 +334,7 @@ describe('run upvote election', async assert => {
    sleep(1000)
 
    // read all data into caches
-   await updateDocumentCache()
-   await updateEdgesCache()
+   await updateGraph()
 
    const ELECTION_EDGE = "ue.election"
    // inline constexpr auto UPCOMING_ELECTION = eosio::name("ue.upcoming");
@@ -310,13 +343,13 @@ describe('run upvote election', async assert => {
    const START_ROUND = "ue.startrnd"
    // inline constexpr auto CURRENT_ROUND = eosio::name("ue.currnd");
    const ELECTION_ROUND = "ue.round"
-   // inline constexpr auto ELECTION_ROUND_MEMBER = eosio::name("ue.rd.member");
-   // inline constexpr auto ELECTION_GROUP_LINK = eosio::name("ue.group.lnk");
+   const ELECTION_ROUND_MEMBER = "ue.rd.member"
+   const ELECTION_GROUP_LINK = "ue.group.lnk"
    // inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
    // inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
    // inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
    // inline constexpr auto ELECTION_GROUP = eosio::name("ue.elctngrp");
-   // inline constexpr auto UP_VOTE_VOTE = eosio::name("ue.vote");
+   UP_VOTE_VOTE = "ue.vote"
    // inline constexpr auto UPVOTE_GROUP_WINNER = eosio::name("ue.winner");
    // inline constexpr auto VOTE = eosio::name("vote"); // ?? 
    // inline constexpr auto CHIEF_DELEGATE = eosio::name("ue.chiefdel");
@@ -345,8 +378,8 @@ describe('run upvote election', async assert => {
    const startRoundEdge = startRoundEdges[0]
    const electionRoundEdge = electionRoundEdges[0]
 
-   console.log("startRoundEdge " + JSON.stringify(startRoundEdge, null, 2))
-   console.log("electionRoundEdge " + JSON.stringify(electionRoundEdge, null, 2))
+   // console.log("startRoundEdge " + JSON.stringify(startRoundEdge, null, 2))
+   // console.log("electionRoundEdge " + JSON.stringify(electionRoundEdge, null, 2))
 
    const startRound = documentCache[startRoundEdge.to_node]
 
@@ -360,14 +393,12 @@ describe('run upvote election', async assert => {
    console.log("latest block header: " + blockChainHeaderHash)
 
    const seedres = await contract.uesubmitseed(daoObj.id, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
-   const text2 = seedres.processed.action_traces[0].console;
-   console.log("seedres: " + JSON.stringify(text2, null, 2))
+   //printMessage(seedres, "seedres ")
 
-   await updateDocumentCache()
-   await updateEdgesCache()
+   await updateGraph()
 
    const electionDoc2 = documentCache[electionEdge.to_node]
-   console.log("election doc " + JSON.stringify(electionDoc2, null, 2))
+   // console.log("election doc " + JSON.stringify(electionDoc2, null, 2))
 
    assert({
       given: 'seed was set correctly',
@@ -377,11 +408,11 @@ describe('run upvote election', async assert => {
    })
 
 
-   /*
+   
    // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
    for (let member of members) {
       await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
-      console.log("enrolled member: " + member)
+      //console.log("enrolled member: " + member)
 
       // Give the members delegate badges
 
@@ -403,16 +434,172 @@ describe('run upvote election', async assert => {
          true,
          { authorization: `${member}@active` }
       )
-      console.log("added delegate badge for " + member)
+      // console.log("added delegate badge for " + member)
    }
-*/
 
+   await sleep(1000)
+
+   await updateGraph()
 
 
    // kick off upvote election
    // ACTION updateupvelc(uint64_t election_id, bool reschedule);
-   // await contract.updateupvelc(upElecDoc.id, false, { authorization: `${daoOwnerAccount}@active` });
+   const updateVote = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
+   printMessage(updateVote, "update result")
 
+   await sleep(1000)
+
+   await updateGraph() 
+
+   const getElectionGroups = (round) => {
+      const edges = findEdgesByFromNodeAndEdgeName(round.id, ELECTION_GROUP_LINK)
+      const groups = edges.map((edge) => documentCache[edge.to_node]) 
+
+      for (const group of groups) {
+         const memberEdges = findEdgesByFromNodeAndEdgeName(group.id, ELECTION_ROUND_MEMBER)
+         const members = memberEdges.map((edge) => documentCache[edge.to_node])
+
+         const voteEdges = findEdgesByFromNodeAndEdgeName(group.id, UP_VOTE_VOTE)
+         const votes = voteEdges.map((edge) => documentCache[edge.to_node])
+
+         group["gen_members"] = members   
+         group["gen_votes"] = votes
+         group["gen_winner"] = getValueFromContentGroup("winner", getContentGroup("details", group.content_groups))
+      }
+      return groups;
+   }
+   // the election
+   const election2 = documentCache[electionDoc.id]
+   const startRound2 = documentCache[startRound.id]
+
+   // console.log("election: " + JSON.stringify(election2, null, 2))
+   // console.log("start round: " + JSON.stringify(startRound2, null, 2))
+
+   let groups = getElectionGroups(startRound2)
+   // console.log("start round groups: " + JSON.stringify(groups, null, 2))
+
+   let allMembers = []
+
+   for (g of groups) {
+      const members = g.gen_members
+      const memberIds = members.map((m) => m.id)
+      
+      console.log(" group " + g.id + "(" + memberIds.length + ")" + ": " + JSON.stringify(memberIds))
+      allMembers = [...allMembers, ...memberIds]
+   }
+
+   console.log("members: " + allMembers.length)
+   
+   assert({
+      given: 'start round started',
+      should: 'has election groups',
+      actual: groups.length > 0,
+      expected: true,
+   })
+
+   for (g of groups) {
+      assert({
+         given: 'groups created',
+         should: 'have members',
+         actual: g.gen_members.length > 0,
+         expected: true,
+      })
+   }
+
+   const getMemberName = (memberId) => {
+      const contentGroups = documentCache[memberId]["content_groups"]
+      const contentGroup = getContentGroup("details", contentGroups)
+      const memberName = getValueFromContentGroup("member", contentGroup)
+      return memberName
+   }
+
+   const vote = async ({roundId, groupId, membername, votingForId}) => {
+      // ACTION castupvote(uint64_t round_id, uint64_t group_id, name voter, uint64_t voted_id);
+      const voteRes = await contract.castupvote(roundId, groupId, membername, votingForId, { authorization: `${membername}@active` })
+
+   }
+
+   const winners = {}
+   for (const group of groups) {
+      const members = group.gen_members
+      const memberIds = members.map((m) => m.id)
+      console.log("round " +startRound.id+ " group: " + group.id)
+      const winner = memberIds[1]
+      for (const memberId of memberIds) {
+         const voter = getMemberName(memberId)
+         await vote({
+            roundId: startRound2.id,
+            groupId: group.id,
+            membername: voter,
+            votingForId: winner
+         })
+
+      }
+      winners[group.id] = winner
+   }
+
+   let voteInWrongGroup = false;
+   try {
+      await vote({
+         roundId: startRound2.id,
+         group: groups[1].id,          // vote in group 1
+         membername: getMemberName(groups[0].gen_members[0].id), // by member 0 in group 0
+         votingForId: groups[1].gen_members[0] // in group 1
+      })
+      voteInWrongGroup = true
+   } catch (err) {
+      console.log("expected error")
+   }
+   let voteForWrongGroup = false;
+   try {
+      await vote({
+         roundId: startRound2.id,
+         group: groups[0].id,          // vote in group 0
+         membername: getMemberName(groups[0].gen_members[0].id), // by member 0 in group 0
+         votingForId: groups[1].gen_members[0] // in group 1
+      })
+      voteForWrongGroup = true
+   } catch (err) {
+      console.log("expected error")
+   }
+
+   await updateGraph()
+
+   // update groups data
+   groups = getElectionGroups(startRound2)
+
+   //console.log("after vote groups: " + JSON.stringify(groups, null, 2))
+
+   const allWinners = []
+
+
+   for (const group of groups) {
+      console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
+      console.log(group.id + " winner: " + group.gen_winner)
+
+      assert({
+         given: 'group voting winner',
+         should: 'be member at index 1',
+         actual: group.gen_winner,
+         expected: group.gen_members[1].id,
+      })
+      allWinners.push(groups.gen_winner)
+   }
+
+
+   assert({
+      given: 'vote in wrong group',
+      should: 'throw error',
+      actual: voteInWrongGroup,
+      expected: false,
+   })
+
+   assert({
+      given: 'vote for member in wrong group',
+      should: 'throw error',
+      actual:  voteForWrongGroup,
+      expected: false,
+   })
 
    // Read groups ?? and start voting
    // We could use the "print" outputs to figure out who's in which round
@@ -427,6 +614,10 @@ describe('run upvote election', async assert => {
 
 })
 
+const printMessage = (txresult, title = "tx result") => {
+   const consoleMessage = txresult.processed.action_traces[0].console;
+   console.log(title + ": " + JSON.stringify(consoleMessage, null, 2))
+}
 
 const getCreateDaoData = ({
    dao_name,

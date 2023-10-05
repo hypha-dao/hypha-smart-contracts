@@ -41,16 +41,8 @@ const edgesCache = [];
 // Function to update the cache for the "documents" table with the latest data.
 async function updateDocumentCache() {
     try {
-        let lowerBound = 0 //documentCache.size > 0 ? Math.max(...documentCache.keys()) + 1 : 0; // Start from the highest cached ID + 1
+        let lowerBound = 0 
 
-        const params = {
-            code: daoContract,
-            scope: daoContract,
-            table: 'documents',
-            lower_bound: lowerBound,
-            limit: 200, // Adjust the limit as needed
-        }
-        console.log("params: " + JSON.stringify(params, null, 2))
         while (true) {
             const response = await getTableRows({
                 code: daoContract,
@@ -71,7 +63,7 @@ async function updateDocumentCache() {
                 lowerBound = row.id + 1; // Update the lower bound for the next iteration
             }
         }
-        //console.log("docs " + JSON.stringify(documentCache, null, 2))
+        // console.log("docs " + JSON.stringify(documentCache, null, 2))
     } catch (error) {
         console.error('Error updating documents cache:', error);
         throw error;
@@ -81,9 +73,13 @@ async function updateDocumentCache() {
 // Function to update the cache for the "edges" table (similar to the "updateDocumentCache" function).
 async function updateEdgesCache() {
     try {
-        let lowerBound = 0 // edgesCache.length > 0 ? edgesCache[edgesCache.length - 1].id + 1 : 0; // Start from the highest cached ID + 1
-
+        let lowerBound = 0
+        while (edgesCache.length > 0) {
+            edgesCache.pop();
+          }
+          
         while (true) {
+
             const response = await getTableRows({
                 code: daoContract, // Contract name
                 scope: daoContract, // Table name
@@ -92,15 +88,14 @@ async function updateEdgesCache() {
                 limit: 200,
             });
 
-            if (response.rows.length === 0) {
-                // No more records to fetch
-                break;
-            }
-
             // Update the cache with the newly fetched data.
             for (const row of response.rows) {
                 edgesCache.push(row);
-                lowerBound = row.id + 1; // Update the lower bound for the next iteration
+                lowerBound = parseInt(row.id) + 1; // Update the lower bound for the next iteration
+            }
+            if (response.rows.length === 0) {
+                // No more records to fetch
+                break;
             }
         }
 
