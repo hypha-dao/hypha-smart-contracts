@@ -336,10 +336,19 @@ describe('run upvote election', async assert => {
    // read all data into caches
    await updateGraph()
 
+   // system badges - dao-> badge edges exist
+
+   const HEAD_DELEGATE = "headdelegate"
+   const CHIEF_DELEGATE = "chiefdelegate"
+
+   // Badge assignment edge names
+   const HELD_BY = "heldby";
+
+   // Upvote Edge names
    const ELECTION_EDGE = "ue.election"
    // inline constexpr auto UPCOMING_ELECTION = eosio::name("ue.upcoming");
-   // inline constexpr auto ONGOING_ELECTION = eosio::name("ue.ongoing");
-   // inline constexpr auto PREVIOUS_ELECTION = eosio::name("ue.previous");
+   const ONGOING_ELECTION = "ue.ongoing"
+   const PREVIOUS_ELECTION = "ue.previous"
    const START_ROUND = "ue.startrnd"
    const CURRENT_ROUND = "ue.currnd"
    const ELECTION_ROUND = "ue.round"
@@ -352,8 +361,6 @@ describe('run upvote election', async assert => {
    UP_VOTE_VOTE = "ue.vote"
    // inline constexpr auto UPVOTE_GROUP_WINNER = eosio::name("ue.winner");
    // inline constexpr auto VOTE = eosio::name("vote"); // ?? 
-   // inline constexpr auto CHIEF_DELEGATE = eosio::name("ue.chiefdel");
-   // inline constexpr auto HEAD_DELEGATE = eosio::name("ue.headdel");
    const electionEdge = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
    const electionDoc = documentCache[electionEdge.to_node]
    console.log("election doc " + electionDoc.id)
@@ -586,7 +593,7 @@ describe('run upvote election', async assert => {
       allWinners.push(groups.gen_winner)
    }
 
-   console.log("Next round")
+   console.log("Next round 0 -> 1")
    const updateVote2 = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
    printMessage(updateVote2, "update 2 result")
    await sleep(1000)
@@ -594,28 +601,85 @@ describe('run upvote election', async assert => {
 
    const electionEdge3 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
    const electionDoc3 = documentCache[electionEdge.to_node]
-   const startRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
-   const electionRoundEdges3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
-   const currentRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)[0]
+
+   console.log("electionDoc3: " + JSON.stringify(electionDoc3, null, 2))
+
+   // const ongoingElectionEdge3 = findEdgesByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)
+   // const ongoingElectionDoc3 = documentCache[ongoingElectionEdge3.to_node]
+   // console.log("ongoingElectionDoc3: " + JSON.stringify(ongoingElectionDoc3, null, 2))
+
+
+   // const startRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
+   // const electionRoundEdges3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
+   // const currentRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)[0]
    
-   const startRound3 = documentCache[startRoundEdge3.to_node]
-   const currentRound3 = documentCache[currentRoundEdge3.to_node]
+   // const startRound3 = documentCache[startRoundEdge3.to_node]
+   // const currentRound3 = documentCache[currentRoundEdge3.to_node]
 
-   console.log("start rd: " + startRound3.id + " current: " + currentRound3.id + " total rounds " + electionRoundEdges3.length)
+   // console.log("start rd: " + startRound3.id + " current: " + currentRound3.id + " total rounds " + electionRoundEdges3.length)
 
-   const groups3 = getElectionGroups(currentRound3)
-   for (const group of groups3) {
-      console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
-   }
-
+   // const groups3 = getElectionGroups(currentRound3)
+   // for (const group of groups3) {
+   //    console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
+   // }
    //console.log("groups3: " + JSON.stringify(groups3, null, 2))
 
-   // TODO Figure out how Edenia handles last group with size up to 11?!
+   // const updateVote4 = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
+   // printMessage(updateVote4, "update 4 result")
+   // await sleep(1000)
+   // await updateGraph() 
+
+   const electionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)
+   console.log("electionEdge4 [list] " + JSON.stringify(electionEdge4, null, 2))
+
+   // TODO assert: ongoing election should be empty
+   const ongoingElectionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)
+   console.log("ongoingElectionEdge4 " + JSON.stringify(ongoingElectionEdge4, null, 2))
+
+   // TODO assert: prev election should be set
+   const previousElectionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, PREVIOUS_ELECTION)[0]
+   console.log("previousElectionEdge4 " + JSON.stringify(previousElectionEdge4, null, 2))
+
+   // Confirm the delegate badges have been set to the winners
+   // TODO Assert
+   // EDGE exists from DAO ->  Member with NAME (badge link)
+   const chiefDelegatesEdges4 = findEdgesByFromNodeAndEdgeName(daoObj.id, CHIEF_DELEGATE)
+   console.log("chiefDelegatesEdges4 (members): " + JSON.stringify(chiefDelegatesEdges4, null, 2))
+
+   const headDelegateEdges4 = findEdgesByFromNodeAndEdgeName(daoObj.id, HEAD_DELEGATE)
+   console.log("headDelegateEdges4 " + JSON.stringify(headDelegateEdges4, null, 2))
+
+   // TODO assert election status should be ended
+   const electionDoc4 = documentCache[previousElectionEdge4.to_node]
+   console.log("electionDoc4 (prev) " + JSON.stringify(electionDoc4, null, 2))
+
+   // TODO: Not sure we need to assert these? Probably..
+   const startRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
+   console.log("startRoundEdge4 " + JSON.stringify(startRoundEdge4, null, 2))
+   const startRound4 = documentCache[startRoundEdge4.to_node]
+
+   const electionRoundEdges4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
+   console.log("electionRoundEdges4 " + JSON.stringify(electionRoundEdges4, null, 2))
+
+   const currentRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)[0]
+   console.log("currentRoundEdge4 " + JSON.stringify(currentRoundEdge4, null, 2))
+
+
+   // const startRound4 = documentCache[startRoundEdge4.to_node]
+   // const currentRound4 = documentCache[currentRoundEdge4.to_node]
+
+   // console.log("start rd: " + startRound4.id + " current: " + currentRound4.id + " total rounds " + electionRoundEdges4.length)
+
+   // TODO: Verify? Should be 1 group w/ 7
+   // const groups4 = getElectionGroups(currentRound4)
+   // console.log("groups4 " + JSON.stringify(groups4, null, 2))
+
+   // Note: if 11 or fewer members are in the election, it ends. It can end with 11 CDs. 
 
    assert({
       given: 'round 2',
       should: 'start round is the same',
-      actual: startRound3.id,
+      actual: startRound4.id,
       expected: startRound2.id,
    })
    assert({
@@ -624,8 +688,6 @@ describe('run upvote election', async assert => {
       actual: currentRoundEdge3.to_node != electionRoundEdge.to_node,
       expected: true
    })
-
-
 
    assert({
       given: 'vote in wrong group',
