@@ -298,7 +298,7 @@ describe('run upvote election', async assert => {
       expected: true,
    })
 
-   const members = await createMultipleAccounts(30)
+   const members = await createMultipleAccounts(37)
 
    console.log("created members: " + members)
 
@@ -341,7 +341,7 @@ describe('run upvote election', async assert => {
    // inline constexpr auto ONGOING_ELECTION = eosio::name("ue.ongoing");
    // inline constexpr auto PREVIOUS_ELECTION = eosio::name("ue.previous");
    const START_ROUND = "ue.startrnd"
-   // inline constexpr auto CURRENT_ROUND = eosio::name("ue.currnd");
+   const CURRENT_ROUND = "ue.currnd"
    const ELECTION_ROUND = "ue.round"
    const ELECTION_ROUND_MEMBER = "ue.rd.member"
    const ELECTION_GROUP_LINK = "ue.group.lnk"
@@ -407,8 +407,6 @@ describe('run upvote election', async assert => {
       expected: true,
    })
 
-
-   
    // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
    for (let member of members) {
       await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
@@ -444,6 +442,7 @@ describe('run upvote election', async assert => {
 
    // kick off upvote election
    // ACTION updateupvelc(uint64_t election_id, bool reschedule);
+   console.log("Start election")
    const updateVote = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
    printMessage(updateVote, "update result")
 
@@ -476,7 +475,7 @@ describe('run upvote election', async assert => {
    // console.log("start round: " + JSON.stringify(startRound2, null, 2))
 
    let groups = getElectionGroups(startRound2)
-   // console.log("start round groups: " + JSON.stringify(groups, null, 2))
+   console.log("start round groups: " + JSON.stringify(groups, null, 2))
 
    let allMembers = []
 
@@ -485,6 +484,7 @@ describe('run upvote election', async assert => {
       const memberIds = members.map((m) => m.id)
       
       console.log(" group " + g.id + "(" + memberIds.length + ")" + ": " + JSON.stringify(memberIds))
+
       allMembers = [...allMembers, ...memberIds]
    }
 
@@ -585,6 +585,46 @@ describe('run upvote election', async assert => {
       })
       allWinners.push(groups.gen_winner)
    }
+
+   console.log("Next round")
+   const updateVote2 = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
+   printMessage(updateVote2, "update 2 result")
+   await sleep(1000)
+   await updateGraph() 
+
+   const electionEdge3 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
+   const electionDoc3 = documentCache[electionEdge.to_node]
+   const startRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
+   const electionRoundEdges3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
+   const currentRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)[0]
+   
+   const startRound3 = documentCache[startRoundEdge3.to_node]
+   const currentRound3 = documentCache[currentRoundEdge3.to_node]
+
+   console.log("start rd: " + startRound3.id + " current: " + currentRound3.id + " total rounds " + electionRoundEdges3.length)
+
+   const groups3 = getElectionGroups(currentRound3)
+   for (const group of groups3) {
+      console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
+   }
+
+   //console.log("groups3: " + JSON.stringify(groups3, null, 2))
+
+   // TODO Figure out how Edenia handles last group with size up to 11?!
+
+   assert({
+      given: 'round 2',
+      should: 'start round is the same',
+      actual: startRound3.id,
+      expected: startRound2.id,
+   })
+   assert({
+      given: 'round 2',
+      should: 'current round round is different',
+      actual: currentRoundEdge3.to_node != electionRoundEdge.to_node,
+      expected: true
+   })
+
 
 
    assert({
