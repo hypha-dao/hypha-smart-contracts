@@ -212,6 +212,21 @@ UP_VOTE_VOTE = "ue.vote"
 // inline constexpr auto UPVOTE_GROUP_WINNER = eosio::name("ue.winner");
 // inline constexpr auto VOTE = eosio::name("vote"); // ?? 
 
+const getDelegates = (daoObj) => {
+   const chiefDelegatesEdges = findEdgesByFromNodeAndEdgeName(daoObj.id, CHIEF_DELEGATE)
+   const headDelegateEdges = findEdgesByFromNodeAndEdgeName(daoObj.id, HEAD_DELEGATE)
+
+   if (headDelegateEdges.length != 1) {
+      throw "only one head delegate " + headDelegateEdges.length
+   }
+
+   return {
+      chiefDelegates: chiefDelegatesEdges.map((edge) => edge.to_node ),
+      headDelegate: headDelegateEdges[0].to_node
+   }
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
@@ -308,6 +323,17 @@ describe('run upvote election', async assert => {
       return accountsTable.rows[0];
    };
 
+   const checkCurrentRound = (title, electionDoc) => {
+      const currentRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
+      assert({
+         given: title + ' groups vote update',
+         should: 'only 1 current round',
+         actual: currentRoundEdges.length,
+         expected: 1,
+      })
+      return findFirstDocumentByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
+   }
+   
    const daoObj = await getDaoEntry(newDaoName)
    console.log("DAO id: " + daoObj.id + " Name: " + newDaoName)
 
@@ -338,6 +364,10 @@ describe('run upvote election', async assert => {
 
    console.log("create upvote data")
    let data = getUpvoteElectionDoc()
+
+   /// =============================================================================
+   /// Create the 1st election (of 2)
+   /// =============================================================================
 
    // ACTION createupvelc(uint64_t dao_id, ContentGroups& election_config)
    console.log("create upvote election")
@@ -382,8 +412,7 @@ describe('run upvote election', async assert => {
 
    const startRound = documentCache[startRoundEdge.to_node]
 
-   console.log("start round " + JSON.stringify(startRound))
-
+   // console.log("start round " + JSON.stringify(startRound))
    // console.log("all edges " + electionDoc.id + " " + JSON.stringify(edgesCache, null, 2))
    // console.log("all docs " + electionDoc.id + " " + JSON.stringify(documentCache, null, 2))
 
@@ -441,7 +470,9 @@ describe('run upvote election', async assert => {
    await updateGraph()
 
 
-   // kick off upvote election
+   /// =============================================================================
+   /// Start first Election
+   /// =============================================================================
    // ACTION updateupvelc(uint64_t election_id, bool reschedule);
    console.log("Start election")
    const updateVote = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
@@ -471,12 +502,13 @@ describe('run upvote election', async assert => {
    // the election
    const election2 = documentCache[electionDoc.id]
    const startRound2 = documentCache[startRound.id]
+   const currentRound1 = checkCurrentRound("E1R1 ", electionDoc)
 
    // console.log("election: " + JSON.stringify(election2, null, 2))
    // console.log("start round: " + JSON.stringify(startRound2, null, 2))
 
    let groups = getElectionGroups(startRound2)
-   console.log("start round groups: " + JSON.stringify(groups, null, 2))
+   // console.log("start round groups: " + JSON.stringify(groups, null, 2))
 
    let allMembers = []
 
@@ -497,6 +529,14 @@ describe('run upvote election', async assert => {
       actual: groups.length > 0,
       expected: true,
    })
+
+   assert({
+      given: 'election started',
+      should: 'current round id is start round',
+      actual: currentRound1.id,
+      expected: startRound2.id,
+   })
+
 
    for (g of groups) {
       assert({
@@ -524,7 +564,7 @@ describe('run upvote election', async assert => {
    for (const group of groups) {
       const members = group.gen_members
       const memberIds = members.map((m) => m.id)
-      console.log("round " +startRound.id+ " group: " + group.id)
+      console.log("voting in round " +startRound.id+ " group: " + group.id)
       const winner = memberIds[1]
       for (const memberId of memberIds) {
          const voter = getMemberName(memberId)
@@ -596,18 +636,18 @@ describe('run upvote election', async assert => {
    const electionEdge3 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
    const electionDoc3 = documentCache[electionEdge.to_node]
 
-   console.log("electionDoc3: " + JSON.stringify(electionDoc3, null, 2))
+   // console.log("electionDoc3: " + JSON.stringify(electionDoc3, null, 2))
 
    const electionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)
-   console.log("electionEdge4 [list] " + JSON.stringify(electionEdge4, null, 2))
+   // console.log("electionEdge4 [list] " + JSON.stringify(electionEdge4, null, 2))
 
    // TODO assert: ongoing election should be empty
    const ongoingElectionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)
-   console.log("ongoingElectionEdge4 " + JSON.stringify(ongoingElectionEdge4, null, 2))
+   // console.log("ongoingElectionEdge4 " + JSON.stringify(ongoingElectionEdge4, null, 2))
 
    // TODO assert: prev election should be set
    const previousElectionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, PREVIOUS_ELECTION)
-   console.log("previousElectionEdge4 " + JSON.stringify(previousElectionEdge4, null, 2))
+   // console.log("previousElectionEdge4 " + JSON.stringify(previousElectionEdge4, null, 2))
 
    assert({
       given: 'election ended',
@@ -620,7 +660,7 @@ describe('run upvote election', async assert => {
    // TODO Assert
    // EDGE exists from DAO ->  Member with NAME (badge link)
    const chiefDelegatesEdges4 = findEdgesByFromNodeAndEdgeName(daoObj.id, CHIEF_DELEGATE)
-   console.log("chiefDelegatesEdges4 (members): " + JSON.stringify(chiefDelegatesEdges4, null, 2))
+   // console.log("chiefDelegatesEdges4 (members): " + JSON.stringify(chiefDelegatesEdges4, null, 2))
 
    assert({
       given: 'election ended - CDs',
@@ -631,7 +671,7 @@ describe('run upvote election', async assert => {
 
 
    const headDelegateEdges4 = findEdgesByFromNodeAndEdgeName(daoObj.id, HEAD_DELEGATE)
-   console.log("headDelegateEdges4 " + JSON.stringify(headDelegateEdges4, null, 2))
+   // console.log("headDelegateEdges4 " + JSON.stringify(headDelegateEdges4, null, 2))
 
    assert({
       given: 'election ended - head delegate',
@@ -640,8 +680,10 @@ describe('run upvote election', async assert => {
       expected: 1,
    })
 
+   
+
    const electionDoc4 = documentCache[previousElectionEdge4[0].to_node]
-   console.log("electionDoc4 (prev) " + JSON.stringify(electionDoc4, null, 2))
+   // console.log("electionDoc4 (prev) " + JSON.stringify(electionDoc4, null, 2))
    const electionFinished = JSON.stringify(electionDoc4).indexOf("finished") != -1
    
    assert({
@@ -661,15 +703,15 @@ describe('run upvote election', async assert => {
 
    // TODO: Not sure we need to assert these? Probably..
    const startRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
-   console.log("startRoundEdge4 " + JSON.stringify(startRoundEdge4, null, 2))
+   // console.log("startRoundEdge4 " + JSON.stringify(startRoundEdge4, null, 2))
    const startRound4 = documentCache[startRoundEdge4.to_node]
 
    // this is defined - is it used anywhere in the code?
    const electionRoundEdges4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
-   console.log("electionRoundEdges4 " + JSON.stringify(electionRoundEdges4, null, 2))
+   // console.log("electionRoundEdges4 " + JSON.stringify(electionRoundEdges4, null, 2))
 
    const currentRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
-   console.log("currentRoundEdge4 list " + JSON.stringify(currentRoundEdge4, null, 2))
+   // console.log("currentRoundEdge4 list " + JSON.stringify(currentRoundEdge4, null, 2))
 
    assert({
       given: 'election was finished',
@@ -782,10 +824,11 @@ describe('run upvote election', async assert => {
    })
 
    /// == verify rounds
-   const currentRoundDoc = findFirstDocumentByFromNodeAndEdgeName(electionDocB.id, CURRENT_ROUND)
-   const groupsRound1 = getElectionGroups(currentRoundDoc)
+   const currentRoundDoc = checkCurrentRound("E2R1 ", electionDocB)
+   console.log("B current round " + currentRoundDoc.id)
+   let groupsRound1 = getElectionGroups(currentRoundDoc)
 
-   console.log("E2 start round groups: " + JSON.stringify(groupsRound1, null, 2))
+   // console.log("E2 start round groups: " + JSON.stringify(groupsRound1, null, 2))
 
    let allMembersElection2 = []
 
@@ -798,30 +841,261 @@ describe('run upvote election', async assert => {
       allMembersElection2 = [...allMembersElection2, ...memberIds]
    }
 
-   console.log("members: " + allMembersElection2.length)
+   console.log("E2 members: " + allMembersElection2.length)
    
    assert({
-      given: 'start round started',
+      given: 'E2 start round started',
       should: 'has election groups',
       actual: groupsRound1.length > 0,
+      expected: true,
+   })
+   assert({
+      given: 'E2 start round started',
+      should: 'all members are in groups',
+      actual: allMembersElection2.length == members.length,
       expected: true,
    })
 
    for (g of groupsRound1) {
       assert({
-         given: 'groups created',
+         given: 'E2 groups created',
          should: 'have members',
          actual: g.gen_members.length > 0,
          expected: true,
       })
    }
 
+   /// =============================================================================
+   /// Vote in round 1 of the second election - we vote for candidate at index 2
+   /// =============================================================================
+   const winnersB = {}
+
+   for (const group of groupsRound1) {
+      const members = group.gen_members
+      const memberIds = members.map((m) => m.id)
+      console.log("E2R1: round " +startRound.id+ " group: " + group.id)
+      const winner = memberIds[2]
+      for (const memberId of memberIds) {
+         const voter = getMemberName(memberId)
+         await vote({
+            roundId: currentRoundDoc.id,
+            groupId: group.id,
+            membername: voter,
+            votingForId: winner
+         })
+
+      }
+      winnersB[group.id] = winner
+   }
+
+   await updateGraph()
+   groupsRound1 = getElectionGroups(currentRoundDoc)
+
+   //console.log("after vote groups: " + JSON.stringify(groupsRound1, null, 2))
+
+   const allWinnersB = []
+
+   const uniquenessMap = {}
+
+   for (const group of groupsRound1) {
+      console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
+      console.log(group.id + " winner: " + group.gen_winner)
+
+      assert({
+         given: 'group voting winner',
+         should: 'be member at index 2',
+         actual: group.gen_winner,
+         expected: group.gen_members[2].id,
+      })
+      allWinnersB.push(groups.gen_winner)
+
+      assert({
+         given: 'group winners',
+         should: 'are unique',
+         actual: uniquenessMap[group.gen_winner] == undefined,
+         expected: true,
+      })
+
+      uniquenessMap[group.gen_winner] = group.gen_winner
+   }
+   assert({
+      given: 'Round of 50 members voted',
+      should: '12 winners',
+      actual: allWinnersB.length,
+      expected: 12,
+   })
+
+   /// =============================================================================
+   /// Push to Round 2 of the second election
+   /// =============================================================================
+
+   console.log("E2R1 Next round 1 -> 2")
+   const updateVote4 = await contract.updateupvelc(electionDocB.id, false, true, { authorization: `${daoContract}@active` });
+   printMessage(updateVote4, "E2R1 update 2 result")
+   await sleep(1000)
+   await updateGraph() 
+
+   const electionDocsSize = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE).length
+   const ongoingElectionEdge5 = findEdgesByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)
+   const ongoingElectionDoc5 = findFirstDocumentByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)
+
+   const currentRound5 = checkCurrentRound("E2R2", ongoingElectionDoc5)
+   //console.log("current round 5: " + JSON.stringify(currentRound5, null, 2))
+
+   let groupsRound2 = getElectionGroups(currentRound5)
+
+   for (g of groupsRound2) {
+      const members = g.gen_members
+      const memberIds = members.map((m) => m.id)
+      
+      console.log("E2R2 group " + g.id + "(" + memberIds.length + ")" + ": " + JSON.stringify(memberIds))
+      assert({
+         given: 'E2R2 groups created',
+         should: 'have 4 members',
+         actual: g.gen_members.length,
+         expected: 4,
+      })
+
+   }
+
+   assert({
+      given: 'E2R2 groups created',
+      should: '3 groups expected for 12 members',
+      actual: groupsRound2.length,
+      expected: 3,
+   })
+
+   assert({
+      given: 'E2R2 groups created',
+      should: '1 current round',
+      actual: groupsRound2.length,
+      expected: 3,
+   })
+
+
+
+   // assert electionDocsSize == 2
+   assert({
+      given: '2nd elections ',
+      should: 'number of elections == 2',
+      actual: electionDocsSize,
+      expected: 2,
+   })
+
+   // assert ongoingElectionEdgeSize == 1
+   assert({
+      given: '2nd elections ',
+      should: 'number of ongoing elections == 1',
+      actual: ongoingElectionEdge5.length,
+      expected: 1,
+   })
+
+   /// =============================================================================
+   /// Vote in round 2 of the second election - we vote for candidate at index 3
+   /// =============================================================================
+   const winnersB2 = {}
+
+   for (const group of groupsRound2) {
+      const members = group.gen_members
+      const memberIds = members.map((m) => m.id)
+      console.log("E2R2: round " +currentRound5.id+ " group: " + group.id)
+      const winner = memberIds[3]
+      for (const memberId of memberIds) {
+         const voter = getMemberName(memberId)
+         await vote({
+            roundId: currentRound5.id,
+            groupId: group.id,
+            membername: voter,
+            votingForId: winner
+         })
+
+      }
+      winnersB2[group.id] = winner
+   }
+
+   await updateGraph()
+   groupsRound2 = getElectionGroups(currentRound5)
+
+   //console.log("after vote groups: " + JSON.stringify(groupsRound1, null, 2))
+
+   const allWinnersB2 = []
+
+   const uniquenessMap2 = {}
+
+   for (const group of groupsRound2) {
+      console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
+      console.log(group.id + " winner: " + group.gen_winner)
+
+      assert({
+         given: 'group voting winner',
+         should: 'be member at index 3',
+         actual: group.gen_winner,
+         expected: group.gen_members[3].id,
+      })
+      allWinnersB2.push(groups.gen_winner)
+
+      assert({
+         given: 'group winners',
+         should: 'are unique',
+         actual: uniquenessMap2[group.gen_winner] == undefined,
+         expected: true,
+      })
+      
+      uniquenessMap2[group.gen_winner] = group.gen_winner
+   }
+   assert({
+      given: 'Round of 12 members voted',
+      should: '3 winners',
+      actual: allWinnersB2.length,
+      expected: 3,
+   })
+
+   /// =============================================================================
+   /// Push to Round 3 of the second election - last round
+   /// =============================================================================
+
+   console.log("E2R2 Next round 2 -> 3")
+   const updateVote5 = await contract.updateupvelc(electionDocB.id, false, true, { authorization: `${daoContract}@active` });
+   printMessage(updateVote5, "E2R3 update 2 result")
+   await sleep(1000)
+   await updateGraph() 
+
+   const finishedElectionEdges = findEdgesByFromNodeAndEdgeName(daoObj.id, PREVIOUS_ELECTION)
+   const finishedElection = documentCache[electionDocB.id]
+
+
+   assert({
+      given: 'finished 2nd election',
+      should: 'prev election is an old ongoing election',
+      actual: finishedElectionEdges.map(e => e.to_node).indexOf(ongoingElectionDoc5.id) != -1,
+      expected: true,
+   })
    
 
-   // Read groups ?? and start voting
-   // We could use the "print" outputs to figure out who's in which round
-   // we need to get the member IDs of members to be able to vote for them
-   // maybe that's in the members table?
+   assert({
+      given: 'election was finished',
+      should: 'have finished flag set',
+      actual: JSON.stringify(finishedElection).indexOf("finished") != -1,
+      expected: true,
+   })
+
+   const { chiefDelegates, headDelegate } = getDelegates(daoObj)
+
+   console.log("E2 Result - CDs:" + chiefDelegates + " HD: " + headDelegate)
+
+   assert({
+      given: 'election was finished',
+      should: 'have 2 CDs',
+      actual: chiefDelegates.length,
+      expected: 2,
+   })
+
+   assert({
+      given: 'election was finished',
+      should: 'have 1 HD',
+      actual: headDelegate != undefined,
+      expected: true,
+   })
 
    // Advance to the next round
 
