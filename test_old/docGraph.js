@@ -112,6 +112,12 @@ function findEdgesByFromNodeAndEdgeName(fromNode, edgeName) {
     return edgesCache.filter(edge => edge.from_node === fromNode && edge.edge_name === edgeName);
 }
 
+function findFirstDocumentByFromNodeAndEdgeName(fromNode, edgeName) {
+    const edges = edgesCache.filter(edge => edge.from_node === fromNode && edge.edge_name === edgeName);
+    return documentCache[edges[0].to_node]
+}
+
+
 // Function to find all edges with a given to_node and edge_name.
 function findEdgesByToNodeAndEdgeName(toNode, edgeName) {
     return edgesCache.filter(edge => edge.to_node === toNode && edge.edge_name === edgeName);
@@ -127,4 +133,13 @@ function findEdgeById(id) {
     }
 }
 
-module.exports = { documentCache, edgesCache, updateDocumentCache, updateEdgesCache, findEdgeById, findEdgesByFromNodeAndEdgeName, findEdgesByToNodeAndEdgeName }
+module.exports = { 
+    documentCache, 
+    edgesCache, 
+    updateDocumentCache, 
+    updateEdgesCache, 
+    findEdgeById, 
+    findEdgesByFromNodeAndEdgeName, 
+    findEdgesByToNodeAndEdgeName,
+    findFirstDocumentByFromNodeAndEdgeName,
+}

@@ -6,7 +6,15 @@ var crypto = require('crypto');
 const { create } = require('domain');
 const createAccount = require('../scripts/createAccount');
 const { title } = require('process');
-const { updateDocumentCache, updateEdgesCache, documentCache, findEdgesByFromNodeAndEdgeName, edgesCache } = require('./docGraph');
+const { 
+   updateDocumentCache, 
+   updateEdgesCache, 
+   edgesCache,
+   documentCache, 
+   findEdgesByFromNodeAndEdgeName, 
+   findFirstDocumentByFromNodeAndEdgeName, 
+} = require('./docGraph');
+
 const { group } = require('console');
 
 const devKeyPair = {
@@ -177,6 +185,33 @@ const getValueFromContentGroup = (label, contentGroup) => {
    }
 } 
 
+// system badges - dao-> badge edges exist
+
+const HEAD_DELEGATE = "headdelegate"
+const CHIEF_DELEGATE = "chiefdelegate"
+
+// Badge assignment edge names
+const HELD_BY = "heldby";
+
+// Upvote Edge names
+const ELECTION_EDGE = "ue.election" // ALL ELECTIONS EVER
+const UPCOMING_ELECTION = "ue.upcoming" // CURRENT UPCOMING ELECTION
+const ONGOING_ELECTION = "ue.ongoing"
+const PREVIOUS_ELECTION = "ue.previous"
+
+const START_ROUND = "ue.startrnd"
+const CURRENT_ROUND = "ue.currnd"
+const ELECTION_ROUND = "ue.round"
+const ELECTION_ROUND_MEMBER = "ue.rd.member"
+const ELECTION_GROUP_LINK = "ue.group.lnk"
+// inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
+// inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
+// inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
+// inline constexpr auto ELECTION_GROUP = eosio::name("ue.elctngrp");
+UP_VOTE_VOTE = "ue.vote"
+// inline constexpr auto UPVOTE_GROUP_WINNER = eosio::name("ue.winner");
+// inline constexpr auto VOTE = eosio::name("vote"); // ?? 
+
 ////////////////////////////////////////////////////////////////////////
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
@@ -227,7 +262,7 @@ describe('run upvote election', async assert => {
    console.log("create root " + daoContract)
    await contract.createroot('test root', { authorization: `${daoContract}@active` });
    const docs = await getLastDocuments(5)
-   // console.log("badges initialized " + JSON.stringify(docs, null, 2))
+
    console.log("badges initialized ")
    const delegateBadge = docs.find(item => JSON.stringify(item.content_groups).indexOf("Upvote Delegate Badge") != -1);
    const delegateBadgeId = delegateBadge.id
@@ -241,11 +276,10 @@ describe('run upvote election', async assert => {
    console.log("set intial settings ")
    await initializeDHO()
 
-
    console.log("create calendar ")
    await contract.createcalen(true, { authorization: `${daoContract}@active` })
-
    await sleep(1000);
+
    const docs2 = await getLastDocuments(30)
    const startPerString = "Calendar start period"
    const startPeriodDoc = docs2.find(item => JSON.stringify(item.content_groups).indexOf(startPerString) != -1);
@@ -299,68 +333,26 @@ describe('run upvote election', async assert => {
    })
 
    const members = await createMultipleAccounts(37)
+   console.log("created members: " + members.length)
 
-   console.log("created members: " + members)
 
-   // create an upvote election
+   console.log("create upvote data")
+   let data = getUpvoteElectionDoc()
 
    // ACTION createupvelc(uint64_t dao_id, ContentGroups& election_config)
-
-   let now = new Date();
-   let time = new Date(now.getTime() + 5000).toISOString()
-
-   console.log("now: " + now.toISOString())
-   console.log("up elec: " + time)
-   // NOTE: The date string is "2023-10-03T03:39:53.250Z" but for some reason
-   // eosjs insists of appending a 'Z' so we have to remove the Z first.
-   if (time.endsWith("Z")) {
-      time = time.slice(0, -1)
-   }
-
-   let data = upvoteElectionDoc(time)
-
-   // console.log("elect data: \n" + JSON.stringify(data, null, 2) + "\n")
    console.log("create upvote election")
    const createTx = await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
-   const consoleText = createTx.processed.action_traces[0].console;
-   console.log("upvote election: " + JSON.stringify(consoleText, null, 2))
+   printMessage(createTx, "upvote election ")
 
    const docs3 = await getLastDocuments(20)
-
    const electionDocType = "upvt.electn"
    const upElecDoc = docs3.find(item => JSON.stringify(item.content_groups).indexOf(electionDocType) != -1);
    console.log("election ID: " + upElecDoc.id)
-
    sleep(1000)
 
    // read all data into caches
    await updateGraph()
 
-   // system badges - dao-> badge edges exist
-
-   const HEAD_DELEGATE = "headdelegate"
-   const CHIEF_DELEGATE = "chiefdelegate"
-
-   // Badge assignment edge names
-   const HELD_BY = "heldby";
-
-   // Upvote Edge names
-   const ELECTION_EDGE = "ue.election"
-   // inline constexpr auto UPCOMING_ELECTION = eosio::name("ue.upcoming");
-   const ONGOING_ELECTION = "ue.ongoing"
-   const PREVIOUS_ELECTION = "ue.previous"
-   const START_ROUND = "ue.startrnd"
-   const CURRENT_ROUND = "ue.currnd"
-   const ELECTION_ROUND = "ue.round"
-   const ELECTION_ROUND_MEMBER = "ue.rd.member"
-   const ELECTION_GROUP_LINK = "ue.group.lnk"
-   // inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
-   // inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
-   // inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
-   // inline constexpr auto ELECTION_GROUP = eosio::name("ue.elctngrp");
-   UP_VOTE_VOTE = "ue.vote"
-   // inline constexpr auto UPVOTE_GROUP_WINNER = eosio::name("ue.winner");
-   // inline constexpr auto VOTE = eosio::name("vote"); // ?? 
    const electionEdge = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
    const electionDoc = documentCache[electionEdge.to_node]
    console.log("election doc " + electionDoc.id)
@@ -414,14 +406,11 @@ describe('run upvote election', async assert => {
       expected: true,
    })
 
-   // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
-   for (let member of members) {
+   const autoAddDelegateBadge = async (member) => {
       await contract.autoenroll(daoObj.id, daoOwnerAccount, member, { authorization: `${daoOwnerAccount}@active` });
       //console.log("enrolled member: " + member)
 
       // Give the members delegate badges
-
-
       const badgeProposalData = badgeAssignmentPropData({
          assignee: member,
          badgeTitle: "Delegate Badge",
@@ -440,6 +429,11 @@ describe('run upvote election', async assert => {
          { authorization: `${member}@active` }
       )
       // console.log("added delegate badge for " + member)
+
+   }
+   // ACTION autoenroll(uint64_t id, const name& enroller, const name& member);
+   for (let member of members) {
+      await autoAddDelegateBadge(member)
    }
 
    await sleep(1000)
@@ -604,31 +598,6 @@ describe('run upvote election', async assert => {
 
    console.log("electionDoc3: " + JSON.stringify(electionDoc3, null, 2))
 
-   // const ongoingElectionEdge3 = findEdgesByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)
-   // const ongoingElectionDoc3 = documentCache[ongoingElectionEdge3.to_node]
-   // console.log("ongoingElectionDoc3: " + JSON.stringify(ongoingElectionDoc3, null, 2))
-
-
-   // const startRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
-   // const electionRoundEdges3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
-   // const currentRoundEdge3 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)[0]
-   
-   // const startRound3 = documentCache[startRoundEdge3.to_node]
-   // const currentRound3 = documentCache[currentRoundEdge3.to_node]
-
-   // console.log("start rd: " + startRound3.id + " current: " + currentRound3.id + " total rounds " + electionRoundEdges3.length)
-
-   // const groups3 = getElectionGroups(currentRound3)
-   // for (const group of groups3) {
-   //    console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
-   // }
-   //console.log("groups3: " + JSON.stringify(groups3, null, 2))
-
-   // const updateVote4 = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
-   // printMessage(updateVote4, "update 4 result")
-   // await sleep(1000)
-   // await updateGraph() 
-
    const electionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)
    console.log("electionEdge4 [list] " + JSON.stringify(electionEdge4, null, 2))
 
@@ -637,8 +606,15 @@ describe('run upvote election', async assert => {
    console.log("ongoingElectionEdge4 " + JSON.stringify(ongoingElectionEdge4, null, 2))
 
    // TODO assert: prev election should be set
-   const previousElectionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, PREVIOUS_ELECTION)[0]
+   const previousElectionEdge4 = findEdgesByFromNodeAndEdgeName(daoObj.id, PREVIOUS_ELECTION)
    console.log("previousElectionEdge4 " + JSON.stringify(previousElectionEdge4, null, 2))
+
+   assert({
+      given: 'election ended',
+      should: 'prev edge defined',
+      actual: previousElectionEdge4.length,
+      expected: 1,
+   })
 
    // Confirm the delegate badges have been set to the winners
    // TODO Assert
@@ -646,33 +622,62 @@ describe('run upvote election', async assert => {
    const chiefDelegatesEdges4 = findEdgesByFromNodeAndEdgeName(daoObj.id, CHIEF_DELEGATE)
    console.log("chiefDelegatesEdges4 (members): " + JSON.stringify(chiefDelegatesEdges4, null, 2))
 
+   assert({
+      given: 'election ended - CDs',
+      should: '6 chief delegates are defined',
+      actual: chiefDelegatesEdges4.length,
+      expected: 6,
+   })
+
+
    const headDelegateEdges4 = findEdgesByFromNodeAndEdgeName(daoObj.id, HEAD_DELEGATE)
    console.log("headDelegateEdges4 " + JSON.stringify(headDelegateEdges4, null, 2))
 
-   // TODO assert election status should be ended
-   const electionDoc4 = documentCache[previousElectionEdge4.to_node]
+   assert({
+      given: 'election ended - head delegate',
+      should: '1 head delegates is defined',
+      actual: headDelegateEdges4.length,
+      expected: 1,
+   })
+
+   const electionDoc4 = documentCache[previousElectionEdge4[0].to_node]
    console.log("electionDoc4 (prev) " + JSON.stringify(electionDoc4, null, 2))
+   const electionFinished = JSON.stringify(electionDoc4).indexOf("finished") != -1
+   
+   assert({
+      given: 'election was finished = prev election',
+      should: 'previous election edge set to ' + electionDoc.id,
+      actual: electionDoc4.id,
+      expected: electionDoc.id,
+   })
+
+   assert({
+      given: 'election was finished',
+      should: 'have finished flag set',
+      actual: electionFinished,
+      expected: true,
+   })
+
 
    // TODO: Not sure we need to assert these? Probably..
    const startRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)[0]
    console.log("startRoundEdge4 " + JSON.stringify(startRoundEdge4, null, 2))
    const startRound4 = documentCache[startRoundEdge4.to_node]
 
+   // this is defined - is it used anywhere in the code?
    const electionRoundEdges4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
    console.log("electionRoundEdges4 " + JSON.stringify(electionRoundEdges4, null, 2))
 
-   const currentRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)[0]
-   console.log("currentRoundEdge4 " + JSON.stringify(currentRoundEdge4, null, 2))
+   const currentRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
+   console.log("currentRoundEdge4 list " + JSON.stringify(currentRoundEdge4, null, 2))
 
+   assert({
+      given: 'election was finished',
+      should: 'no current round edges',
+      actual: currentRoundEdge4.length,
+      expected: 0,
+   })
 
-   // const startRound4 = documentCache[startRoundEdge4.to_node]
-   // const currentRound4 = documentCache[currentRoundEdge4.to_node]
-
-   // console.log("start rd: " + startRound4.id + " current: " + currentRound4.id + " total rounds " + electionRoundEdges4.length)
-
-   // TODO: Verify? Should be 1 group w/ 7
-   // const groups4 = getElectionGroups(currentRound4)
-   // console.log("groups4 " + JSON.stringify(groups4, null, 2))
 
    // Note: if 11 or fewer members are in the election, it ends. It can end with 11 CDs. 
 
@@ -681,12 +686,6 @@ describe('run upvote election', async assert => {
       should: 'start round is the same',
       actual: startRound4.id,
       expected: startRound2.id,
-   })
-   assert({
-      given: 'round 2',
-      should: 'current round round is different',
-      actual: currentRoundEdge3.to_node != electionRoundEdge.to_node,
-      expected: true
    })
 
    assert({
@@ -702,6 +701,122 @@ describe('run upvote election', async assert => {
       actual:  voteForWrongGroup,
       expected: false,
    })
+
+   // Straight into the next election!
+
+   console.log("============== Election 2 ==================")
+
+   /// =============================================================================
+   /// Create the 2nd election
+   /// =============================================================================
+
+   console.log("create upvote election 2")
+   let data2 = getUpvoteElectionDoc()
+   const createTx2 = await contract.createupvelc(daoObj.id, data2, { authorization: `${daoOwnerAccount}@active` })
+   printMessage(createTx2, "upvote election 2 ")
+
+   /// =============================================================================
+   /// Sign up more members to make it 50 members, apply for badges for all of them
+   /// =============================================================================
+
+   // add more members so we have 50 members 
+   const additionalSize = 50 - members.length
+   const additionalMembers = await createMultipleAccounts(additionalSize)
+
+   // add them to the list and sign them all up as delegates
+   // Normally members delegate badges expire before the next election, then they all have 
+   // to sign up again - which is as intended
+   // But because we shortcut the election, the existing badges haven't exipred yet.
+   for (const member of additionalMembers) {
+      members.push(member)
+      await autoAddDelegateBadge(member)
+   }
+
+   console.log("2nd election " + members.length + " members.")
+
+   /// =============================================================================
+   /// Set the Seed
+   /// =============================================================================
+
+   const btcHeader2 = await getBitcoinBlockHeader();
+   console.log("btcHeader2: " + btcHeader2)
+   const seedresB = await contract.uesubmitseed(daoObj.id, btcHeader2, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
+   printMessage(seedres, "seedres ")
+   await updateGraph() 
+   const electionEdgeB = findEdgesByFromNodeAndEdgeName(daoObj.id, UPCOMING_ELECTION)[0]
+   const electionDocB = documentCache[electionEdgeB.to_node]
+
+
+   console.log("election doc " + electionDocB.id + " old election doc: " + electionDoc.id)
+   assert({
+      given: 'a mew election was created',
+      should: 'new document id',
+      actual:  electionDocB.id != electionDoc.id,
+      expected: true,
+   })
+
+   assert({
+      given: 'seed was set ',
+      should: 'election has seed set',
+      actual: JSON.stringify(electionDocB, null, 2).indexOf(btcHeader2) != -1,
+      expected: true,
+   })
+
+   /// =============================================================================
+   /// Start round 1 of the 2nd election
+   /// =============================================================================
+
+   const updateVote3 = await contract.updateupvelc(electionDocB.id, false, true, { authorization: `${daoContract}@active` });
+   printMessage(updateVote3, "updateVote3 result")
+   await sleep(1000)
+   await updateGraph() 
+
+   const ongoingElectionEdgeB = findEdgesByFromNodeAndEdgeName(daoObj.id, ONGOING_ELECTION)[0]
+   const onegoingElectionDocB = documentCache[ongoingElectionEdgeB.to_node]
+
+   assert({
+      given: 'a mew election was started',
+      should: 'ongoing election doc is current election doc',
+      actual:  electionDocB.id == onegoingElectionDocB.id,
+      expected: true,
+   })
+
+   /// == verify rounds
+   const currentRoundDoc = findFirstDocumentByFromNodeAndEdgeName(electionDocB.id, CURRENT_ROUND)
+   const groupsRound1 = getElectionGroups(currentRoundDoc)
+
+   console.log("E2 start round groups: " + JSON.stringify(groupsRound1, null, 2))
+
+   let allMembersElection2 = []
+
+   for (g of groupsRound1) {
+      const members = g.gen_members
+      const memberIds = members.map((m) => m.id)
+      
+      console.log(" group " + g.id + "(" + memberIds.length + ")" + ": " + JSON.stringify(memberIds))
+
+      allMembersElection2 = [...allMembersElection2, ...memberIds]
+   }
+
+   console.log("members: " + allMembersElection2.length)
+   
+   assert({
+      given: 'start round started',
+      should: 'has election groups',
+      actual: groupsRound1.length > 0,
+      expected: true,
+   })
+
+   for (g of groupsRound1) {
+      assert({
+         given: 'groups created',
+         should: 'have members',
+         actual: g.gen_members.length > 0,
+         expected: true,
+      })
+   }
+
+   
 
    // Read groups ?? and start voting
    // We could use the "print" outputs to figure out who's in which round
@@ -1180,12 +1295,26 @@ const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId 
    ]
 ]`)
 
-const upvoteElectionDoc = (time) => JSON.parse(`[
+// a JS Date object for start date
+const getUpvoteElectionDoc = (startDate = new Date()) => {
+   // create an upvote election
+   let time = startDate.toISOString()
+
+   console.log("up elec: " + time)
+
+   // NOTE: The date string is "2023-10-03T03:39:53.250Z" but for some reason
+   // eosjs insists of appending a 'Z' so we have to remove the Z first.
+   if (time.endsWith("Z")) {
+      time = time.slice(0, -1)
+   }
+   
+   return JSON.parse(`[
    [
        { "label": "content_group_label", "value": ["string", "details"] },
        { "label": "upvote_start_date_time", "value": ["time_point", "${time}"] },
        { "label": "upvote_duration", "value": ["int64", 7776000] },
        { "label": "duration", "value": ["int64", 3600] }
    ]
-]`)
+   ]`)
+}
 
