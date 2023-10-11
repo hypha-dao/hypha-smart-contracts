@@ -204,6 +204,8 @@ const CURRENT_ROUND = "ue.currnd"
 const ELECTION_ROUND = "ue.round"
 const ELECTION_ROUND_MEMBER = "ue.rd.member"
 const ELECTION_GROUP_LINK = "ue.group.lnk"
+const GROUP_WINNER = "ue.group.win"
+
 // inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
 // inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
 // inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
@@ -624,6 +626,16 @@ describe('run upvote election', async assert => {
          actual: group.gen_winner,
          expected: group.gen_members[1].id,
       })
+
+      const groupWinnerEdge = findEdgesByFromNodeAndEdgeName(group.id, GROUP_WINNER)[0]
+      assert({
+         given: 'group voting winner',
+         should: 'winner edge exists',
+         actual: groupWinnerEdge.to_node,
+         expected: group.gen_members[1].id,
+      })
+
+
       allWinners.push(groups.gen_winner)
    }
 
