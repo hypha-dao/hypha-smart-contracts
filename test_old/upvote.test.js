@@ -46,18 +46,6 @@ const getBitcoinBlockHeader = async () => {
 
 }
 
-const randomSymbolName = (prefix) => {
-   let length = 6
-   var result = '';
-   var characters = 'abcdefghijklmnopqrstuvwxyz1234'.toUpperCase();
-   var charactersLength = characters.length;
-   for (var i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-   }
-   console.log("SYMBOL " + prefix + ": " + (prefix + result))
-   return prefix + result;
-}
-
 const runAction = async ({ contractName = "dao.hypha", action, data, actor }) => {
 
    // console.locleg("About to run action:", action, "with data:", JSON.stringify(data));
@@ -232,19 +220,6 @@ const getDelegates = (daoObj) => {
 ////////////////////////////////////////////////////////////////////////
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
-
-describe('test stuff', async assert => {
-
-   // const foo = await getBitcoinBlockHeader()
-
-   // console.log("header: " + foo)
-
-  // await updateEdgesCache()
-  // console.log(" cache " + edgesCache.length)
-  // console.log(" edges " + JSON.stringify(edgesCache, null, 2))
-
-
-})
 
 describe('run upvote election', async assert => {
 
