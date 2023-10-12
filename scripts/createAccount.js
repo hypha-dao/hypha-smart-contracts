@@ -4,44 +4,78 @@ const createAccount = async ({ account, publicKey, stakes, creator }) => {
 
     try {
 
-        await eos.transaction({
-            actions: [
-                {
-                    account: 'eosio',
-                    name: 'newaccount',
-                    authorization: [{
-                        actor: creator,
-                        permission: 'active',
-                    }],
-                    data: {
-                        creator,
-                        name: account,
-                        owner: {
-                            threshold: 1,
-                            keys: [{
-                                key: publicKey,
-                                weight: 1
-                            }],
-                            accounts: [],
-                            waits: []
-                        },
-                        active: {
-                            threshold: 1,
-                            keys: [{
-                                key: publicKey,
-                                weight: 1
-                            }],
-                            accounts: [],
-                            waits: []
-                        },
+        console.log("creating account " + account + " with " + creator)
+        
+        if (isLocal()) {
+            await eos.transaction({
+                actions: [
+                    {
+                        account: 'eosio',
+                        name: 'newaccount',
+                        authorization: [{
+                            actor: creator,
+                            permission: 'active',
+                        }],
+                        data: {
+                            creator: creator,
+                            name: account,
+                            owner: {
+                                threshold: 1,
+                                keys: [{
+                                    key: publicKey,
+                                    weight: 1
+                                }],
+                                accounts: [],
+                                waits: []
+                            },
+                            active: {
+                                threshold: 1,
+                                keys: [{
+                                    key: publicKey,
+                                    weight: 1
+                                }],
+                                accounts: [],
+                                waits: []
+                            },
+                        }
                     }
-                }
-            ]
-        })
-        if (!isLocal()) {
+                ]
+            })    
+        } else if (!isLocal()) {
+            //console.log(" staking and buy ram")
             try {
                 await eos.transaction({
                     actions: [
+                        {
+                            account: 'eosio',
+                            name: 'newaccount',
+                            authorization: [{
+                                actor: creator,
+                                permission: 'active',
+                            }],
+                            data: {
+                                creator: creator,
+                                name: account,
+                                owner: {
+                                    threshold: 1,
+                                    keys: [{
+                                        key: publicKey,
+                                        weight: 1
+                                    }],
+                                    accounts: [],
+                                    waits: []
+                                },
+                                active: {
+                                    threshold: 1,
+                                    keys: [{
+                                        key: publicKey,
+                                        weight: 1
+                                    }],
+                                    accounts: [],
+                                    waits: []
+                                },
+                            }
+                        },
                         {
                             account: 'eosio',
                             name: 'buyrambytes',
@@ -75,7 +109,6 @@ const createAccount = async ({ account, publicKey, stakes, creator }) => {
             } catch (error) {
                 console.error("unknown delegatebw action " + error)
             }
-
         }
 
         // console.log(`${account} created`)

@@ -160,6 +160,9 @@ const accountsMetadata = (network) => {
     return {
       owner: account(owner),
       oracleuser: account('hyphaoracle1'),
+      hyphatoken: token('mtrwardhypha', owner, '1500000000.00 HYPHA', "hyphatoken"),
+      voice_token: contract('mtvoicehypha', 'voice_token'),
+      husd_token: contract('mtpegtkhypha', 'husd_token'),
 
       firstuser: account('seedsuseraaa', '1000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
@@ -378,6 +381,9 @@ const keyProviders = {
   ],
   [networks.telosTestnet]: [
     process.env.TELOS_TESTNET_ACTIVE_KEY,
+    process.env.TELOS_TESTNET_DAO_CREATOR_KEY,
+    process.env.TELOS_TESTNET_DAO_CONTRACT_KEY,
+    process.env.TELOS_TESTNET_ACCOUNTS_KEY,
   ],
   [networks.eosMainnet]: [
     process.env.EOS_MAINNET_ACTIVE_KEY,
@@ -394,7 +400,6 @@ const keyProvider = keyProviders[chainId].filter((item) => item)
 if (keyProvider.length == 0 || keyProvider[0] == null) {
   console.log("ERROR: Invalid Key Provider: " + JSON.stringify(keyProvider, null, 2))
 }
-
 const isLocal = () => { return chainId == networks.local }
 const isTelosTestnet = () => { return chainId == networks.telosTestnet }
 

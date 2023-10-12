@@ -194,6 +194,8 @@ const ELECTION_ROUND_MEMBER = "ue.rd.member"
 const ELECTION_GROUP_LINK = "ue.group.lnk"
 const GROUP_WINNER = "ue.group.win"
 
+const BADGE_NAME = "badge"
+
 // inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
 // inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
 // inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
@@ -221,7 +223,7 @@ const getDelegates = (daoObj) => {
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
 
-describe('run upvote election', async assert => {
+describe.only('run upvote election', async assert => {
 
    if (!isLocal()) {
       console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
@@ -624,6 +626,10 @@ describe('run upvote election', async assert => {
    await sleep(1000)
    await updateGraph() 
 
+   const badgesDao = findEdgesByFromNodeAndEdgeName(daoObj.id, BADGE_NAME)
+   // console.log("badgesDao: " + JSON.stringify(badgesDao, null, 2))
+
+
    const electionEdge3 = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
    const electionDoc3 = documentCache[electionEdge.to_node]
 
@@ -700,6 +706,23 @@ describe('run upvote election', async assert => {
    // this is defined - is it used anywhere in the code?
    const electionRoundEdges4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
    // console.log("electionRoundEdges4 " + JSON.stringify(electionRoundEdges4, null, 2))
+   let max = -1
+   let lastRoundEdge = undefined
+   for (ere4 of electionRoundEdges4) {
+      if (ere4.to_node > max) {
+         max = ere4.to_node
+         lastRoundEdge = ere4
+      }
+   }
+   const lastRound = documentCache[lastRoundEdge.to_node]
+   const lastGroups = getElectionGroups(lastRound)
+   // console.log("winners group" + JSON.stringify(lastGroups, null, 2))
+
+   for (const group of lastGroups) {
+      console.log(group.id + " (" + group.gen_members.length + "): " + JSON.stringify(group.gen_members.map(m => m.id)))
+      console.log(group.id + " winner: " + group.gen_winner)
+   }
+
 
    const currentRoundEdge4 = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
    // console.log("currentRoundEdge4 list " + JSON.stringify(currentRoundEdge4, null, 2))
@@ -1095,6 +1118,190 @@ describe('run upvote election', async assert => {
 
 
 })
+
+describe('edge case - no delegates', async assert => {
+
+   if (!isLocal()) {
+      console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
+      return
+   }
+
+   const daoOwnerAccount = randomAccountName()
+   const newDaoName = randomAccountName()
+
+   console.log("New account " + daoOwnerAccount)
+   console.log("New dao " + newDaoName)
+
+   const contract = await eos.contract(daoContract)
+
+   // reset contract
+   console.log("reset " + daoContract)
+   await contract.reset({ authorization: `${daoContract}@active` })
+   await sleep(500);
+
+   // create newaccount
+   await createAccount({
+      account: daoOwnerAccount,
+      publicKey: newAccountPublicKey,
+      creator: owner
+   })
+   await sleep(1000);
+
+   // create root
+   console.log("create root " + daoContract)
+   await contract.createroot('test root', { authorization: `${daoContract}@active` });
+   const docs = await getLastDocuments(5)
+
+   console.log("badges initialized ")
+   const delegateBadge = docs.find(item => JSON.stringify(item.content_groups).indexOf("Upvote Delegate Badge") != -1);
+   const delegateBadgeId = delegateBadge.id
+   // console.log("delegate badge " + JSON.stringify(delegateBadge, null, 2))
+   // console.log("delegate badge id " + delegateBadgeId)
+   const hasDelegateBadge = JSON.stringify(docs).indexOf("Upvote Delegate Badge") != -1;
+
+   await sleep(1000);
+
+   // init initial settings
+   console.log("set intial settings ")
+   await initializeDHO()
+
+   console.log("create calendar ")
+   await contract.createcalen(true, { authorization: `${daoContract}@active` })
+   await sleep(1000);
+
+   const docs2 = await getLastDocuments(30)
+   const startPerString = "Calendar start period"
+   const startPeriodDoc = docs2.find(item => JSON.stringify(item.content_groups).indexOf(startPerString) != -1);
+
+   console.log("start period doc " + JSON.stringify(startPeriodDoc));
+
+   // create dao
+   console.log("create dao " + newDaoName + " with owner " + daoOwnerAccount)
+   const daoParams = getCreateDaoData({
+      dao_name: newDaoName,
+      onboarder_account: daoOwnerAccount,
+   })
+
+   /// =============================================================================
+   /// Create a new DAO
+   /// =============================================================================
+
+   await contract.createdao(daoParams, { authorization: `${daoOwnerAccount}@active` });
+
+   const getDaoEntry = async (daoName) => {
+      const accountsTable = await eos.getTableRows({
+         code: daoContract,
+         scope: daoContract,
+         table: 'daos',
+         lower_bound: daoName,
+         upper_bound: daoName,
+         json: true
+      });
+      return accountsTable.rows[0];
+   };
+
+   const checkCurrentRound = (title, electionDoc) => {
+      const currentRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
+      assert({
+         given: title + ' groups vote update',
+         should: 'only 1 current round',
+         actual: currentRoundEdges.length,
+         expected: 1,
+      })
+      return findFirstDocumentByFromNodeAndEdgeName(electionDoc.id, CURRENT_ROUND)
+   }
+   
+   const daoObj = await getDaoEntry(newDaoName)
+   console.log("DAO id: " + daoObj.id + " Name: " + newDaoName)
+
+   console.log("create upvote data")
+   let data = getUpvoteElectionDoc()
+
+   /// =============================================================================
+   /// Create the 1st election (of 2)
+   /// =============================================================================
+
+   // ACTION createupvelc(uint64_t dao_id, ContentGroups& election_config)
+   console.log("create upvote election")
+   const createTx = await contract.createupvelc(daoObj.id, data, { authorization: `${daoOwnerAccount}@active` })
+   printMessage(createTx, "upvote election ")
+
+   const docs3 = await getLastDocuments(20)
+   const electionDocType = "upvt.electn"
+   const upElecDoc = docs3.find(item => JSON.stringify(item.content_groups).indexOf(electionDocType) != -1);
+   console.log("election ID: " + upElecDoc.id)
+   sleep(1000)
+
+   // read all data into caches
+   await updateGraph()
+
+   const electionEdge = findEdgesByFromNodeAndEdgeName(daoObj.id, ELECTION_EDGE)[0]
+   const electionDoc = documentCache[electionEdge.to_node]
+   console.log("election doc " + electionDoc.id)
+
+   const startRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)
+   const electionRoundEdges = findEdgesByFromNodeAndEdgeName(electionDoc.id, ELECTION_ROUND)
+
+
+   const startRoundEdge = startRoundEdges[0]
+
+   const startRound = documentCache[startRoundEdge.to_node]
+
+
+   // ACTION uesubmitseed(uint64_t dao_id, eosio::checksum256 seed, name account);
+   const blockChainHeaderHash = await getBitcoinBlockHeader();
+   console.log("latest block header: " + blockChainHeaderHash)
+
+   const seedres = await contract.uesubmitseed(daoObj.id, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
+   //printMessage(seedres, "seedres ")
+
+   await updateGraph()
+
+   const electionDoc2 = documentCache[electionEdge.to_node]
+   // console.log("election doc " + JSON.stringify(electionDoc2, null, 2))
+
+   assert({
+      given: 'seed was set correctly',
+      should: 'has election round',
+      actual: JSON.stringify(electionDoc2, null, 2).indexOf(blockChainHeaderHash) != -1,
+      expected: true,
+   })
+
+   await sleep(1000)
+
+   await updateGraph()
+
+
+   /// =============================================================================
+   /// Start first Election
+   /// =============================================================================
+   // ACTION updateupvelc(uint64_t election_id, bool reschedule);
+   console.log("Start election")
+   const updateVote = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
+   printMessage(updateVote, "update result")
+
+   await sleep(1000)
+
+   await updateGraph() 
+
+   // the election
+   const election2 = documentCache[electionDoc.id]
+   const startRound2 = documentCache[startRound.id]
+   const currentRound1 = checkCurrentRound("E1R1 ", electionDoc)
+
+   console.log("election: " + JSON.stringify(election2, null, 2))
+   console.log("start round: " + JSON.stringify(startRound2, null, 2))
+
+   assert({
+      given: 'election started',
+      should: 'current round id is start round',
+      actual: currentRound1.id,
+      expected: startRound2.id,
+   })
+
+
+})
+
 
 const printMessage = (txresult, title = "tx result") => {
    const consoleMessage = txresult.processed.action_traces[0].console;
