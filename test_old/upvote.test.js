@@ -284,7 +284,11 @@ describe('run upvote election', async assert => {
       dao_name: newDaoName,
       onboarder_account: daoOwnerAccount,
    })
-   // console.log("DAO params " + JSON.stringify(params, null, 2))
+   // console.log("DAO params " + JSON.stringify(daoParams, null, 2))
+
+   /// =============================================================================
+   /// Create a new DAO
+   /// =============================================================================
 
    await contract.createdao(daoParams, { authorization: `${daoOwnerAccount}@active` });
 
