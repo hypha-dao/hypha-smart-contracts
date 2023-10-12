@@ -223,7 +223,7 @@ const getDelegates = (daoObj) => {
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
 
-describe.only('run upvote election', async assert => {
+describe('run upvote election', async assert => {
 
    if (!isLocal()) {
       console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
@@ -1287,18 +1287,17 @@ describe('edge case - no delegates', async assert => {
    // the election
    const election2 = documentCache[electionDoc.id]
    const startRound2 = documentCache[startRound.id]
-   const currentRound1 = checkCurrentRound("E1R1 ", electionDoc)
 
-   console.log("election: " + JSON.stringify(election2, null, 2))
-   console.log("start round: " + JSON.stringify(startRound2, null, 2))
+   //console.log("election: " + JSON.stringify(election2, null, 2))
+   //console.log("start round: " + JSON.stringify(startRound2, null, 2))
+
 
    assert({
-      given: 'election started',
-      should: 'current round id is start round',
-      actual: currentRound1.id,
-      expected: startRound2.id,
+      given: "no delegates",
+      should: "cancel election",
+      actual: JSON.stringify(election2).indexOf("canceled") != -1,
+      expected: true,
    })
-
 
 })
 
