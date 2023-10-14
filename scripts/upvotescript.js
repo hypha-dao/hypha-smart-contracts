@@ -743,6 +743,23 @@ program
  
     })
 
+    program
+    .command('onboard <onboarder> <daoId> <member>')
+    .description('onboard a single account')
+    .action(async (onboarder, daoId, member) => {
+  
+          console.log("onboarding " + member +" to " + daoId + " with " + onboarder)
+          const res = await autoEnrollMember({
+             daoId: daoId,
+             member: member,
+             daoOwnerAccount: onboarder,
+           })
+    
+      
+  
+     })
+ 
+
    program
    .command('delegate_badge <daoId> <num>')
    .description('Create N accounts')
@@ -784,6 +801,27 @@ program
 })
 
 program
+.command('delegate <daoId> <member>')
+.description('delegate')
+.action(async (daoId, member) => {
+
+   const delegateBadgeId = 35199
+   const startPeriodId = 30698
+
+   console.log("delegate badge for DAO " + daoId)
+   
+      console.log("delegate badge for " + member +" to " + daoId)
+      await autoAddDelegateBadge({
+         daoId: daoId,
+         member: member,
+         delegateBadgeId: delegateBadgeId,
+         startPeriodDocId: startPeriodId
+      });
+   
+})
+
+
+program
 .command('start_upvote <electionId>')
 .description('Create N accounts')
 .action(async (electionId) => {
@@ -820,9 +858,10 @@ program
 
    let total = 0
    for (const rGroup of roundGroups) {
+      //const rGroup = roundGroups[roundGroups.length-1] // debug
       const groupId = rGroup["docId"]
       const roundGroupsMembers = rGroup["ueRdMember"]
-      const winnerId = roundGroupsMembers[1]["docId"] // winner is member on index 1
+      const winnerId = roundGroupsMembers[0]["docId"] // winner is member on index 0
       for (const member of roundGroupsMembers) {
 
          const memberId = member["docId"]
@@ -834,6 +873,9 @@ program
             // ACTION castupvote(uint64_t round_id, uint64_t group_id, name voter, uint64_t voted_id);
             const voteRes = await contract.castupvote(roundId, groupId, membername, votingForId, { authorization: `${membername}@active` })
             printMessage(voteRes, " vote res ")
+         }
+         if (memberName == "evgeniseeds2") {
+            continue
          }
          await vote({
             roundId: roundId,
@@ -847,6 +889,27 @@ program
    }
       
 })
+
+program
+.command('seed <daoId>')
+.description('Seed!')
+.action(async (daoId) => {
+
+   //const roundData = await fetchElectionData(daoname)
+   //console.log("round data " + roundData)
+   //const electionId = roundData["data"]["getDao"]["ueUpcoming"][0]["docId"]
+
+   const contract = await eos.contract(daoContract)
+
+   const blockChainHeaderHash = await getBitcoinBlockHeader();
+   console.log("latest block header: " + blockChainHeaderHash)
+
+   //const seedres = await contract.uesubmitseed(daoId, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
+   //printMessage(seedres, "seedres ")
+
+      
+})
+
 
 
  

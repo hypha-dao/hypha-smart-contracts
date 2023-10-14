@@ -1,5 +1,6 @@
 const { describe } = require('riteway')
 const { eos, names, getTableRows, isLocal, getBalance, sleep } = require('../scripts/helper')
+const getCreateDaoData = require("./helpers/getCreateDaoData")
 
 const { daoContract, owner, firstuser, seconduser, thirduser, voice_token, husd_token, hyphatoken } = names
 var crypto = require('crypto');
@@ -16,6 +17,8 @@ const {
 } = require('./docGraph');
 
 const { group } = require('console');
+const getUpvoteElectionDoc = require('./helpers/getUpvoteElectionDoc');
+const getBadgeAssignmentPropData = require('./helpers/getBadgeAssignmentPropData');
 
 const devKeyPair = {
    private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
@@ -196,7 +199,7 @@ const GROUP_WINNER = "ue.group.win"
 
 const BADGE_NAME = "badge"
 
-// inline constexpr auto NEXT_ROUND = eosio::name("ue.nextrnd");
+NEXT_ROUND = "ue.nextrnd"
 // inline constexpr auto ROUND_CANDIDATE = eosio::name("ue.candidate");
 // inline constexpr auto ROUND_WINNER = eosio::name("ue.winner");
 // inline constexpr auto ELECTION_GROUP = eosio::name("ue.elctngrp");
@@ -423,7 +426,7 @@ describe('run upvote election', async assert => {
       //console.log("enrolled member: " + member)
 
       // Give the members delegate badges
-      const badgeProposalData = badgeAssignmentPropData({
+      const badgeProposalData = getBadgeAssignmentPropData({
          assignee: member,
          badgeTitle: "Delegate Badge",
          badgeId: delegateBadge.id,
@@ -729,10 +732,28 @@ describe('run upvote election', async assert => {
 
    assert({
       given: 'election was finished',
-      should: 'no current round edges',
+      should: 'last round is current',
       actual: currentRoundEdge4.length,
-      expected: 0,
+      expected: 1,
    })
+
+   // TODO figure out if next round is set correctly at some point
+   // const startRoundEdge41 = findEdgesByFromNodeAndEdgeName(electionDoc.id, START_ROUND)
+   // const nextRound1 = findEdgesByFromNodeAndEdgeName(startRoundEdge41.to_node, NEXT_ROUND)
+   // const nextRound2 = findEdgesByFromNodeAndEdgeName(nextRound1.to_node, NEXT_ROUND)
+
+   // assert({
+   //    given: 'election was finished',
+   //    should: 'last round is current',
+   //    actual: currentRoundEdge4[0].to_node,
+   //    expected: nextRound1.to_node,
+   // })
+   // assert({
+   //    given: 'election was finished',
+   //    should: 'last round is last',
+   //    actual: nextRound2,
+   //    expected: undefined,
+   // })
 
 
    // Note: if 11 or fewer members are in the election, it ends. It can end with 11 CDs. 
@@ -1307,485 +1328,6 @@ const printMessage = (txresult, title = "tx result") => {
    console.log(title + ": " + JSON.stringify(consoleMessage, null, 2))
 }
 
-const getCreateDaoData = ({
-   dao_name,
-   onboarder_account,
-   voting_duration_sec = 604800,
-   period_duration_sec = 604800,
-}) => {
-   return JSON.parse(`
-  [
-       [
-          {
-             "label":"content_group_label",
-             "value":[
-                "string",
-                "details"
-             ]
-          },
-          {
-             "label":"dao_name",
-             "value":[
-                "name",
-                "${dao_name}"
-             ]
-          },
-          {
-             "label":"dao_title",
-             "value":[
-                "string",
-                "DAO title for ${dao_name}"
-             ]
-          },
-          {
-             "label":"dao_description",
-             "value":[
-                "string",
-                "Dao Description Test"
-             ]
-          },
-          {
-             "label":"is_template",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"dao_template",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"voice_token",
-             "value":[
-                "asset",
-                "1.00 VOICE"
-             ]
-          },
-          {
-             "label":"use_seeds",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"voting_duration_sec",
-             "value":[
-                "int64",
-                "${voting_duration_sec}"
-             ]
-          },
-          {
-             "label":"period_duration_sec",
-             "value":[
-                "int64",
-                "${period_duration_sec}"
-             ]
-          },
-          {
-             "label":"voting_alignment_x100",
-             "value":[
-                "int64",
-                "80"
-             ]
-          },
-          {
-             "label":"voting_quorum_x100",
-             "value":[
-                "int64",
-                "20"
-             ]
-          },
-          {
-             "label":"voice_token_decay_period",
-             "value":[
-                "int64",
-                "604800"
-             ]
-          },
-          {
-             "label":"voice_token_decay_per_period_x10M",
-             "value":[
-                "int64",
-                "100000"
-             ]
-          },
-          {
-             "label":"utility_token_multiplier",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"voice_token_multiplier",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"treasury_token_multiplier",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"onboarder_account",
-             "value":[
-                "name",
-                "${onboarder_account}"
-             ]
-          },
-          {
-             "label":"dao_url",
-             "value":[
-                "string",
-                "dao_url_${dao_name}"
-             ]
-          },
-          {
-             "label":"skip_peg_token_create",
-             "value":[
-                "int64",
-                "1"
-             ]
-          },
-          {
-             "label":"skip_reward_token_create",
-             "value":[
-                "int64",
-                "1"
-             ]
-          }
-       ],
-       [
-          {
-             "label":"content_group_label",
-             "value":[
-                "string",
-                "core_members"
-             ]
-          }
-       ],
-       [
-          {
-             "label":"content_group_label",
-             "value":[
-                "string",
-                "style"
-             ]
-          },
-          {
-             "label":"logo",
-             "value":[
-                "string",
-                ""
-             ]
-          },
-          {
-             "label":"primary_color",
-             "value":[
-                "string",
-                "#242f5d"
-             ]
-          },
-          {
-             "label":"secondary_color",
-             "value":[
-                "string",
-                "#3f64ee"
-             ]
-          },
-          {
-             "label":"text_color",
-             "value":[
-                "string",
-                "#ffffff"
-             ]
-          }
-       ]
-    ]`)
-}
 
-const createDaoData = `
 
-     [
-        {
-           "label":"content_group_label",
-           "value":[
-              "string",
-              "details"
-           ]
-        },
-        {
-           "label":"dao_name",
-           "value":[
-              "name",
-              "a11111111111"
-           ]
-        },
-        {
-           "label":"dao_title",
-           "value":[
-              "string",
-              "DAO 1"
-           ]
-        },
-        {
-           "label":"dao_description",
-           "value":[
-              "string",
-              "Dao Description 1"
-           ]
-        },
-        {
-           "label":"is_template",
-           "value":[
-              "int64",
-              "0"
-           ]
-        },
-        {
-           "label":"dao_template",
-           "value":[
-              "int64",
-              "0"
-           ]
-        },
-        {
-           "label":"voice_token",
-           "value":[
-              "asset",
-              "1.00 VOICE"
-           ]
-        },
-        {
-           "label":"use_seeds",
-           "value":[
-              "int64",
-              "0"
-           ]
-        },
-        {
-           "label":"voting_duration_sec",
-           "value":[
-              "int64",
-              "604800"
-           ]
-        },
-        {
-           "label":"period_duration_sec",
-           "value":[
-              "int64",
-              "604800"
-           ]
-        },
-        {
-           "label":"voting_alignment_x100",
-           "value":[
-              "int64",
-              "80"
-           ]
-        },
-        {
-           "label":"voting_quorum_x100",
-           "value":[
-              "int64",
-              "20"
-           ]
-        },
-        {
-           "label":"voice_token_decay_period",
-           "value":[
-              "int64",
-              "604800"
-           ]
-        },
-        {
-           "label":"voice_token_decay_per_period_x10M",
-           "value":[
-              "int64",
-              "100000"
-           ]
-        },
-        {
-           "label":"utility_token_multiplier",
-           "value":[
-              "int64",
-              "0"
-           ]
-        },
-        {
-           "label":"voice_token_multiplier",
-           "value":[
-              "int64",
-              "0"
-           ]
-        },
-        {
-           "label":"treasury_token_multiplier",
-           "value":[
-              "int64",
-              "0"
-           ]
-        },
-        {
-           "label":"onboarder_account",
-           "value":[
-              "name",
-              "owner"
-           ]
-        },
-        {
-           "label":"dao_url",
-           "value":[
-              "string",
-              "dao1_dao_short_url"
-           ]
-        },
-        {
-           "label":"skip_peg_token_create",
-           "value":[
-              "int64",
-              "1"
-           ]
-        },
-        {
-           "label":"skip_reward_token_create",
-           "value":[
-              "int64",
-              "1"
-           ]
-        }
-     ],
-     [
-        {
-           "label":"content_group_label",
-           "value":[
-              "string",
-              "core_members"
-           ]
-        }
-     ],
-     [
-        {
-           "label":"content_group_label",
-           "value":[
-              "string",
-              "style"
-           ]
-        },
-        {
-           "label":"logo",
-           "value":[
-              "string",
-              ""
-           ]
-        },
-        {
-           "label":"primary_color",
-           "value":[
-              "string",
-              "#242f5d"
-           ]
-        },
-        {
-           "label":"secondary_color",
-           "value":[
-              "string",
-              "#3f64ee"
-           ]
-        },
-        {
-           "label":"text_color",
-           "value":[
-              "string",
-              "#ffffff"
-           ]
-        }
-     ]
-  ]`
-
-const badgeAssignmentPropData = ({ assignee, badgeTitle, badgeId, startPeriodId }) => JSON.parse(`[
-   [
-     {
-       "value": [
-         "string",
-         "details"
-       ],
-       "label": "content_group_label"
-     },
-     {
-       "label": "assignee",
-       "value": [
-         "name",
-         "${assignee}"
-       ]
-     },
-     {
-       "value": [
-         "string",
-         "${badgeTitle}"
-       ],
-       "label": "title"
-     },
-     {
-       "value": [
-         "string",
-         "some text."
-       ],
-       "label": "description"
-     },
-     {
-       "label": "badge",
-       "value": [
-         "int64",
-         ${badgeId}
-       ]
-     },
-     {
-       "value": [
-         "int64",
-         ${startPeriodId}
-       ],
-       "label": "start_period"
-     },
-     {
-       "label": "period_count",
-       "value": [
-         "int64",
-         24
-       ]
-     }
-   ]
-]`)
-
-// a JS Date object for start date
-const getUpvoteElectionDoc = (startDate = new Date()) => {
-   // create an upvote election
-   let time = startDate.toISOString()
-
-   console.log("up elec: " + time)
-
-   // NOTE: The date string is "2023-10-03T03:39:53.250Z" but for some reason
-   // eosjs insists of appending a 'Z' so we have to remove the Z first.
-   if (time.endsWith("Z")) {
-      time = time.slice(0, -1)
-   }
-   
-   return JSON.parse(`[
-   [
-       { "label": "content_group_label", "value": ["string", "details"] },
-       { "label": "upvote_start_date_time", "value": ["time_point", "${time}"] },
-       { "label": "upvote_duration", "value": ["int64", 7776000] },
-       { "label": "duration", "value": ["int64", 3600] }
-   ]
-   ]`)
-}
 
