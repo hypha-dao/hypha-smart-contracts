@@ -572,6 +572,9 @@ describe('run upvote election', async assert => {
 
    }
 
+   /// =============================================================================
+   /// Vote in election
+   /// =============================================================================
    const winners = {}
    for (const group of groups) {
       const members = group.gen_members
@@ -649,7 +652,11 @@ describe('run upvote election', async assert => {
       allWinners.push(groups.gen_winner)
    }
 
-   console.log("Next round 0 -> 1")
+   console.log("Next round 1 -> 2")
+
+   /// =============================================================================
+   /// Update election
+   /// =============================================================================
    const updateVote2 = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
    printMessage(updateVote2, "update 2 result")
    await sleep(1000)
@@ -804,6 +811,30 @@ describe('run upvote election', async assert => {
       actual:  voteForWrongGroup,
       expected: false,
    })
+
+   
+   /// =============================================================================
+   /// Create the 2nd election
+   /// =============================================================================
+
+   console.log("VIDEO LINK")
+   const theVideoLink = "https://somevideolink.com/thisisthelink/etc"
+   const videoGroup = lastGroups[0]
+   const videoMemberObj = videoGroup.gen_members[0]
+   const videoMember = getMemberName(videoMemberObj.id)
+   const videoRes = await contract.upvotevideo(videoGroup.id, videoMember, theVideoLink, { authorization: `${videoMember}@active` })
+   printMessage(videoRes, "videoRes")
+   await updateGraph()
+   const videoGroupDoc = documentCache[videoGroup.id]
+   const video = getValueFromContentGroup("videolink", getContentGroup("details", videoGroupDoc.content_groups))
+
+   assert({
+      given: 'upload video',
+      should: 'video is added to group',
+      actual:  video,
+      expected: theVideoLink,
+   })
+
 
    // Straight into the next election!
 
