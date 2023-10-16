@@ -119,6 +119,8 @@ const accountsMetadata = (network) => {
     return {
       owner: account(owner),
       hyphatoken: token('hypha.hypha', owner, '1500000000.00 HYPHA', "hyphatoken"),
+      voice_token: contract('voice.hypha', 'voice_token'),
+      husd_token: contract('husd.hypha', 'husd_token'),
 
       firstuser: account('seedsuseraaa', '10000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
@@ -127,24 +129,23 @@ const accountsMetadata = (network) => {
       fifthuser: account('seedsuseryyy', '100000.00 HYPHA'),
       sixthuser: account('seedsuserzzz', '5000.00 HYPHA'),
       oracleuser: account('hyphaoracle1', '10000.00 HYPHA'),
-      daoAccount: account('dao.hypha'),
 
       // for testing..
+      daoContract: account('dao.hypha', 'dao'),
       login: contract('logintohypha', 'login'),
       sale: contract('sale.hypha', 'sale'),
       launch_sale: contract('launch.hypha', 'launch_sale'),
       joinhypha: contract('join.hypha', 'joinhypha'),
       paycpu: contract('paycpu.hypha', 'paycpu'),
-      daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
+      upvote: account('upvote.hypha', 'upvote'),
 
     }
   } else if (network == networks.telosMainnet) {
     return {
       owner: account(owner),
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('dao.hypha'),
 
       sale: contract('sale.hypha', 'sale'),
       launch_sale: contract('launch.hypha', 'launch_sale'),
@@ -159,7 +160,9 @@ const accountsMetadata = (network) => {
     return {
       owner: account(owner),
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('mtdhoxhyphaa'),
+      hyphatoken: token('mtrwardhypha', owner, '1500000000.00 HYPHA', "hyphatoken"),
+      voice_token: contract('mtvoicehypha', 'voice_token'),
+      husd_token: contract('mtpegtkhypha', 'husd_token'),
 
       firstuser: account('seedsuseraaa', '1000000.00 HYPHA'),
       seconduser: account('seedsuserbbb', '10000.00 HYPHA'),
@@ -181,7 +184,6 @@ const accountsMetadata = (network) => {
   } else if (network == networks.eosMainnet) {
     return {
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('dao.hypha'),
 
       // EOS mainnet doesn't have most of the accounts
       joinhypha: contract('join.hypha', 'joinhypha'),
@@ -198,7 +200,6 @@ const accountsMetadata = (network) => {
   } else if (network == networks.eosTestnet) {
     return {
       oracleuser: account('hyphaoracle1'),
-      daoAccount: account('daoxhypha111'),
 
       // we don't deploy sale contract on EOS, but defining it here
       sale: contract('sale.hypha', 'sale'),
@@ -290,16 +291,18 @@ const contractPermissions = {
       target: `${accounts.joinhypha.account}@active`,
       actor: `${accounts.joinhypha.account}@eosio.code`
     }, {
-      target: `${accounts.daoAccount.account}@autoenroll`,
+      target: `${accounts.daoContract.account}@autoenroll`,
       actor: `${accounts.joinhypha.account}@eosio.code`,
       parent: 'active',
       type: 'createActorPermission'
     }, {
-      target: `${accounts.daoAccount.account}@autoenroll`,
+      target: `${accounts.daoContract.account}@autoenroll`,
       action: 'autoenroll'
     }
   ],
 
+  // owner     1:    1 EOS6TzH8pWkRqzdQLpVz7W2awY2CycTckkkjEi9FvormYTiVff5iz, 1 dao.hypha@active
+  // active     1:    1 EOS6TzH8pWkRqzdQLpVz7W2awY2CycTckkkjEi9FvormYTiVff5iz, 1 dao.hypha@active, 1 dao.hypha@eosio.code, 1 voice.hypha@eosio.code
   paycpu: [
     {
       target: `${accounts.paycpu.account}@payforcpu`,
@@ -325,6 +328,39 @@ const contractPermissions = {
     },
   ],
 
+  // External contracts / binaries permissions
+
+  hyphatoken: [
+    {
+      target: `${accounts.hyphatoken.account}@active`,
+      actor: `${accounts.hyphatoken.account}@eosio.code`
+    }, {
+      target: `${accounts.hyphatoken.account}@active`,
+      actor: `${accounts.daoContract.account}@eosio.code`,
+    }
+  ],
+
+  voice_token: [
+    {
+      target: `${accounts.voice_token.account}@active`,
+      actor: `${accounts.voice_token.account}@eosio.code`
+    }, {
+      target: `${accounts.voice_token.account}@active`,
+      actor: `${accounts.daoContract.account}@eosio.code`,
+    }
+    // , { // I DONT THINK WE NEED THIS SINCE WE HAVE code permission
+    //   target: `${accounts.voice_token.account}@active`,
+    //   actor: `${accounts.daoContract.account}@active`,
+    // }
+],
+
+daoContract: [
+  {
+    target: `${accounts.daoContract.account}@active`,
+    actor: `${accounts.daoContract.account}@eosio.code`
+  },
+],
+
 }
 
 const isTestnet = (chainId == networks.telosTestnet) || (chainId == networks.eosTestnet)
@@ -345,6 +381,9 @@ const keyProviders = {
   ],
   [networks.telosTestnet]: [
     process.env.TELOS_TESTNET_ACTIVE_KEY,
+    process.env.TELOS_TESTNET_DAO_CREATOR_KEY,
+    process.env.TELOS_TESTNET_DAO_CONTRACT_KEY,
+    process.env.TELOS_TESTNET_ACCOUNTS_KEY,
   ],
   [networks.eosMainnet]: [
     process.env.EOS_MAINNET_ACTIVE_KEY,
@@ -361,7 +400,6 @@ const keyProvider = keyProviders[chainId].filter((item) => item)
 if (keyProvider.length == 0 || keyProvider[0] == null) {
   console.log("ERROR: Invalid Key Provider: " + JSON.stringify(keyProvider, null, 2))
 }
-
 const isLocal = () => { return chainId == networks.local }
 const isTelosTestnet = () => { return chainId == networks.telosTestnet }
 

@@ -4,7 +4,7 @@ const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows, contractPermissions } = require('./helper')
-const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoAccount } = names
+const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoContract } = names
 
 const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
@@ -33,6 +33,12 @@ const getContractLocation = (contract) => {
       contractSourceName: "sale"
     }
   } else if (contract == 'hyphatoken') {
+    return {
+      source: `./src/seeds.startoken.cpp`,
+      include: "",
+      contractSourceName: "startoken"
+    }
+  } else if (contract == 'husd_token') {
     return {
       source: `./src/seeds.startoken.cpp`,
       include: "",
@@ -182,6 +188,15 @@ program
   })
 
   program
+  .command('init_upvote')
+  .description('Init unit tests for upvote')
+  .action(async function () {
+    await batchCallFunc("dao", [], deployAction)
+    await batchCallFunc("hyphatoken", ["husd_token", "voice_token"], runAction)
+    await batchCallFunc("dao", ["hyphatoken", "husd_token", "voice_token"], permissionsAction)
+  })
+
+  program
   .command('permissions <contract> [moreContracts...]')
   .description('Run unit tests for deployed contract')
   .action(async function (contract, moreContracts) {
@@ -246,8 +261,8 @@ program
   .action(async function () {
     const contract = await eos.contract(paycpu)
 
-    console.log("set dao contract on " + paycpu + " to: " + daoAccount)
-    await contract.configure(daoAccount, { authorization: `${paycpu}@active` })
+    console.log("set dao contract on " + paycpu + " to: " + daoContract)
+    await contract.configure(daoContract, { authorization: `${paycpu}@active` })
     console.log("done");
 
   })

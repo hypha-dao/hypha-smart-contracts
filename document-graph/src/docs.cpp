@@ -26,18 +26,18 @@ namespace hypha
       eosio::check(document.getCreated().sec_since_epoch() > 0, "created_date not populated when saved");
    }
 
-   void docs::newedge(name &creator, const checksum256 &from_node, const checksum256 &to_node, const name &edge_name)
+   void docs::newedge(name &creator, const uint64_t &from_node, const uint64_t &to_node, const name &edge_name)
    {
       Edge edge(get_self(), creator, from_node, to_node, edge_name);
    }
 
-   void docs::removeedge(const checksum256 &from_node, const checksum256 &to_node, const name &edge_name)
+   void docs::removeedge(const uint64_t &from_node, const uint64_t &to_node, const name &edge_name)
    {
       Edge edge = Edge::get(get_self(), from_node, to_node, edge_name);
       edge.erase();
    }
 
-   void docs::erase(const checksum256 &hash)
+   void docs::erase(const uint64_t &hash)
    {
       DocumentGraph dg(get_self());
       dg.eraseDocument(hash);
@@ -67,6 +67,19 @@ namespace hypha
 
       auto [idx, contentGroup] = document.getContentWrapper().getGroup(groupLabel);
       check(idx > -1, "group was not found");
+   }
+   
+   void docs::testcntnterr(string test) 
+   {
+     ContentGroups cgs{
+       ContentGroup{
+         Content{CONTENT_GROUP_LABEL, "test"},
+         Content{"test_label", string("hello world")}
+       }
+     };
+     ContentWrapper cw(cgs);
+
+     cw.getOrFail("test", "test_label")->getAs<int64_t>();
    }
 
    void docs::createroot(const std::string &notes)

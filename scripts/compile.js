@@ -23,7 +23,38 @@ const command = ({ contract, source, include, dir, contractSourceName }) => {
   const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
   const testnetFlag = isTelosTestnet() ? " -DIS_TELOS_TESTNET" : ""
 if (process.env.COMPILER === 'local') {
-    cmd = "eosio-cpp -abigen -I " + inc + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source;
+    if (contractSourceName == "upvote") {
+      const args = contractSourceName + testingFlag + testnetFlag
+      // TODO - grab additional source files and additional import locations using the contract name
+      // list impportDirectories = ["include", "./document-graph/include", ...]
+      // list sourcefiles = ["./src/upvote_election/election_round.cpp", "./src/upvote_election/graph.cpp", ...]
+      // then generate the command from that
+      console.log("compiling upvate... " + args)
+
+      const sourceFiles = [
+        "./src/upvote.cpp",
+        "./src/upvote_election/election_round.cpp",
+        "./src/upvote_election/graph.cpp",
+        "./src/upvote_election/typed_document.cpp",
+        "./src/upvote_election/upvote_election.cpp",
+        "./src/upvote_election/vote_group.cpp",
+        "./document-graph/src/document_graph/content.cpp",
+        "./document-graph/src/document_graph/content_wrapper.cpp",
+        "./document-graph/src/document_graph/document.cpp",
+        "./document-graph/src/document_graph/document_graph.cpp",
+        "./document-graph/src/document_graph/edge.cpp",
+        "./document-graph/src/document_graph/util.cpp",
+        "./document-graph/src/logger/logger.cpp",
+      ]
+
+      cmd = `eosio-cpp -abigen -I ./include -I ./document-graph/include -contract ${args} -o ./artifacts/upvote.wasm ${sourceFiles.join(" ")}`
+
+      console.log("command: " + cmd)
+
+    } else {
+      // normal contracts...
+      cmd = "eosio-cpp -abigen -O=s --lto-opt=O3 --no-missing-ricardian-clause --fmerge-all-constants -I " + inc + " -I ./document-graph/include" + " -contract " + contractSourceName + testingFlag + testnetFlag + " -o ./artifacts/" + contract + ".wasm " + source; 
+    }
   } else {
     cmd = `docker run --rm --name eosio.cdt_v1.7.0-rc1 --volume ${volume}:/project -w /project eostudio/eosio.cdt:v1.7.0-rc1 /bin/bash -c "echo 'starting';eosio-cpp -abigen -I ${inc} -contract ${contract} -o ./artifacts/${contract}.wasm ${source}"`
   }
@@ -68,28 +99,28 @@ const compile = async ({ contract, source, include = "", contractSourceName }) =
   const docGraphInclude = dir + 'include/document_graph'
   const docGraphSrc = dir + 'src/document_graph'
 
-  const docGraphIncludeFound = await existsAsync(docGraphInclude)
-  const docGraphSrcFound = await existsAsync(docGraphSrc)
+  // const docGraphIncludeFound = await existsAsync(docGraphInclude)
+  // const docGraphSrcFound = await existsAsync(docGraphSrc)
 
-  if (!docGraphIncludeFound) {
-    fse.copySync(dir + 'document-graph/include/document_graph', docGraphInclude, { overwrite: true }, (err) => {
-      if (err) {
-        throw new Error('' + err)
-      } else {
-        console.log("document graph submodule include prepared")
-      }
-    })
-  }
+  // if (!docGraphIncludeFound) {
+  //   fse.copySync(dir + 'document-graph/include/document_graph', docGraphInclude, { overwrite: true }, (err) => {
+  //     if (err) {
+  //       throw new Error('' + err)
+  //     } else {
+  //       console.log("document graph submodule include prepared")
+  //     }
+  //   })
+  // }
 
-  if (!docGraphSrcFound) {
-    fse.copySync(dir + 'document-graph/src/document_graph', docGraphSrc, { overwrite: true }, (err) => {
-      if (err) {
-        throw new Error('' + err)
-      } else {
-        console.log("document graph submodule src prepared")
-      }
-    })
-  }
+  // if (!docGraphSrcFound) {
+  //   fse.copySync(dir + 'document-graph/src/document_graph', docGraphSrc, { overwrite: true }, (err) => {
+  //     if (err) {
+  //       throw new Error('' + err)
+  //     } else {
+  //       console.log("document graph submodule src prepared")
+  //     }
+  //   })
+  // }
 
   // run compile
   const execCommand = command({ contract, source, include, dir, contractSourceName })
@@ -118,6 +149,8 @@ const buildFileMap = {
   'tier_vesting.abi': 'tier_vesting.abi',
   'staking.wasm': 'staking.wasm',
   'staking.abi': 'staking.abi',
+  'upvote.wasm': 'upvote.wasm',
+  'upvote.abi': 'upvote.abi',
 }
 
 function copyFiles(sourceDir, destinationDir, fileMap) {
@@ -134,7 +167,9 @@ function copyFiles(sourceDir, destinationDir, fileMap) {
       const destinationFile = fileMap[file]
       if (!destinationFile) {
         console.log('incomplete map missing ' + file + ' map: ' + fileMap)
-        throw 'incomplete map'
+        console.log('ignored')
+        return
+        //throw 'incomplete map'
       }
       const destinationPath = path.join(destinationDir, destinationFile);
 

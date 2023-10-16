@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	eos "github.com/eoscanada/eos-go"
+	"github.com/k0kubun/go-ansi"
+	"github.com/schollz/progressbar/v3"
 )
 
 // DocumentGraph is defined by a root node, and is aware of nodes and edges
@@ -67,6 +69,23 @@ func GetEdgesFromDocumentWithEdge(ctx context.Context, api *eos.API, contract eo
 	return namedEdges, nil
 }
 
+// GetDocumentsWithEdge retrieves a list of documents connected to the provided document via the provided edge name
+func GetDocumentsWithEdge(ctx context.Context, api *eos.API, contract eos.AccountName, document Document, edgeName eos.Name) ([]Document, error) {
+	edges, err := GetEdgesFromDocumentWithEdge(ctx, api, contract, document, edgeName)
+	if err != nil {
+		return []Document{}, fmt.Errorf("error retrieving edges %v", err)
+	}
+
+	documents := make([]Document, len(edges))
+	for index, edge := range edges {
+		documents[index], err = LoadDocument(ctx, api, contract, edge.ToNode.String())
+		if err != nil {
+			return []Document{}, fmt.Errorf("error loading document %v", err)
+		}
+	}
+	return documents, nil
+}
+
 // GetEdgesToDocumentWithEdge retrieves a list of edges from this node to other nodes
 func GetEdgesToDocumentWithEdge(ctx context.Context, api *eos.API, contract eos.AccountName, document Document, edgeName eos.Name) ([]Edge, error) {
 	edges, err := getEdgesByIndex(ctx, api, contract, document, string("3"))
@@ -118,8 +137,10 @@ func GetLastDocumentOfEdge(ctx context.Context, api *eos.API, contract eos.Accou
 	request.Reverse = true
 	request.Index = "8"
 	request.KeyType = "i64"
-	request.Limit = 10000
+	request.Limit = 1000
 	request.JSON = true
+	// request.LowerBound = sdtrinedgeName
+	// request.UpperBound = edgeName
 	response, err := api.GetTableRows(ctx, request)
 	if err != nil {
 		return Document{}, fmt.Errorf("json to struct: %v", err)
@@ -142,7 +163,9 @@ func GetLastDocumentOfEdge(ctx context.Context, api *eos.API, contract eos.Accou
 func getRange(ctx context.Context, api *eos.API, contract eos.AccountName, id, count int) ([]Document, bool, error) {
 	var documents []Document
 	var request eos.GetTableRowsRequest
-	request.LowerBound = strconv.Itoa(id)
+	if id > 0 {
+		request.LowerBound = strconv.Itoa(id)
+	}
 	request.Code = string(contract)
 	request.Scope = string(contract)
 	request.Table = "documents"
@@ -160,28 +183,67 @@ func getRange(ctx context.Context, api *eos.API, contract eos.AccountName, id, c
 	return documents, response.More, nil
 }
 
+// GetAllDocumentsForType reads all documents and returns them in a slice
+func GetAllDocumentsForType(ctx context.Context, api *eos.API, contract eos.AccountName, docType string) ([]Document, error) {
+
+	allDocuments, err := GetAllDocuments(ctx, api, contract)
+	if err != nil {
+		return []Document{}, fmt.Errorf("cannot get all documents %v", err)
+	}
+
+	var filteredDocs []Document
+	for _, doc := range allDocuments {
+
+		typeFV, err := doc.GetContent("type")
+		if err == nil &&
+			typeFV.Impl.(eos.Name) == eos.Name(docType) {
+			filteredDocs = append(filteredDocs, doc)
+		}
+	}
+
+	return filteredDocs, nil
+}
+
 // GetAllDocuments reads all documents and returns them in a slice
 func GetAllDocuments(ctx context.Context, api *eos.API, contract eos.AccountName) ([]Document, error) {
 
 	var allDocuments []Document
+	batchSize := 75
 
-	cursor := 0
-	batchSize := 100
+	bar := DefaultProgressBar("Retrieving graph for cache ... ", -1) // progressbar.Default(-1)
 
-	batch, more, err := getRange(ctx, api, contract, cursor, batchSize)
+	batch, more, err := getRange(ctx, api, contract, 0, batchSize)
 	if err != nil {
 		return []Document{}, fmt.Errorf("json to structs %v", err)
 	}
 	allDocuments = append(allDocuments, batch...)
+	bar.Add(batchSize)
 
 	for more {
-		cursor += batchSize
-		batch, more, err = getRange(ctx, api, contract, cursor, batchSize)
+		batch, more, err = getRange(ctx, api, contract, int(batch[len(batch)-1].ID), batchSize)
 		if err != nil {
 			return []Document{}, fmt.Errorf("json to structs %v", err)
 		}
 		allDocuments = append(allDocuments, batch...)
+		bar.Add(batchSize)
 	}
 
+	bar.Clear()
 	return allDocuments, nil
+}
+
+func DefaultProgressBar(prefix string, counter int) *progressbar.ProgressBar {
+	return progressbar.NewOptions(counter,
+		progressbar.OptionSetWriter(ansi.NewAnsiStdout()),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetWidth(90),
+		// progressbar.OptionShowIts(),
+		progressbar.OptionSetDescription("[cyan]"+fmt.Sprintf("%20v", prefix)),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
 }
