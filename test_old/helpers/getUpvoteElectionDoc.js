@@ -15,8 +15,8 @@ module.exports = getUpvoteElectionDoc = (startDate = new Date()) => {
     [
         { "label": "content_group_label", "value": ["string", "details"] },
         { "label": "upvote_start_date_time", "value": ["time_point", "${time}"] },
-        { "label": "upvote_duration", "value": ["int64", 7776000] },
-        { "label": "duration", "value": ["int64", 3600] }
+        { "label": "upvote_duration", "value": ["int64", 600] },
+        { "label": "duration", "value": ["int64", 600] }
     ]
     ]`)
  }
