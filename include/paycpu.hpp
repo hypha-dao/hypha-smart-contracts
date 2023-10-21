@@ -43,7 +43,7 @@ private:
     typedef eosio::multi_index<"configs"_n, config> configs_table;
     typedef eosio::singleton<"configs"_n, config> configs_singleton;
 
-    /// This table definition is from dao.hypha
+    /// config table for new users
     TABLE newMembers {
         name name;
         time_point created_at;
