@@ -210,6 +210,11 @@ const accountsMetadata = (network) => {
       tier_vesting: account('vestngxhypha', 'tier_vesting'),
       staking: account('stakexhypha1', 'staking'),
 
+      // not available but need to be defined
+      launch_sale: account(' '),
+      hyphatoken: account(' '),
+      voice_token: account(' '),
+
     }
   } else {
     throw new Error(`${network} deployment not supported`)
@@ -249,6 +254,7 @@ const payForCPUKeys = {
   [networks.telosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
   [networks.telosTestnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
   [networks.eosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
+  [networks.eosTestnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
 }
 
 const payForCPUPublicKey = payForCPUKeys[chainId]
