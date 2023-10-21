@@ -57,7 +57,7 @@ CONTRACT joinhypha : public contract {
 
       typedef multi_index<"kv"_n, kv> kv_table;
 
-      ACTION setconfig ( const name& account_creator_contract, const name& account_creator_oracle );
+      ACTION setconfig ( const name& account_creator_oracle );
       ACTION setsetting ( const name& setting_name, const uint8_t& setting_value );
       ACTION setkv(const name& key, const std::variant<name, uint64_t, asset, std::string>& value);
 
@@ -70,6 +70,9 @@ CONTRACT joinhypha : public contract {
       ACTION redeeminvite(const name account, const checksum256 secret);
 
     private: 
+
+      name paycpu_account = name("paycpu.acct");
+      name oracle_account = name("oracle");
       void create_account(name account, string publicKey);
       std::variant<name, uint64_t, asset, std::string> get_kv(const name& key);
 

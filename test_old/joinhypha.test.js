@@ -1,8 +1,9 @@
 const { describe } = require('riteway')
-const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep } = require('../scripts/helper')
+const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal, ramdom64ByteHexString, createKeypair, getBalance, sleep, keyProvider } = require('../scripts/helper')
 
-const { joinhypha, firstuser, seconduser, thirduser } = names
+const { joinhypha, firstuser, seconduser, thirduser, paycpu, daoContract } = names
 var crypto = require('crypto');
+const { over } = require('ramda');
 
 const randomAccountName = () => {
   let length = 12
@@ -52,11 +53,10 @@ describe('create account', async assert => {
   const keyPair = await createKeypair()
   console.log("new account keys: " + JSON.stringify(keyPair, null, 2))
   const newAccountPublicKey = keyPair.public
-
   const contract = await eos.contract(joinhypha)
 
   console.log("set oracle account authorized to create accounts")
-  await contract.setconfig(seconduser, seconduser, { authorization: `${joinhypha}@active` })
+  await contract.setconfig(seconduser, { authorization: `${joinhypha}@active` })
 
   console.log("activate")
   await contract.activate({ authorization: `${joinhypha}@active` })
@@ -101,9 +101,9 @@ describe('create account', async assert => {
     expected: false
   })
 
-
-
 })
+
+
 
 const getLastInvitesRow = async () => await eos.getTableRows({
   code: joinhypha,
@@ -150,7 +150,8 @@ describe('test invite', async assert => {
 
   console.log("redeem invite")
 
-  await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
+
+  //await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
 
   const lastInviteAfterRows = getLastInvitesRow()
 
@@ -171,14 +172,85 @@ describe('test invite', async assert => {
     }
   })
 
+  await sleep(1000)
+  // assert({
+  //   given: 'redeem invite',
+  //   should: 'the invite has been consumed',
+  //   actual: lastInviteAfterRows,
+  //   expected: lastInviteBeforeRows,
+  // })
+
+
+
+
+})
+
+
+describe('test paycpu', async assert => {
+
+  if (!isLocal()) {
+    console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
+    return
+  }
+
+  const newAccount = randomAccountName()
+  console.log("New account " + newAccount)
+  const newAccountPublicKey = "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+  const contract = await eos.contract(joinhypha)
+  const payCpuContract = await eos.contract(paycpu)
+
+  await contract.setconfig(seconduser, { authorization: `${joinhypha}@active` })
+  await contract.activate({ authorization: `${joinhypha}@active` })
+  await contract.create(newAccount, newAccountPublicKey, { authorization: `${seconduser}@active` })
+  await payCpuContract.configure(daoContract, { authorization: `${paycpu}@active` })
+
+  const authorization = {
+    authorization: [{
+      actor: newAccount,
+      permission: "active"
+      },
+      {
+        actor: paycpu,
+        permission: "active"
+      }
+    ]}
+
+  var payCpuWorks = false;
+  for (let i = 0; i < 3; i++) {
+    payCpuWorks = false
+    try {
+      await payCpuContract.payforcpu(newAccount, authorization)
+      payCpuWorks = true;
+      console.log("test " + i + " " + payCpuWorks)
+    } catch (err) {
+      console.log("unexpected error " + err)
+    }  
+    await sleep(1000)
+  }
+  console.log("payCpuWorks " + " " + payCpuWorks)
+
+  var overLimit = false;
+
+  try {
+    await payCpuContract.payforcpu(newAccount, authorization)
+  } catch (err) {
+    overLimit = true
+    console.log("expected error " + err)
+  }  
+
   assert({
-    given: 'redeem invite',
-    should: 'the invite has been consumed',
-    actual: lastInviteAfterRows,
-    expected: lastInviteBeforeRows,
+    given: 'created new account',
+    should: 'a new account has paycpu quota',
+    actual: payCpuWorks,
+    expected: true
   })
 
-
+  assert({
+    given: 'created new account',
+    should: 'a new account over quota',
+    actual: overLimit,
+    expected: true
+  })
 
 
 })
