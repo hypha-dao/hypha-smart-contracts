@@ -210,6 +210,11 @@ const accountsMetadata = (network) => {
       tier_vesting: account('vestngxhypha', 'tier_vesting'),
       staking: account('stakexhypha1', 'staking'),
 
+      // not available but need to be defined
+      launch_sale: account(' '),
+      hyphatoken: account(' '),
+      voice_token: account(' '),
+
     }
   } else {
     throw new Error(`${network} deployment not supported`)
@@ -249,6 +254,7 @@ const payForCPUKeys = {
   [networks.telosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
   [networks.telosTestnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
   [networks.eosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
+  [networks.eosTestnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
 }
 
 const payForCPUPublicKey = payForCPUKeys[chainId]
@@ -311,7 +317,16 @@ const contractPermissions = {
     }, {
       target: `${accounts.paycpu.account}@payforcpu`,
       action: 'payforcpu'
-    }
+    }, {
+      target: `${accounts.paycpu.account}@newacct`,
+      actor: `${accounts.joinhypha.account}@eosio.code`,
+      parent: 'active',
+      type: 'createActorPermission'
+    },{
+      target: `${accounts.paycpu.account}@newacct`,
+      action: 'newacct'
+    }, 
+    
   ],
 
   tier_vesting: [
@@ -372,7 +387,11 @@ const isLocalNet = chainId == networks.local
 // Note: We used to put keys into the .env file but that's unsecure, so going 
 // forward deployments are done with cleos or msig - only with protected wallets  
 const keyProviders = {
-  [networks.local]: [process.env.LOCAL_PRIVATE_KEY, process.env.LOCAL_PRIVATE_KEY, process.env.APPLICATION_KEY],
+  [networks.local]: [
+    process.env.LOCAL_PRIVATE_KEY, 
+    process.env.LOCAL_PRIVATE_KEY, 
+    process.env.APPLICATION_KEY
+  ],
   [networks.telosMainnet]: [
     process.env.TELOS_MAINNET_ACTIVE_KEY,
     // process.env.TELOS_MAINNET_HYPHA_OWNER_KEY, 

@@ -94,6 +94,7 @@ class Eos {
 
         let auth
         const { authorization } = arguments[arguments.length - 1]
+
         if (Array.isArray(authorization)) {
           auth = authorization
         } else {

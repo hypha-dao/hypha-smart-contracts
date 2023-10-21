@@ -13,8 +13,12 @@ public:
 
     ACTION payforcpu(name account);
     ACTION configure(name contractName);
+    ACTION newacct(name account);
+
 
 private:
+
+    void check_new_member(const eosio::name& account_name);
 
     /// This table definition is from dao.hypha
     TABLE nametoid {
@@ -38,6 +42,18 @@ private:
 
     typedef eosio::multi_index<"configs"_n, config> configs_table;
     typedef eosio::singleton<"configs"_n, config> configs_singleton;
+
+    /// config table for new users
+    TABLE newMembers {
+        name name;
+        time_point created_at;
+        uint32_t used;
+
+        uint64_t primary_key() const { return name.value; }
+    };
+
+    typedef multi_index<"newmembers"_n, newMembers> new_members_table;
+
 };
 
-EOSIO_DISPATCH(paycpu, (payforcpu)(configure))
+EOSIO_DISPATCH(paycpu, (payforcpu)(configure)(newacct))

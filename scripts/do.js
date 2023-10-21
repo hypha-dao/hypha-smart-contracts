@@ -227,8 +227,10 @@ program
   .action(async function () {
     const contract = await eos.contract(joinhypha)
 
-    console.log("set oracle account authorized to create accounts")
-    await contract.setconfig(oracleuser, oracleuser, { authorization: `${joinhypha}@active` })
+    console.log("set oracle account authorized to create accounts " + oracleuser)
+    await contract.setconfig(oracleuser, { authorization: `${joinhypha}@active` })
+    console.log("set paycpu account " + paycpu)
+    await contract.setkv("paycpu.acct", ["name", paycpu], { authorization: `${joinhypha}@active` })
 
     console.log("activate")
     await contract.activate({ authorization: `${joinhypha}@active` })

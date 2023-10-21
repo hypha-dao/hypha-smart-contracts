@@ -1,16 +1,11 @@
 #include <hypha.accountcreator.hpp>
 
-void joinhypha::setconfig ( const name& account_creator_contract, const name& account_creator_oracle ) {
+void joinhypha::setconfig ( const name& account_creator_oracle ) {
    require_auth (get_self());
 
-   check ( is_account (account_creator_contract), "Provided account creator contract is not a Telos account: " + account_creator_contract.to_string());
-   check ( is_account (account_creator_oracle), "Provided account creator oracle is not a Telos account: " + account_creator_oracle.to_string());
+   check ( is_account (account_creator_oracle), "Provided account creator oracle does not exist: " + account_creator_oracle.to_string());
 
-   config_table      config_s (get_self(), get_self().value);
-   config c = config_s.get_or_create (get_self(), config());
-   c.account_creator_contract = account_creator_contract;
-   c.account_creator_oracle = account_creator_oracle;
-   config_s.set(c, get_self());
+   setkv(oracle_account, account_creator_oracle);
 }
 
 void joinhypha::setsetting ( const name& setting_name, const uint8_t& setting_value ) {
@@ -32,11 +27,13 @@ void joinhypha::activate () {
 
 void joinhypha::create ( const name& account_to_create, const string& key) {
 
+   auto oracle_account_value = get_kv(name(oracle_account));
+   const name oracle_account_name = std::get<name>(oracle_account_value);
+
+   require_auth (oracle_account_name);
+
    config_table      config_s (get_self(), get_self().value);
    config c = config_s.get_or_create (get_self(), config());
-
-   require_auth (c.account_creator_oracle);
-
    uint8_t paused = c.settings[name("active")];
    check (c.settings["active"_n] == 1, "Contract is not active. Exiting.");
 
@@ -79,6 +76,20 @@ void joinhypha::create_account(name account, string publicKey)
       "eosio"_n, "delegatebw"_n,
       make_tuple(_self, account, net_stake, cpu_stake, 0))
       .send();
+   
+   // if paycpu is specified, send info there
+   kv_table kv(get_self(), get_self().value);
+   auto kv_itr = kv.find(paycpu_account.value);
+   if (kv_itr != kv.end()) {
+      name paycpu_contract = std::get<name>(kv_itr->value);
+
+      action(
+         permission_level{paycpu_contract, "newacct"_n},
+         paycpu_contract, "newacct"_n,
+         make_tuple(account))
+         .send();
+   }
+   
 }
 
 ACTION joinhypha::createinvite(const uint64_t dao_id, const name dao_name, const string dao_fullname, const name inviter, const checksum256 hashed_secret) {
