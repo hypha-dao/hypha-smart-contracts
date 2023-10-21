@@ -196,6 +196,11 @@ const accountsMetadata = (network) => {
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
 
+      // not available but need to be defined
+      launch_sale: account(' '),
+      hyphatoken: account(' '),
+      voice_token: account(' '),
+      
     }
   } else if (network == networks.eosTestnet) {
     return {
