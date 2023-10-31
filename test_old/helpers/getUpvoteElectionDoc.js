@@ -1,5 +1,9 @@
 /// startDate: a JS Date object for start date
-module.exports = getUpvoteElectionDoc = (startDate = new Date()) => {
+module.exports = getUpvoteElectionDoc = ({
+    startDate = new Date(),
+    roundDurationSeconds = 600,
+    durationSeconds = 600,
+}) => {
     // create an upvote election
     let time = startDate.toISOString()
  
@@ -15,8 +19,8 @@ module.exports = getUpvoteElectionDoc = (startDate = new Date()) => {
     [
         { "label": "content_group_label", "value": ["string", "details"] },
         { "label": "upvote_start_date_time", "value": ["time_point", "${time}"] },
-        { "label": "upvote_duration", "value": ["int64", 600] },
-        { "label": "duration", "value": ["int64", 600] }
+        { "label": "upvote_duration", "value": ["int64", ${durationSeconds}] },
+        { "label": "duration", "value": ["int64", ${roundDurationSeconds}] }
     ]
     ]`)
  }

@@ -1,34 +1,47 @@
 const fetch = require('node-fetch')
+const { graphQLEndpoint } = require('../helper');
+const fetchGraphQLQuery = require('./fetchGraphQLQuery');
 
-const fetchElectionData = async (daoName, endpointUrl = "https://alpha-stts.tekit.io/graphql") => {
-    var myHeaders = new Headers();
-    myHeaders.append("Accept-Encoding", "gzip, deflate, br");
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Accept", "application/json");
-    myHeaders.append("Connection", "keep-alive");
-    myHeaders.append("DNT", "1");
-    myHeaders.append("Origin", "file://");
-    
-    var raw = JSON.stringify({
-      "query": `query {\n  getDao(details_daoName_n: \"${daoName}\") {\n    docId\n\n    ueUpcoming {\n      docId\n      ueStartrnd {\n        ueGroupLnk {\n          docId\n        }\n      }\n    }\n    ueOngoing {\n      docId\n\n      # ueStartrnd {\n      #   docId\n      #   ueGroupLnk {\n      #     docId\n      #     ueVote {\n      #       docId\n      #       details_voterId_i\n      #       details_votedId_i\n      #     }\n      #     ueGroupWin {\n      #       docId\n      #     }\n      #   }\n      # }\n\n      ueCurrnd {\n        docId\n        ueGroupLnk {\n          docId\n          ueRdMember {\n            docId\n            details_member_n\n          }\n          ueGroupWin {\n            docId\n          }\n        }\n      }\n    }\n#     ueElection {\n#       docId\n#       ueRound {\n#         docId\n#         nextround {\n#           docId\n#         }\n#         ueGroupLnk {\n#           docId\n#           ueVote {\n#             docId\n#             details_voterId_i\n#             details_votedId_i\n#           }\n#           ueGroupWin {\n#             docId\n#           }\n#         }\n#       }\n#       ueStartrnd {\n#         docId\n#         ueGroupLnk {\n#           docId\n#           ueVote {\n#             docId\n#             details_voterId_i\n#             details_votedId_i\n#           }\n#           ueGroupWin {\n#             docId\n#           }\n#         }\n#       }\n\n#       ueCurrnd {\n#         docId\n#         ueGroupLnk {\n#           docId\n#           ueRdMember {\n#             docId\n#             details_member_n\n#           }\n#           ueGroupWin {\n#             docId\n#           }\n#         }\n#       }\n#     }\n  }\n}\n`
-    });
-    
-    var requestOptions = {
-      method: 'POST',
-      headers: myHeaders,
-      body: raw,
-      redirect: 'follow'
-    };
-    
-
-    const res = await fetch(endpointUrl, requestOptions)
-    const parsedResponse = await res.json();
-
-    return parsedResponse
+const fetchElectionData = async (daoName, endpointUrl = graphQLEndpoint) => {
+    const res = await fetchGraphQLQuery(query(daoName))
+    return res
 }
 
 module.exports = fetchElectionData
 
+const query = (daoName) => `query {
+  getDao(details_daoName_n: "${daoName}") {
+    docId
+
+    ueUpcoming {
+      docId
+      ueStartrnd {
+        details_startDate_t
+        details_endDate_t
+        ueGroupLnk {
+          docId
+        }
+      }
+    }
+    ueOngoing {
+      docId
+      ueCurrnd {
+        details_startDate_t
+        details_endDate_t
+        docId
+        ueGroupLnk {
+          docId
+          ueRdMember {
+            docId
+            details_member_n
+          }
+        }
+      }
+    }
+  }
+}
+
+`
 
 /////////////// Data may look like this
 // const roundOneData2 = {

@@ -24,8 +24,13 @@ const {
 
 const { group } = require('console');
 const fetchElectionData = require('./helpers/fetchElectionData');
+const fetchDelegateBadgeId = require('./helpers/fetchDelegateBadgeID');
+const fetchDaoId = require('./helpers/fetchDaoId');
+const { default: fetch } = require('node-fetch');
+const getPayCpuAction = require('./helpers/getPayCpuAction');
 
 const accountsPublicKey = process.env.TELOS_TESTNET_ACCOUNTS_PUBLIC_KEY;
+const accountsPublicKeyEosMainnet = process.env.EOS_MAINNET_ACCOUNTS_PUBLIC_KEY
 
 const devKeyPair = {
    private: "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",  // local dev key
@@ -175,15 +180,30 @@ const createMultipleAccountsWithNames = async ({names, publicKey, creator}) => {
    for (let i = 0; i < names.length; i++) {
       const member = names[i].trim()
 
-      console.log("creating account: " + member)
+
+      try {
+         const res = await eos.getAccount(member)
+         console.log("accoint exists, skipping: " + member  + " res: " + res)
+         continue
+      } catch (err) {
+         // account doesn't exist
+         console.log("creating account: " + member)
+      }
+
+      let cpuStake = '0.2000 TLOS'
+      let netStake = '0.2000 TLOS'
+      if (process.env.EOSIO_NETWORK.startsWith("eos")) {
+         cpuStake = '0.0100 EOS'
+         netStake = '0.0100 EOS'
+      }
 
       await createAccount({
          account: member,
          publicKey: publicKey,
          creator: creator,
          stakes: {
-            cpu: '0.5000 TLOS',
-            net: '0.5000 TLOS',
+            cpu: cpuStake,
+            net: netStake,
             ram: 5000
           },
       })
@@ -615,7 +635,7 @@ const autoAddDelegateBadge = async ({
    startPeriodDocId,
 }) => {
    console.log("autoAddDelegateBadge: " + member + " contract " + daoContract)
-   const contract = await eos.contract(daoContract)
+   // const contract = await eos.contract(daoContract)
 
    // Give the members delegate badges
    const badgeProposalData = badgeAssignmentPropData({
@@ -625,14 +645,45 @@ const autoAddDelegateBadge = async ({
       startPeriodId: startPeriodDocId,
    })
 
-   await contract.propose(
-      daoId,
-      member,
-      "assignbadge",
-      badgeProposalData,
-      true,
-      { authorization: `${member}@active` }
-   )
+   const data = {
+      "dao_id": daoId,
+      "proposer": member,
+      "proposal_type": "assignbadge",
+      "content_groups": badgeProposalData,
+      "publish": true
+   }
+
+   const action = {
+      account: daoContract,
+      name: "propose",
+      authorization: [{
+         actor: member,
+         permission: 'active',
+      }],
+      data: data,
+   }
+   const payCpuAction = await getPayCpuAction(member)
+
+   //console.log(" actions: " + JSON.stringify([payCpuAction, action], null, 2))
+
+   await eos.api.transact({
+      actions: [
+         payCpuAction,
+         action
+      ]
+   }, {
+      blocksBehind: 3,
+      expireSeconds: 30,
+   });
+
+   // await contract.propose(
+   //    daoId,
+   //    member,
+   //    "assignbadge",
+   //    badgeProposalData,
+   //    true,
+   //    { authorization: `${member}@active` }
+   // )
 
 }
 
@@ -703,16 +754,26 @@ program
   .description('Create N accounts')
   .action(async (number) => {
 
+   // const pubKey = accountsPublicKey // testnet
+   // const creatorAccountName = "nikolaus223t"
+   
+   // const pubKey = accountsPublicKeyEosMainnet // eos mainnet
+   // const creatorAccountName = "illum1nation" // eos mainnet
+
+   const pubKey = process.env.TELOS_MAINNET_ACCOUNTS_PUBLIC_KEY // telos mainnet
+   const creatorAccountName = "illumination" // telos mainnet
+
+   
+
       const names = generateEOSIOAccountNames(number)
       console.log("Accounts: " + JSON.stringify(names, null, 2))
 
-      const creatorAccountName = "nikolaus223t"
 
-      console.log("creating accounts with " + creatorAccountName + " and key " + accountsPublicKey)
+      console.log("creating accounts with " + creatorAccountName + " and key " + pubKey)
       
       const res = await createMultipleAccountsWithNames({
          names: names, 
-         publicKey: accountsPublicKey,
+         publicKey: pubKey,
          creator: creatorAccountName, 
       })
     
@@ -721,22 +782,37 @@ program
 
 
    program
-   .command('onboard_accounts <onboarder> <daoId>')
+   .command('onboard_accounts <onboarder> <daoName>')
    .description('onboard 50 accounts')
-   .action(async (onboarder, daoId) => {
- 
+   .action(async (onboarder, daoName) => {
        const names = generateEOSIOAccountNames(50)
        console.log("Accounts: " + JSON.stringify(names, null, 2))
   
+       const daoId = await fetchDaoId(daoName)
+
        console.log("onboarding accounts " + onboarder + " to DAO " + daoId)
        
        for (member of names) {
+         if (member < "hupetest1131") continue // DEBUG
+
          console.log("onboarding " + member +" to " + daoId + " with " + onboarder)
-         const res = await autoEnrollMember({
-            daoId: daoId,
-            member: member,
-            daoOwnerAccount: onboarder,
-          })
+         let success = false
+         while (!success) {
+            try {
+               const res = await autoEnrollMember({
+                  daoId: daoId,
+                  member: member,
+                  daoOwnerAccount: onboarder,
+                })
+                success = true
+            } catch (error) {
+               console.log("error trying to onboard: " + member + " " + error)
+               await sleep(500)
+               console.log("trying again... " + member);
+            }
+         }
+         await sleep(500)
+
    
        }
      
@@ -761,35 +837,25 @@ program
  
 
    program
-   .command('delegate_badge <daoId> <num>')
+   .command('delegate_badge <daoName> <num>')
    .description('Create N accounts')
-   .action(async (daoId, num = 50) => {
+   .action(async (daoName, num = 50) => {
 
       const names = generateEOSIOAccountNames(num)
       console.log("Accounts: " + JSON.stringify(names, null, 2))
 
-      //const creatorAccountName = "nikolaus223t"
       //const daoId = 4119
-      const delegateBadgeId = 35199
-      // const electionId = 41337
-   //   Periods...
-   //   {
-   //    "docId": "30697",
-   //    "details_startTime_t": "2023-09-30T18:08:00Z"
-   //  },
-   //  {
-   //    "docId": "30698",
-   //    "details_startTime_t": "2023-10-07T18:08:00Z"
-   //  },
-   //  {
-   //    "docId": "30699",
-   //    "details_startTime_t": "2023-10-14T18:08:00Z"
-   //  },
-   const startPeriodId = 30698
+      //const delegateBadgeId = 35199 // Telos Testnet 
 
-      console.log("delegate badge for DAO " + daoId)
+      const daoId = await fetchDaoId(daoName)
+      const delegateBadgeId = await fetchDelegateBadgeId()
+      const startPeriodId = 30698 // ignored, may worth without this...
+
+      console.log("delegate badge for DAO " +daoName + " dao id: " + daoId + ": " + delegateBadgeId)
       
       for (member of names) {
+         if (member < "hupetest1132") continue; // DEBUG
+
          console.log("delegate badge for " + member +" to " + daoId)
          await autoAddDelegateBadge({
             daoId: daoId,
@@ -797,6 +863,7 @@ program
             delegateBadgeId: delegateBadgeId,
             startPeriodDocId: startPeriodId
          });
+         console.log("done.")
       }
 })
 
@@ -837,20 +904,11 @@ program
 .description('Vote!')
 .action(async (daoname) => {
 
-   // ROUND 1
-   // const round = roundOneData["data"]["getDao"]["ueOngoing"][0]["ueCurrnd"][0]
-
-   // Round 2
-   // const round = roundTwoData["data"]["getDao"]["ueOngoing"][0]["ueCurrnd"][0]
-
-   // DAO2 ROUND 1
-   //const round = roundOneData3["data"]["getDao"]["ueOngoing"][0]["ueCurrnd"][0]
-
-   // DAO1 ROUND 2
    const roundData = await fetchElectionData(daoname)
-   console.log("round data " + roundData)
-   const round = roundData["data"]["getDao"]["ueOngoing"][0]["ueCurrnd"][0]
+   
+   //console.log("round data " + JSON.stringify(roundData, null, 2))
 
+   const round = roundData["data"]["getDao"]["ueOngoing"][0]["ueCurrnd"][0]
    const roundId = round["docId"]
    const roundGroups = round["ueGroupLnk"]
    console.log("roundGroups " + roundGroups.length)
@@ -858,10 +916,10 @@ program
 
    let total = 0
    for (const rGroup of roundGroups) {
-      //const rGroup = roundGroups[roundGroups.length-1] // debug
+      //const rGroup = roundGroups[1] // debug
       const groupId = rGroup["docId"]
       const roundGroupsMembers = rGroup["ueRdMember"]
-      const winnerId = roundGroupsMembers[0]["docId"] // winner is member on index 0
+      const winnerId = roundGroupsMembers[0]["docId"] // winner is member on index 2
       for (const member of roundGroupsMembers) {
 
          const memberId = member["docId"]
@@ -869,12 +927,14 @@ program
    
          console.log((total++) + " vote in round " + roundId + " group " + groupId + " for member " +winnerId + " from member " + memberName)
 
+         //if (total < 38) continue; // DEBUG - telos mainnet keeps timing out...
+
          const vote = async ({roundId, groupId, membername, votingForId}) => {
             // ACTION castupvote(uint64_t round_id, uint64_t group_id, name voter, uint64_t voted_id);
             const voteRes = await contract.castupvote(roundId, groupId, membername, votingForId, { authorization: `${membername}@active` })
             printMessage(voteRes, " vote res ")
          }
-         if (memberName == "evgeniseeds2") {
+         if (!memberName.startsWith("hupetest")) {
             continue
          }
          await vote({
@@ -899,13 +959,16 @@ program
    //console.log("round data " + roundData)
    //const electionId = roundData["data"]["getDao"]["ueUpcoming"][0]["docId"]
 
+   const names = generateEOSIOAccountNames(1)
+   const submitter = names[0]
+
    const contract = await eos.contract(daoContract)
 
    const blockChainHeaderHash = await getBitcoinBlockHeader();
    console.log("latest block header: " + blockChainHeaderHash)
 
-   //const seedres = await contract.uesubmitseed(daoId, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
-   //printMessage(seedres, "seedres ")
+   const seedres = await contract.uesubmitseed(daoId, blockChainHeaderHash, submitter, { authorization: `${submitter}@active` })
+   printMessage(seedres, "seedres ")
 
       
 })
@@ -915,11 +978,56 @@ program
  
    
 program
-  .command('restore <contract>')
-  .description('Restore tables to contract')
-  .action(async contract => {
-    
+  .command('powerup <account>')
+  .description('Call EOS free powerup')
+  .action(async (account) => {
+
+      const accounts = generateEOSIOAccountNames(50)
+
+      // for (const account of accounts) {
+      //    if (account <= "hupetest1114") {
+      //       console.log("skip " + account)
+      //       continue
+      //    }
+      //    console.log("power up for " + account + " ...")
+
+      //    const res = await fetch(`https://api.eospowerup.io/freePowerup/${account}`, {
+      //       "cache": "default",
+      //       "credentials": "omit",
+      //       "headers": {
+      //          "Accept": "application/json, text/plain, */*",
+      //          "Accept-Language": "en-US,en;q=0.9",
+      //          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15"
+      //       },
+      //       "method": "GET",
+      //       "mode": "cors",
+      //       "redirect": "follow",
+      //       "referrer": "https://eospowerup.io/",
+      //       "referrerPolicy": "strict-origin-when-cross-origin"
+      //    })
+      //    console.log("res: " + JSON.stringify(res, null, 2))
+      //    await sleep(555)
+   
+      // }
+
+      const res = await fetch(`https://api.eospowerup.io/freePowerup/${account}`, {
+         "cache": "default",
+         "credentials": "omit",
+         "headers": {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15"
+         },
+         "method": "GET",
+         "mode": "cors",
+         "redirect": "follow",
+         "referrer": "https://eospowerup.io/",
+         //"referrerPolicy": "strict-origin-when-cross-origin"
+   })
+   console.log("res: " + JSON.stringify(res, null, 2))
+      
   })
+
 
 program.parse(process.argv)
 

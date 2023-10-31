@@ -27,8 +27,10 @@ const endpoints = {
   local: 'http://127.0.0.1:8888',
   telosTestnet: 'https://testnet.telos.net',
   telosMainnet: 'https://mainnet.telos.net',
+  // telosMainnet: 'https://telos.greymass.com',
   eosMainnet: 'http://eos.greymass.com',
-  eosTestnet: 'https://jungle4.dfuse.eosnation.io',
+  // eosTestnet: 'https://jungle4.dfuse.eosnation.io',
+  eosTestnet: 'http://jungle4.eossweden.org',
 }
 
 const ownerAccounts = {
@@ -37,6 +39,14 @@ const ownerAccounts = {
   telosMainnet: 'hypha',
   eosMainnet: 'hypha',
   eosTestnet: 'hyphadaotest',
+}
+
+const gQLEndpoints = {
+  local: "",
+  telosMainnet: "https://alpha-dhomn.tekit.io/graphql",
+  telosTestnet: "https://alpha-stts.tekit.io/graphql",
+  eosMainnet: "https://nameless-brook-400051.eu-central-1.aws.cloud.dgraph.io/graphql",
+  eosTestnet: "https://nameless-brook-400226.eu-central-1.aws.cloud.dgraph.io/graphql"
 }
 
 const {
@@ -48,6 +58,7 @@ const {
 const chainId = EOSIO_CHAIN_ID || networks[EOSIO_NETWORK] || networks.local
 const httpEndpoint = EOSIO_API_ENDPOINT || endpoints[EOSIO_NETWORK] || endpoints.local
 const owner = ownerAccounts[EOSIO_NETWORK] || ownerAccounts.local
+const graphQLEndpoint = gQLEndpoints[EOSIO_NETWORK]
 
 const netName = EOSIO_NETWORK != undefined ? (networkDisplayName[EOSIO_NETWORK] || "INVALID NETWORK: " + EOSIO_NETWORK) : "Local"
 console.log("" + netName)
@@ -154,6 +165,11 @@ const accountsMetadata = (network) => {
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
+
+      // we don't need these here
+      hyphatoken: account(' '),
+      voice_token: account(' '),
+
 
     }
   } else if (network == networks.telosTestnet) {
@@ -399,8 +415,8 @@ const keyProviders = {
   ],
   [networks.telosMainnet]: [
     process.env.TELOS_MAINNET_ACTIVE_KEY,
+    process.env.TELOS_MAINNET_ACCOUNTS_KEY,
     // process.env.TELOS_MAINNET_HYPHA_OWNER_KEY, 
-    // process.env.TELOS_MAINNET_ACTIVE_KEY, 
     // process.env.EXCHANGE_KEY,
   ],
   [networks.telosTestnet]: [
@@ -411,15 +427,18 @@ const keyProviders = {
   ],
   [networks.eosMainnet]: [
     process.env.EOS_MAINNET_ACTIVE_KEY,
+    process.env.EOS_MAINNET_ACCOUNTS_KEY,
+    process.env.EOS_MAINNET_PAYCPU,
   ],
   [networks.eosTestnet]: [
     process.env.EOS_TESTNET_ACTIVE_KEY,
+    process.env.EOS_TESTNET_DAO_CREATOR_KEY,
+    process.env.EOS_TESTNET_ACCOUNTS_KEY,
   ]
 
 }
 
 const keyProvider = keyProviders[chainId].filter((item) => item)
-
 
 if (keyProvider.length == 0 || keyProvider[0] == null) {
   console.log("ERROR: Invalid Key Provider: " + JSON.stringify(keyProvider, null, 2))
@@ -533,4 +552,5 @@ module.exports = {
   isTelosTestnet,
   sendTransaction,
   contractPermissions,
+  graphQLEndpoint
 }
