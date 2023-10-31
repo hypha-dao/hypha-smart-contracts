@@ -56,7 +56,7 @@ void paycpu::check_new_member(const eosio::name& account_name) {
 
     eosio::check(account_age_seconds <= (48 * 3600), "You have 48 hours to sign up.");
 
-    eosio::check(member_itr->used < 3, "The 'used' count has reached the limit of 3.");
+    eosio::check(member_itr->used < freeAllowance, "The 'used' count has reached the limit of 3.");
 
     // If all checks pass, increase the 'used' count by 1
     members_table.modify(member_itr, account_name, [&](auto& member) {

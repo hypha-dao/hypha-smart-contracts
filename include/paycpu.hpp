@@ -18,6 +18,8 @@ public:
 
 private:
 
+    uint64_t freeAllowance = 5;
+
     void check_new_member(const eosio::name& account_name);
 
     /// This table definition is from dao.hypha
