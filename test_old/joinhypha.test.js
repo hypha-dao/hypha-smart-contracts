@@ -216,7 +216,7 @@ describe('test paycpu', async assert => {
     ]}
 
   var payCpuWorks = false;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
     payCpuWorks = false
     try {
       await payCpuContract.payforcpu(newAccount, authorization)

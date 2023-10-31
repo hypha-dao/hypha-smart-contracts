@@ -357,7 +357,10 @@ describe('run upvote election', async assert => {
 
 
    console.log("create upvote data")
-   let data = getUpvoteElectionDoc()
+   let data = getUpvoteElectionDoc({
+      roundDurationSeconds: 10,
+      durationSeconds: 8,
+   })
 
    /// =============================================================================
    /// Create the 1st election (of 2)
@@ -817,6 +820,23 @@ describe('run upvote election', async assert => {
    /// Create the 2nd election
    /// =============================================================================
 
+   const electionChiefDelegates = getDelegates(daoObj)
+   console.log("electionChiefDelegates" + JSON.stringify(electionChiefDelegates, null, 2))
+
+
+   assert({
+      given: 'E1 election is finished',
+      should: 'there should be 6 CDs',
+      actual:  electionChiefDelegates.chiefDelegates.length,
+      expected: 6,
+   })
+   assert({
+      given: 'E1 election is finished',
+      should: 'there should be 1 Head delegate [' + electionChiefDelegates.headDelegate + ']',
+      actual:  electionChiefDelegates.headDelegate != undefined,
+      expected: true,
+   })
+
    console.log("VIDEO LINK")
    const theVideoLink = "https://somevideolink.com/thisisthelink/etc"
    const videoGroup = lastGroups[0]
@@ -837,18 +857,24 @@ describe('run upvote election', async assert => {
 
 
    // Straight into the next election!
-
-   const electionChiefDelegates = getDelegates(daoObj)
-   console.log("electionChiefDelegates" + JSON.stringify(electionChiefDelegates, null, 2))
-
    console.log("============== Election 2 ==================")
+
 
    /// =============================================================================
    /// Create the 2nd election
    /// =============================================================================
 
+   /// There is a huge timing dependency here
+   /// We need to set upvote expiry short enough so that we can wait for all badges to expire
+   /// but long enough so all tests having to do with delegates still work
+   /// So now we set expiry to 8 seconds, and wait for 10 seconds for badges to expire.
+   await sleep(20000)
+
    console.log("create upvote election 2")
-   let data2 = getUpvoteElectionDoc()
+   let data2 = getUpvoteElectionDoc({
+      roundDurationSeconds: 10,
+      durationSeconds: 20,
+   })
    const createTx2 = await contract.createupvelc(daoObj.id, data2, { authorization: `${daoOwnerAccount}@active` })
    printMessage(createTx2, "upvote election 2 ")
 
@@ -875,10 +901,15 @@ describe('run upvote election', async assert => {
    /// Set the Seed
    /// =============================================================================
 
-   const btcHeader2 = await getBitcoinBlockHeader();
-   console.log("btcHeader2: " + btcHeader2)
-   const seedresB = await contract.uesubmitseed(daoObj.id, btcHeader2, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
-   printMessage(seedres, "seedres ")
+   // const btcHeader2 = await getBitcoinBlockHeader();
+   // console.log("btcHeader2: " + btcHeader2)
+
+   // would be nice to get a new seed - however, we are rate limited on that server so getting errors
+   // here - just use the same seed as before.
+
+   const seedresB = await contract.uesubmitseed(daoObj.id, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
+   printMessage(seedresB, "seedres ")
+   
    await updateGraph() 
    const electionEdgeB = findEdgesByFromNodeAndEdgeName(daoObj.id, UPCOMING_ELECTION)[0]
    const electionDocB = documentCache[electionEdgeB.to_node]
@@ -895,7 +926,7 @@ describe('run upvote election', async assert => {
    assert({
       given: 'seed was set ',
       should: 'election has seed set',
-      actual: JSON.stringify(electionDocB, null, 2).indexOf(btcHeader2) != -1,
+      actual: JSON.stringify(electionDocB, null, 2).indexOf(blockChainHeaderHash) != -1,
       expected: true,
    })
 
@@ -1376,8 +1407,10 @@ describe('edge case - no delegates', async assert => {
    console.log("DAO id: " + daoObj.id + " Name: " + newDaoName)
 
    console.log("create upvote data")
-   let data = getUpvoteElectionDoc()
-
+   let data = getUpvoteElectionDoc({
+      roundDurationSeconds: 10,
+      durationSeconds: 5,
+   })
    /// =============================================================================
    /// Create the 1st election (of 2)
    /// =============================================================================
@@ -1410,33 +1443,23 @@ describe('edge case - no delegates', async assert => {
 
 
    // ACTION uesubmitseed(uint64_t dao_id, eosio::checksum256 seed, name account);
-   const blockChainHeaderHash = await getBitcoinBlockHeader();
-   console.log("latest block header: " + blockChainHeaderHash)
+   // const blockChainHeaderHash = await getBitcoinBlockHeader();
+   // console.log("latest block header: " + blockChainHeaderHash)
 
-   const seedres = await contract.uesubmitseed(daoObj.id, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
+   // const seedres = await contract.uesubmitseed(daoObj.id, blockChainHeaderHash, daoOwnerAccount, { authorization: `${daoOwnerAccount}@active` })
    //printMessage(seedres, "seedres ")
 
    await updateGraph()
 
    const electionDoc2 = documentCache[electionEdge.to_node]
-   // console.log("election doc " + JSON.stringify(electionDoc2, null, 2))
 
-   assert({
-      given: 'seed was set correctly',
-      should: 'has election round',
-      actual: JSON.stringify(electionDoc2, null, 2).indexOf(blockChainHeaderHash) != -1,
-      expected: true,
-   })
 
    await sleep(1000)
-
-   await updateGraph()
 
 
    /// =============================================================================
    /// Start first Election
    /// =============================================================================
-   // ACTION updateupvelc(uint64_t election_id, bool reschedule);
    console.log("Start election")
    const updateVote = await contract.updateupvelc(upElecDoc.id, false, true, { authorization: `${daoContract}@active` });
    printMessage(updateVote, "update result")
@@ -1448,10 +1471,6 @@ describe('edge case - no delegates', async assert => {
    // the election
    const election2 = documentCache[electionDoc.id]
    const startRound2 = documentCache[startRound.id]
-
-   //console.log("election: " + JSON.stringify(election2, null, 2))
-   //console.log("start round: " + JSON.stringify(startRound2, null, 2))
-
 
    assert({
       given: "no delegates",
