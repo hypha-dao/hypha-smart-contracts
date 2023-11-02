@@ -6,6 +6,7 @@ const { Exception } = require('handlebars')
 const { option } = require('commander')
 const { transactionHeader } = require('eosjs/dist/eosjs-serialize')
 const ecc = require('eosjs-ecc')
+const { createESRWithActions } = require('./msig')
 
 const { Api, JsonRpc, Serialize } = eosjs
 
@@ -242,11 +243,25 @@ class Eos {
 
   }
 
+  // replace all api.transact calls with this
+  // optionally generate ESR code instead of firing off transaction
+  async transactionWrapper (trx, trxConfig) {
+    if (this.transactionDelegate) {
+      console.log("ESR delegate mode: " + JSON.stringify(trx, null, 2))
+      this.transactionDelegate.transact(api, trx, trxConfig)
+      //return createESRWithActions({actions: trx.actions})
+
+    } else {
+      await api.transact(trx, trxConfig)
+    }
+  }
+
+
   async transaction (trx, trxConfig={}, numTries=0) {
     trxConfig = { blocksBehind:3, expireSeconds:30, ...trxConfig }
     let result
     try {
-      result = await api.transact(trx, trxConfig)
+      result = await transactionWrapper(trx, trxConfig)
     } catch (err) {
       const errStr = '' + err
       if (errStr.toLowerCase().includes('exceeded by') && numTries > 0) {

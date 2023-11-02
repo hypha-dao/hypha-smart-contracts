@@ -258,31 +258,18 @@ const createESRCodeCancel = async ({proposerAccount, proposalName}) => {
   return createESRWithActions({actions: execActions})
 }
 
-const createESRWithActions = async ({actions}) => {
+const createESRWithActions = async ({ actions }) => {
 
-  console.log("========= Generating ESR Code ===========")
-  
-  const esr_uri = "https://api-esr.hypha.earth/qr"
-  const body = {
-    actions
+  const esr = await buildTransaction(actions)
+
+  // console.log(" esr "+esr)
+
+  const qr = await buildQrCodeFile(esr)
+
+  return {
+    esr,
+    qr
   }
-
-  //console.log("actions: "+JSON.stringify(body, null, 2))
-
-  const rawResponse = await fetch(esr_uri, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const parsedResponse = await rawResponse.json();
-
-  //console.log("parsed response "+JSON.stringify(parsedResponse))
-
-  return parsedResponse
 }
 
 module.exports = { proposeMsig, migrateTokens, createESRWithActions, setSettingsAction }
