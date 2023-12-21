@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+require('dotenv').config()
 const { graphQLEndpoint } = require('../helper');
 
 const fetchGraphQLQuery = async (query, endpointUrl = graphQLEndpoint) => {
@@ -9,6 +10,7 @@ const fetchGraphQLQuery = async (query, endpointUrl = graphQLEndpoint) => {
     myHeaders.append("Connection", "keep-alive");
     myHeaders.append("DNT", "1");
     myHeaders.append("Origin", "file://");
+    myHeaders.append("X-Dgraph-AccessToken", process.env.GRAPHQL_JWT_TOKEN); // fill in token - not we can also fetch a token...
         
     var requestOptions = {
       method: 'POST',

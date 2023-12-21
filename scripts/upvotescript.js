@@ -793,7 +793,7 @@ program
        console.log("onboarding accounts " + onboarder + " to DAO " + daoId)
        
        for (member of names) {
-         if (member < "hupetest1131") continue // DEBUG
+         // if (member < "hupetest1131") continue // DEBUG
 
          console.log("onboarding " + member +" to " + daoId + " with " + onboarder)
          let success = false
@@ -854,7 +854,7 @@ program
       console.log("delegate badge for DAO " +daoName + " dao id: " + daoId + ": " + delegateBadgeId)
       
       for (member of names) {
-         if (member < "hupetest1132") continue; // DEBUG
+         //if (member <= "hupetest1343") continue; // DEBUG
 
          console.log("delegate badge for " + member +" to " + daoId)
          await autoAddDelegateBadge({
@@ -927,13 +927,47 @@ program
    
          console.log((total++) + " vote in round " + roundId + " group " + groupId + " for member " +winnerId + " from member " + memberName)
 
-         //if (total < 38) continue; // DEBUG - telos mainnet keeps timing out...
+         //if (total < 14) continue; // DEBUG - telos mainnet keeps timing out...
 
          const vote = async ({roundId, groupId, membername, votingForId}) => {
             // ACTION castupvote(uint64_t round_id, uint64_t group_id, name voter, uint64_t voted_id);
-            const voteRes = await contract.castupvote(roundId, groupId, membername, votingForId, { authorization: `${membername}@active` })
+            // const voteRes = await contract.castupvote(roundId, groupId, membername, votingForId, { authorization: `${membername}@active` })
+
+            const actionData = {
+               "round_id": parseInt(roundId),
+               "group_id": parseInt(groupId),
+               "voter": membername,
+               "voted_id": parseInt(votingForId)
+            }
+
+            const action = {
+               account: daoContract,
+               name: "castupvote",
+               authorization: [{
+                  actor: membername,
+                  permission: 'active',
+               }],
+               data: actionData
+            }
+            const payCpuAction = await getPayCpuAction(membername)
+         
+           // console.log(" actions: " + JSON.stringify([payCpuAction, action], null, 2))
+         
+            const voteRes = await eos.api.transact({
+               actions: [
+                  payCpuAction,
+                  action
+               ]
+            }, {
+               blocksBehind: 3,
+               expireSeconds: 30,
+            });
+         
+
             printMessage(voteRes, " vote res ")
          }
+
+         
          if (!memberName.startsWith("hupetest")) {
             continue
          }
