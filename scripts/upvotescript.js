@@ -849,7 +849,7 @@ program
 
       const daoId = await fetchDaoId(daoName)
       const delegateBadgeId = await fetchDelegateBadgeId()
-      const startPeriodId = 30698 // ignored, may worth without this...
+      const startPeriodId = 30698 // ignored, may work without this...
 
       console.log("delegate badge for DAO " +daoName + " dao id: " + daoId + ": " + delegateBadgeId)
       
