@@ -854,15 +854,20 @@ program
       console.log("delegate badge for DAO " +daoName + " dao id: " + daoId + ": " + delegateBadgeId)
       
       for (member of names) {
-         //if (member <= "hupetest1343") continue; // DEBUG
+         //if (member < "hupetest1344") continue; // DEBUG
 
          console.log("delegate badge for " + member +" to " + daoId)
-         await autoAddDelegateBadge({
-            daoId: daoId,
-            member: member,
-            delegateBadgeId: delegateBadgeId,
-            startPeriodDocId: startPeriodId
-         });
+         try {
+            await autoAddDelegateBadge({
+               daoId: daoId,
+               member: member,
+               delegateBadgeId: delegateBadgeId,
+               startPeriodDocId: startPeriodId
+            });
+   
+         } catch (error) {
+            console.log("can't add badge for " + member + " error: " + error)
+         }
          console.log("done.")
       }
 })
