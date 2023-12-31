@@ -930,7 +930,13 @@ program
          const memberId = member["docId"]
          const memberName = member["details_member_n"]
    
-         console.log((total++) + " vote in round " + roundId + " group " + groupId + " for member " +winnerId + " from member " + memberName)
+         total++
+
+         // mainnet nodes seem to have spam protection, they only allow a certain
+         // number of requests...
+         // if (total < 8) continue // DEBUG
+
+         console.log((total) + " vote in round " + roundId + " group " + groupId + " for member " +winnerId + " from member " + memberName)
 
          //if (total < 14) continue; // DEBUG - telos mainnet keeps timing out...
 
