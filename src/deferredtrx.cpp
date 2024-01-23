@@ -21,14 +21,17 @@ void deferredtrx::executenext() {
     auto itr = idx.begin();
 
     if (itr != idx.end() && itr->execute_time <= current_time_point()) {
-        //executeactn(itr->id);
-        eosio::action act(
-            itr->auth, 
-            itr->account, 
-            itr->action_name, 
-            itr->data);
+
+        // Note: We can't use the public constructor because it will misinterpret the 
+        // data and pack it again - data is already in packed format. 
+        eosio::action act;
+        act.account = itr->account;
+        act.name = itr->action_name;
+        act.authorization = itr->auth;
         act.data = itr->data;
+
         act.send();
+        
         idx.erase(itr);
     }
     else {
