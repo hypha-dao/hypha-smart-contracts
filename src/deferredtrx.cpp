@@ -32,12 +32,12 @@ void deferredtrx::executenext() {
         idx.erase(itr);
     }
     else {
-        eosio::check(false, "No deftrx to execute at this time.");
+        eosio::check(false, "No deferred actions to execute at this time.");
     }
 }
 
 // Action to add a new entry to the table
-void deferredtrx::addaction(eosio::time_point_sec execute_time, permission_level auth, name account, name action_name, std::vector<char> packed_data) {
+void deferredtrx::addaction(eosio::time_point_sec execute_time, std::vector<permission_level> auth, name account, name action_name, std::vector<char> packed_data) {
     
     require_auth(get_self());
 
@@ -52,6 +52,21 @@ void deferredtrx::addaction(eosio::time_point_sec execute_time, permission_level
         row.data = packed_data;
     });
 }
+// Action to add a new entry to the table
+void deferredtrx::schedule_deferred_action(eosio::time_point_sec execute_time, eosio::action action) {
+    
+    deferred_actions_tables deftrx(get_self(), get_self().value);
+
+    deftrx.emplace(get_self(), [&](auto& row) {
+        row.id = deftrx.available_primary_key();
+        row.execute_time = execute_time;
+        row.auth = action.authorization;
+        row.account = action.account;
+        row.action_name = action.name;
+        row.data = action.data;
+    });
+}
+
 
 void deferredtrx::addtest(time_point_sec execute_time, uint64_t number, std::string text) {
     require_auth(get_self());
@@ -69,6 +84,7 @@ void deferredtrx::addtest(time_point_sec execute_time, uint64_t number, std::str
         std::make_tuple(number, text)
     );
 
+
     // 3 - reconstruct an action object from the pieces, particularly data
     // eosio::action act2(
     //     eosio::permission_level(get_self(), eosio::name("active")),
@@ -85,16 +101,20 @@ void deferredtrx::addtest(time_point_sec execute_time, uint64_t number, std::str
     // act2.send();
 
     // extract the correct packed action data
-    auto action_data = act.data;
+    //auto action_data = act.data;
 
     // Add it to the table
-    addaction(
-        execute_time,
-        eosio::permission_level(get_self(), eosio::name("active")),
-        eosio::name("deftrx.hypha"),
-        eosio::name("testdtrx"),
-        action_data
-    );
+    // addaction(
+    //     execute_time,
+    //     eosio::permission_level(get_self(), eosio::name("active")),
+    //     eosio::name("deftrx.hypha"),
+    //     eosio::name("testdtrx"),
+    //     action_data
+    // );
+    
+    /// This is probably what we want to use inside the contract
+    schedule_deferred_action(execute_time, act);
+
 }
 
 void deferredtrx::testdtrx(uint64_t number, std::string text) {

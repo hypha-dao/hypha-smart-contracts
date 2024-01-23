@@ -27,7 +27,7 @@ public:
     //std::vector<char> data = pack(std::forward<T>(value));
 
     [[eosio::action]]
-    void addaction(time_point_sec execute_time, permission_level auth, name account, name action_name, std::vector<char> packed_data);
+    void addaction(time_point_sec execute_time, std::vector<permission_level> auth, name account, name action_name, std::vector<char> packed_data);
 
     // Action to execute the stored action based on id
     // [[eosio::action]]
@@ -50,6 +50,8 @@ public:
 
 private: 
         
+    void schedule_deferred_action(eosio::time_point_sec execute_time, eosio::action action);
+
     // Define a structure to store the data for the testdtrx table
     TABLE testdtrx_table {
         uint64_t id;
@@ -66,7 +68,7 @@ private:
     TABLE deferred_actions_table {
         uint64_t id;
         eosio::time_point_sec execute_time;
-        permission_level auth;
+        std::vector<permission_level> auth;
         name account;
         name action_name;
         std::vector<char> data;
