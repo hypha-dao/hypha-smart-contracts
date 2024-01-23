@@ -1,46 +1,38 @@
 #include <deferredtrx.hpp>
 
-// Action to execute the stored action based on id
-// void deferredtrx::executeactn(uint64_t id) {
-//     require_auth(get_self());
-
-//     actions_table actions(get_self(), get_self().value);
-//     auto itr = actions.find(id);
-//     if (itr != actions.end()) {
-//         eosio::time_point_sec current_time = eosio::current_time_point();
-//         if (current_time >= itr->execute_time) {
-//             action(itr->auth, itr->account, itr->action_name, itr->data).send();
-//             actions.erase(itr);
-//         }
-//         else {
-//             eosio::check(false, "Action cannot be executed yet. Wait until execute_time.");
-//         }
-//     }
-//     else {
-//         eosio::check(false, "Action with provided ID not found.");
-//     }
-// }
+void deferredtrx::reset()
+{
+    require_auth(get_self());
+#ifdef LOCAL_TEST
+    utils::delete_table<deferred_actions_tables>(get_self(), get_self().value);
+    utils::delete_table<testdtrx_tables>(get_self(), get_self().value);
+#else
+    check(false, "reset is only active in testing");
+#endif
+}
 
 // Action to choose and execute the next action
 // Note: anybody can call this - fails if there is no action to execute.
 void deferredtrx::executenext() {
 
-    actions_table actions(get_self(), get_self().value);
+    deferred_actions_tables deftrx(get_self(), get_self().value);
 
-    auto idx = actions.get_index<"bytime"_n>();
+    auto idx = deftrx.get_index<"bytime"_n>();
     auto itr = idx.begin();
 
     if (itr != idx.end() && itr->execute_time <= current_time_point()) {
         //executeactn(itr->id);
-        action(
+        eosio::action act(
             itr->auth, 
             itr->account, 
             itr->action_name, 
-            itr->data).send();
+            itr->data);
+        act.data = itr->data;
+        act.send();
         idx.erase(itr);
     }
     else {
-        eosio::check(false, "No actions to execute at this time.");
+        eosio::check(false, "No deftrx to execute at this time.");
     }
 }
 
@@ -49,10 +41,10 @@ void deferredtrx::addaction(eosio::time_point_sec execute_time, permission_level
     
     require_auth(get_self());
 
-    actions_table actions(get_self(), get_self().value);
+    deferred_actions_tables deftrx(get_self(), get_self().value);
 
-    actions.emplace(get_self(), [&](auto& row) {
-        row.id = actions.available_primary_key();
+    deftrx.emplace(get_self(), [&](auto& row) {
+        row.id = deftrx.available_primary_key();
         row.execute_time = execute_time;
         row.auth = auth;
         row.account = account;
@@ -61,11 +53,54 @@ void deferredtrx::addaction(eosio::time_point_sec execute_time, permission_level
     });
 }
 
+void deferredtrx::addtest(time_point_sec execute_time, uint64_t number, std::string text) {
+    require_auth(get_self());
+
+    // pack data parameters...
+    // auto value = std::make_tuple(number, text);
+    // THIS IS NOT WORKING
+    // std::vector<char> data = eosio::pack(std::make_tuple(number, text));
+
+    // 1 - Create an action object 
+    eosio::action act(
+        eosio::permission_level(get_self(), eosio::name("active")),
+        eosio::name("deftrx.hypha"),
+        eosio::name("testdtrx"),
+        std::make_tuple(number, text)
+    );
+
+    // 3 - reconstruct an action object from the pieces, particularly data
+    // eosio::action act2(
+    //     eosio::permission_level(get_self(), eosio::name("active")),
+    //     eosio::name("deftrx.hypha"),
+    //     eosio::name("testdtrx"),
+    //     vector<char>
+    // );
+    // act2.data = act.data;
+
+    // act.send();
+    // print("sending action " + text);
+
+
+    // act2.send();
+
+    // extract the correct packed action data
+    auto action_data = act.data;
+
+    // Add it to the table
+    addaction(
+        execute_time,
+        eosio::permission_level(get_self(), eosio::name("active")),
+        eosio::name("deftrx.hypha"),
+        eosio::name("testdtrx"),
+        action_data
+    );
+}
 
 void deferredtrx::testdtrx(uint64_t number, std::string text) {
     require_auth(get_self());
 
-    testdtrx_table testdtrx(get_self(), get_self().value);
+    testdtrx_tables testdtrx(get_self(), get_self().value);
 
     // Add the new entry to the testdtrx table
     testdtrx.emplace(get_self(), [&](auto& row) {

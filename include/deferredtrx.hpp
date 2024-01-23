@@ -4,44 +4,17 @@
 #include <eosio/asset.hpp>
 #include <eosio/multi_index.hpp>
 #include <eosio/singleton.hpp>
+#include "utils.hpp"
 
 using namespace eosio;
 
 // Define the smart contract class
-class deferredtrx : public contract {
+CONTRACT deferredtrx : public contract {
 public:
     using contract::contract;
-
-    // Define a structure to store the data for the testdtrx table
-    struct testdtrx_data {
-        uint64_t id;
-        uint64_t number;
-        std::string text;
-
-        uint64_t primary_key() const { return id; }
-    };
-
-    // Create a multi_index table for the testdtrx table
-    typedef multi_index<"testdtrx"_n, testdtrx_data> testdtrx_table;
-
-    // Define a structure to store the data
-    struct action_data {
-        uint64_t id;
-        eosio::time_point_sec execute_time;
-        permission_level auth;
-        name account;
-        name action_name;
-        std::vector<char> data;
-
-        uint64_t primary_key() const { return id; }
-        uint64_t by_execute_time() const { return execute_time.sec_since_epoch(); }
-
-    };
-
-    // Create a multi_index table with the defined structure and a custom comparator for execute_time
-    typedef multi_index<"actions"_n, action_data,
-        indexed_by<"bytime"_n, const_mem_fun<action_data, uint64_t, &action_data::by_execute_time>>
-    > actions_table;
+    deferredtrx(name receiver, name code, datastream<const char*> ds)
+      : contract(receiver, code, ds)
+        {}
 
     // Action to add a new entry to the table
     
@@ -64,9 +37,49 @@ public:
     [[eosio::action]]
     void executenext();
 
+    // TEST deftrx
 
-    // Action for testing deferred actions
+    [[eosio::action]]
+    void addtest(time_point_sec execute_time, uint64_t number, std::string text);
+
     [[eosio::action]]
     void testdtrx(uint64_t number, std::string text);
+
+    [[eosio::action]]
+    void reset();
+
+private: 
+        
+    // Define a structure to store the data for the testdtrx table
+    TABLE testdtrx_table {
+        uint64_t id;
+        uint64_t number;
+        std::string text;
+
+        uint64_t primary_key() const { return id; }
+    };
+
+    // Create a multi_index table for the testdtrx table
+    typedef multi_index<"testdtrx"_n, testdtrx_table> testdtrx_tables;
+
+    // Define a structure to store the data
+    TABLE deferred_actions_table {
+        uint64_t id;
+        eosio::time_point_sec execute_time;
+        permission_level auth;
+        name account;
+        name action_name;
+        std::vector<char> data;
+
+        uint64_t primary_key() const { return id; }
+        uint64_t by_execute_time() const { return execute_time.sec_since_epoch(); }
+
+    };
+
+    // Create a multi_index table with the defined structure and a custom comparator for execute_time
+    typedef multi_index<"defactions"_n, deferred_actions_table,
+        indexed_by<"bytime"_n, const_mem_fun<deferred_actions_table, uint64_t, &deferred_actions_table::by_execute_time>>
+    > deferred_actions_tables;
+
 
 };
