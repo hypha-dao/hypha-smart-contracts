@@ -151,6 +151,7 @@ const accountsMetadata = (network) => {
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
       upvote: account('upvote.hypha', 'upvote'),
+      deferredtrx: account('deftrx.hypha', 'deferredtrx'),
 
     }
   } else if (network == networks.telosMainnet) {
