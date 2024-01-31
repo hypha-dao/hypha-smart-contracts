@@ -395,7 +395,17 @@ daoContract: [
   {
     target: `${accounts.daoContract.account}@active`,
     actor: `${accounts.daoContract.account}@eosio.code`
-  },
+  }, 
+  // Not sure about this - we could also use a service account
+  // {
+  //   target: `${accounts.daoContract.account}@executenext`,
+  //   actor: `${accounts.paycpu.account}@payforcpu`,
+  //   parent: 'active',
+  //   type: 'createActorPermission'
+  // }, {
+  //   target: `${accounts.daoContract.account}@executenext`,
+  //   action: 'executenext'
+  // }
 ],
 
 }
