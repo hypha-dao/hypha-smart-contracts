@@ -17,6 +17,7 @@ const { deployAllContracts, updatePermissions, resetByName,
   updatePermissionsList,
   deployAllAccounts
 } = require('./deploy')
+const { getEosDateString, checkTimeToExecute } = require('./helpers/deferredTransactions')
 
 
 const getContractLocation = (contract) => {
@@ -268,6 +269,46 @@ program
     console.log("done");
 
   })
+
+  program
+  .command('dtx_test <seconds> <number_value> <string_value>')
+  .description('add a dts')
+  .action(async function (seconds, number_value, string_value) {
+    const contract = await eos.contract(daoContract)
+    console.log("adding test " + seconds + " from now with " + number_value + " and " + string_value )
+    const timeString = getEosDateString(seconds)
+    console.log("add date string: " + timeString)
+
+    await contract.addtest(timeString, number_value, string_value, { authorization: `${daoContract}@active` })
+    console.log("done");
+
+  })
+  program
+  .command('dtx_check')
+  .description('check deferred transactions')
+  .action(async function () {
+    const res = await checkTimeToExecute(daoContract)
+
+    console.log("done: " + res);
+
+  })
+
+  program
+  .command('dtx_execute')
+  .description('add a dts')
+  .action(async function (seconds, number_value, string_value) {
+    const contract = await eos.contract(daoContract)
+    const hasExecutableActions = await checkTimeToExecute(daoContract)
+    console.log("hasExecutableActions " + hasExecutableActions )
+
+    if (hasExecutableActions) {
+      await contract.executenext({ authorization: `${daoContract}@active` })
+    } else {
+      console.log("nothing to execute");
+    }
+    console.log("done");
+  })
+
 
 program
   .command('listPayCpu')
