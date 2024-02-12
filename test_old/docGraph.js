@@ -117,6 +117,10 @@ function findFirstDocumentByFromNodeAndEdgeName(fromNode, edgeName) {
     return documentCache[edges[0].to_node]
 }
 
+function getDocumentById(docId) {
+    return documentCache[docId]
+}
+
 
 // Function to find all edges with a given to_node and edge_name.
 function findEdgesByToNodeAndEdgeName(toNode, edgeName) {
@@ -142,4 +146,5 @@ module.exports = {
     findEdgesByFromNodeAndEdgeName, 
     findEdgesByToNodeAndEdgeName,
     findFirstDocumentByFromNodeAndEdgeName,
+    getDocumentById,
 }

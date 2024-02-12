@@ -43,7 +43,8 @@ const ownerAccounts = {
 
 const gQLEndpoints = {
   local: "",
-  telosMainnet: "https://alpha-dhomn.tekit.io/graphql",
+  // telosMainnet: "https://alpha-dhomn.tekit.io/graphql",
+  telosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",// NOTE This needs a HEADER with JWT token
   telosTestnet: "https://alpha-stts.tekit.io/graphql",
   eosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql", // NOTE This needs a HEADER with JWT token "X-Dgraph-AccessToken": "ey..."
   eosTestnet: "https://nameless-brook-400226.eu-central-1.aws.cloud.dgraph.io/graphql"
