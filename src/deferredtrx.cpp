@@ -74,11 +74,6 @@ void deferredtrx::schedule_deferred_action(eosio::time_point_sec execute_time, e
 void deferredtrx::addtest(time_point_sec execute_time, uint64_t number, std::string text) {
     require_auth(get_self());
 
-    // pack data parameters...
-    // auto value = std::make_tuple(number, text);
-    // THIS IS NOT WORKING
-    // std::vector<char> data = eosio::pack(std::make_tuple(number, text));
-
     // 1 - Create an action object 
     eosio::action act(
         eosio::permission_level(get_self(), eosio::name("active")),
@@ -86,36 +81,8 @@ void deferredtrx::addtest(time_point_sec execute_time, uint64_t number, std::str
         eosio::name("testdtrx"),
         std::make_tuple(number, text)
     );
-
-
-    // 3 - reconstruct an action object from the pieces, particularly data
-    // eosio::action act2(
-    //     eosio::permission_level(get_self(), eosio::name("active")),
-    //     eosio::name("deftrx.hypha"),
-    //     eosio::name("testdtrx"),
-    //     vector<char>
-    // );
-    // act2.data = act.data;
-
-    // act.send();
-    // print("sending action " + text);
-
-
-    // act2.send();
-
-    // extract the correct packed action data
-    //auto action_data = act.data;
-
-    // Add it to the table
-    // addaction(
-    //     execute_time,
-    //     eosio::permission_level(get_self(), eosio::name("active")),
-    //     eosio::name("deftrx.hypha"),
-    //     eosio::name("testdtrx"),
-    //     action_data
-    // );
     
-    /// This is probably what we want to use inside the contract
+    /// This is what we want to use inside the contract
     schedule_deferred_action(execute_time, act);
 
 }
