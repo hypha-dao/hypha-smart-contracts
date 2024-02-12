@@ -107,6 +107,12 @@ async function updateEdgesCache() {
     }
 }
 
+const updateGraph = async () => {
+    await updateDocumentCache()
+    await updateEdgesCache()
+ }
+ 
+
 // Function to find all edges with a given from_node and edge_name.
 function findEdgesByFromNodeAndEdgeName(fromNode, edgeName) {
     return edgesCache.filter(edge => edge.from_node === fromNode && edge.edge_name === edgeName);
@@ -142,6 +148,7 @@ module.exports = {
     edgesCache, 
     updateDocumentCache, 
     updateEdgesCache, 
+    updateGraph,
     findEdgeById, 
     findEdgesByFromNodeAndEdgeName, 
     findEdgesByToNodeAndEdgeName,
