@@ -40,6 +40,28 @@
             ]
         },
         {
+            "name": "burn",
+            "base": "",
+            "fields": [
+                {
+                    "name": "tenant",
+                    "type": "name"
+                },
+                {
+                    "name": "from",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
             "name": "close",
             "base": "",
             "fields": [
@@ -271,6 +293,11 @@
         }
     ],
     "actions": [
+        {
+            "name": "burn",
+            "type": "burn",
+            "ricardian_contract": ""
+        },
         {
             "name": "close",
             "type": "close",
