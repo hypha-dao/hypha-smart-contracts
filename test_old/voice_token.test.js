@@ -8,7 +8,7 @@ describe('Voice token', async assert => {
 
   const contracts = await initContracts({ voice_token })
 
-  const daoTenantName = "daotenant5"
+  const daoTenantName = "daotenant11"
   
   console.log(`${owner} transfer token to ${firstuser}`)
   try {
@@ -43,24 +43,21 @@ describe('Voice token', async assert => {
   await contracts.voice_token.issue(daoTenantName, owner, '100.00 VOICE', `init`, { authorization: `${owner}@active` })
 
   const ownerBalance = await getBalance(daoTenantName, owner)
-  console.log("owner balance after issue: " + JSON.stringify(ownerBalance, null, 2))
+  // console.log("owner balance after issue: " + JSON.stringify(ownerBalance, null, 2))
 
   console.log(`transfer to first user`)
   await contracts.voice_token.transfer(daoTenantName, owner, firstuser, "100.00 VOICE", 'unit test', { authorization: `${owner}@active` })
   const firstUserBalance =  await getBalance(daoTenantName, firstuser)
-
-  console.log("first user balance: " + JSON.stringify(firstUserBalance, null, 2))
+  // console.log("first user balance: " + JSON.stringify(firstUserBalance, null, 2))
 
   const ownerBalanceAfter = await getBalance(daoTenantName, owner)
-
-  console.log("owner balance after transfer: " + JSON.stringify(ownerBalanceAfter, null, 2))
+  // console.log("owner balance after transfer: " + JSON.stringify(ownerBalanceAfter, null, 2))
 
   console.log(`burn`)
   await contracts.voice_token.burn(daoTenantName, firstuser,  "100.00 VOICE", "memo", { authorization: `${firstuser}@active` })
 
   const firstUserBalanceAfter = await getBalance(daoTenantName, firstuser)
-
-  console.log("first user balance after: " + JSON.stringify(firstUserBalanceAfter, null, 2))
+  // console.log("first user balance after: " + JSON.stringify(firstUserBalanceAfter, null, 2))
 
 
   assert({
@@ -69,18 +66,21 @@ describe('Voice token', async assert => {
     actual: ownerBalance,
     expected: 100
   })
+
   assert({
     given: `after transfer owner`,
     should: "owner has no balance",
     actual: ownerBalanceAfter,
     expected: 0
   })
+
   assert({
     given: `after transfer first user`,
     should: "first user has balance",
     actual: firstUserBalance,
     expected: 100
   })
+  
   assert({
     given: `after burn`,
     should: "first user has no balance",
