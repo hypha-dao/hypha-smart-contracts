@@ -34,6 +34,22 @@ describe('Voice token', async assert => {
       }
       return 0
   }
+  const getSupply = async (tenant) => {
+    const balances = await eos.getTableRows({
+        code: voice_token,
+        scope: "VOICE",
+        table: 'stat.v2',
+        json: true,
+        limit: 100
+      })
+        // console.log("supply for tenant " + tenant + " " + JSON.stringify(balances, null, 2))
+      for (item of balances.rows) {
+        if (item.tenant == tenant) {
+            return parseFloat(item.supply.split(" ")[0])
+        }
+      }
+      return 0
+  }
 
   console.log(`issue`)
   await contracts.voice_token.issue(daoTenantName, owner, '100.00 VOICE', `init`, { authorization: `${owner}@active` })
@@ -48,6 +64,9 @@ describe('Voice token', async assert => {
 
   const ownerBalanceAfter = await getBalance(daoTenantName, owner)
   // console.log("owner balance after transfer: " + JSON.stringify(ownerBalanceAfter, null, 2))
+
+  const supply = await getSupply(daoTenantName)
+  console.log("supply after issuing and transfering voice to user: " + supply)
 
   let onlyOwnerCanBurn = true
   try {
@@ -77,11 +96,16 @@ describe('Voice token', async assert => {
   }
 
 
+
   console.log(`burn`)
   await contracts.voice_token.burn(daoTenantName, firstuser,  "100.00 VOICE", "memo", { authorization: `${firstuser}@active` })
 
   const firstUserBalanceAfter = await getBalance(daoTenantName, firstuser)
   // console.log("first user balance after: " + JSON.stringify(firstUserBalanceAfter, null, 2))
+
+  const supplyAfter = await getSupply(daoTenantName)
+
+  console.log("supply after burning 100 voice: " + supplyAfter)
 
 
   assert({
@@ -113,6 +137,14 @@ describe('Voice token', async assert => {
   })
 
   assert({
+    given: `after burn supply`,
+    should: "supply diminished",
+    actual: supplyAfter,
+    expected: supply - 100
+  })
+
+
+  assert({
     given: `try to burn another user's balance`,
     should: "fail",
     actual: onlyOwnerCanBurn,
@@ -130,6 +162,8 @@ describe('Voice token', async assert => {
     actual: canBurnTooMuch,
     expected: false
   })
+
+
 
 
 
