@@ -26,7 +26,7 @@ describe('Voice token', async assert => {
         json: true,
         limit: 10
       })
-      console.log("balance for user " + user + " " + JSON.stringify(balances, null, 2))
+      // console.log("balance for user " + user + " " + JSON.stringify(balances, null, 2))
       for (item of balances.rows) {
         if (item.tenant == tenant) {
             return parseFloat(item.balance.split(" ")[0])
@@ -34,10 +34,6 @@ describe('Voice token', async assert => {
       }
       return 0
   }
-
-//   const ownerBalanceBefore = await getBalance(daoTenantName, owner)
-
-//   console.log("owner balance: " + JSON.stringify(ownerBalanceBefore, null, 2))
 
   console.log(`issue`)
   await contracts.voice_token.issue(daoTenantName, owner, '100.00 VOICE', `init`, { authorization: `${owner}@active` })
@@ -52,6 +48,34 @@ describe('Voice token', async assert => {
 
   const ownerBalanceAfter = await getBalance(daoTenantName, owner)
   // console.log("owner balance after transfer: " + JSON.stringify(ownerBalanceAfter, null, 2))
+
+  let onlyOwnerCanBurn = true
+  try {
+    console.log(`burn no auth`)
+    await contracts.voice_token.burn(daoTenantName, firstuser,  "100.00 VOICE", "memo", { authorization: `${owner}@active` })
+    onlyOwnerCanBurn = false
+  } catch (err) {
+    // expected error
+  }
+
+  let canBurnNegative = false
+  try {
+    console.log(`burn negative`)
+    await contracts.voice_token.burn(daoTenantName, firstuser,  "-100.00 VOICE", "memo", { authorization: `${firstuser}@active` })
+    canBurnNegative = true
+  } catch (err) {
+    // expected error
+  }
+
+  let canBurnTooMuch = false
+  try {
+    console.log(`burn too much`)
+    await contracts.voice_token.burn(daoTenantName, firstuser,  "100.01 VOICE", "memo", { authorization: `${firstuser}@active` })
+    canBurnTooMuch = true
+  } catch (err) {
+    // expected error
+  }
+
 
   console.log(`burn`)
   await contracts.voice_token.burn(daoTenantName, firstuser,  "100.00 VOICE", "memo", { authorization: `${firstuser}@active` })
@@ -87,6 +111,26 @@ describe('Voice token', async assert => {
     actual: firstUserBalanceAfter,
     expected: 0
   })
+
+  assert({
+    given: `try to burn another user's balance`,
+    should: "fail",
+    actual: onlyOwnerCanBurn,
+    expected: true
+  })
+  assert({
+    given: `try to burn negative balance`,
+    should: "fail",
+    actual: canBurnNegative,
+    expected: false
+  })
+  assert({
+    given: `try to burn more than balance`,
+    should: "fail",
+    actual: canBurnTooMuch,
+    expected: false
+  })
+
 
 
 })
