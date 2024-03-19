@@ -28,6 +28,9 @@ const fetchDelegateBadgeId = require('./helpers/fetchDelegateBadgeID');
 const fetchDaoId = require('./helpers/fetchDaoId');
 const { default: fetch } = require('node-fetch');
 const getPayCpuAction = require('./helpers/getPayCpuAction');
+const getCreateDaoData = require('../test_old/helpers/getCreateDaoData');
+const { createUpvoteElectionAction, createTime } = require('./helpers/createUpvoteElectionAction');
+const { min } = require('moment');
 
 const accountsPublicKey = process.env.TELOS_TESTNET_ACCOUNTS_PUBLIC_KEY;
 const accountsPublicKeyEosMainnet = process.env.EOS_MAINNET_ACCOUNTS_PUBLIC_KEY
@@ -192,7 +195,7 @@ const createMultipleAccountsWithNames = async ({names, publicKey, creator}) => {
 
       let cpuStake = '0.2000 TLOS'
       let netStake = '0.2000 TLOS'
-      if (process.env.EOSIO_NETWORK.startsWith("eos")) {
+      if (isLocal() || process.env.EOSIO_NETWORK.startsWith("eos")) {
          cpuStake = '0.0100 EOS'
          netStake = '0.0100 EOS'
       }
@@ -302,212 +305,6 @@ const getDelegates = (daoObj) => {
 const printMessage = (txresult, title = "tx result") => {
    const consoleMessage = txresult.processed.action_traces[0].console;
    console.log(title + ": " + JSON.stringify(consoleMessage, null, 2))
-}
-
-const getCreateDaoData = ({
-   dao_name,
-   onboarder_account,
-   voting_duration_sec = 604800,
-   period_duration_sec = 604800,
-}) => {
-   return JSON.parse(`
-  [
-       [
-          {
-             "label":"content_group_label",
-             "value":[
-                "string",
-                "details"
-             ]
-          },
-          {
-             "label":"dao_name",
-             "value":[
-                "name",
-                "${dao_name}"
-             ]
-          },
-          {
-             "label":"dao_title",
-             "value":[
-                "string",
-                "DAO title for ${dao_name}"
-             ]
-          },
-          {
-             "label":"dao_description",
-             "value":[
-                "string",
-                "Dao Description Test"
-             ]
-          },
-          {
-             "label":"is_template",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"dao_template",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"voice_token",
-             "value":[
-                "asset",
-                "1.00 VOICE"
-             ]
-          },
-          {
-             "label":"use_seeds",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"voting_duration_sec",
-             "value":[
-                "int64",
-                "${voting_duration_sec}"
-             ]
-          },
-          {
-             "label":"period_duration_sec",
-             "value":[
-                "int64",
-                "${period_duration_sec}"
-             ]
-          },
-          {
-             "label":"voting_alignment_x100",
-             "value":[
-                "int64",
-                "80"
-             ]
-          },
-          {
-             "label":"voting_quorum_x100",
-             "value":[
-                "int64",
-                "20"
-             ]
-          },
-          {
-             "label":"voice_token_decay_period",
-             "value":[
-                "int64",
-                "604800"
-             ]
-          },
-          {
-             "label":"voice_token_decay_per_period_x10M",
-             "value":[
-                "int64",
-                "100000"
-             ]
-          },
-          {
-             "label":"utility_token_multiplier",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"voice_token_multiplier",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"treasury_token_multiplier",
-             "value":[
-                "int64",
-                "0"
-             ]
-          },
-          {
-             "label":"onboarder_account",
-             "value":[
-                "name",
-                "${onboarder_account}"
-             ]
-          },
-          {
-             "label":"dao_url",
-             "value":[
-                "string",
-                "dao_url_${dao_name}"
-             ]
-          },
-          {
-             "label":"skip_peg_token_create",
-             "value":[
-                "int64",
-                "1"
-             ]
-          },
-          {
-             "label":"skip_reward_token_create",
-             "value":[
-                "int64",
-                "1"
-             ]
-          }
-       ],
-       [
-          {
-             "label":"content_group_label",
-             "value":[
-                "string",
-                "core_members"
-             ]
-          }
-       ],
-       [
-          {
-             "label":"content_group_label",
-             "value":[
-                "string",
-                "style"
-             ]
-          },
-          {
-             "label":"logo",
-             "value":[
-                "string",
-                ""
-             ]
-          },
-          {
-             "label":"primary_color",
-             "value":[
-                "string",
-                "#242f5d"
-             ]
-          },
-          {
-             "label":"secondary_color",
-             "value":[
-                "string",
-                "#3f64ee"
-             ]
-          },
-          {
-             "label":"text_color",
-             "value":[
-                "string",
-                "#ffffff"
-             ]
-          }
-       ]
-    ]`)
 }
 
 
@@ -627,7 +424,6 @@ const getDaoBadges = async () => {
    //  }
 }
 
-
 const autoAddDelegateBadge = async ({
    daoId, 
    member,
@@ -676,16 +472,75 @@ const autoAddDelegateBadge = async ({
       expireSeconds: 30,
    });
 
-   // await contract.propose(
-   //    daoId,
-   //    member,
-   //    "assignbadge",
-   //    badgeProposalData,
-   //    true,
-   //    { authorization: `${member}@active` }
-   // )
+}
+
+const getDaoEntry = async (daoName) => {
+   const accountsTable = await eos.getTableRows({
+      code: daoContract,
+      scope: daoContract,
+      table: 'daos',
+      lower_bound: daoName,
+      upper_bound: daoName,
+      json: true
+   });
+   return accountsTable.rows[0];
+};
+
+const createDao = async ({
+   daoName,
+   ownerAccountName
+}) => {
+   console.log("create DAO" + daoName)
+
+   const contract = await eos.contract(daoContract)
+   const data = getCreateDaoData({
+      dao_name: daoName,
+      onboarder_account: ownerAccountName
+   })
+   await contract.createdao(data, { authorization: `${ownerAccountName}@active` });
+
+   const daoObj = await getDaoEntry(daoName)
+   console.log("DAO id: " + daoObj.id + " Name: " + daoName)
+   return daoObj
 
 }
+
+const createUpvoteElection = async ({
+   daoName,
+   ownerAccountName,
+   minutes
+}) => {
+   console.log("create upvote election" + daoName)
+
+   const daoObj = await getDaoEntry(daoName)
+   console.log("DAO id: " + daoObj.id + " Name: " + daoName)
+
+   const startTime = createTime(minutes)
+
+   console.log("start time: " + startTime)
+
+   const action = createUpvoteElectionAction({
+      daoContract: daoContract,
+      daoOwnerAccount: ownerAccountName,
+      daoId: daoObj.id,
+      electionTime: startTime
+   })
+
+   console.log("action: " + JSON.stringify(action, null, 2))
+
+
+   const transactionResult = await eos.transaction({
+      actions: [action]
+    }, {
+      blocksBehind: 3,
+      expireSeconds: 30,
+    });
+
+   console.log("Done. Election starts at " + startTime);
+
+
+}
+
 
 const startElection = async ({
    electionId, 
@@ -754,20 +609,24 @@ program
   .description('Create N accounts')
   .action(async (number) => {
 
-   // const pubKey = accountsPublicKey // testnet
+   // TELOS TESTNET
+   // const pubKey = accountsPublicKey 
    // const creatorAccountName = "nikolaus223t"
    
-   // const pubKey = accountsPublicKeyEosMainnet // eos mainnet
-   // const creatorAccountName = "illum1nation" // eos mainnet
+   // EOS MAINNET
+   // const pubKey = accountsPublicKeyEosMainnet 
+   // const creatorAccountName = "illum1nation" 
 
-   const pubKey = process.env.TELOS_MAINNET_ACCOUNTS_PUBLIC_KEY // telos mainnet
-   const creatorAccountName = "illumination" // telos mainnet
+   // TELOS MAINNET
+   // const pubKey = process.env.TELOS_MAINNET_ACCOUNTS_PUBLIC_KEY 
+   // const creatorAccountName = "illumination"
 
-   
+   // LOCAL 
+   const pubKey = process.env.LOCAL_PUBLIC_KEY 
+   const creatorAccountName = "seedsuseraaa" 
 
       const names = generateEOSIOAccountNames(number)
       console.log("Accounts: " + JSON.stringify(names, null, 2))
-
 
       console.log("creating accounts with " + creatorAccountName + " and key " + pubKey)
       
@@ -1018,6 +877,31 @@ program
       
 })
 
+program
+.command('create_dao <daoName> <ownerAccountName>')
+.description('Create a DAO')
+.action(async (daoName, ownerAccountName) => {
+
+   const daoObj = await createDao({daoName: daoName, ownerAccountName: ownerAccountName})
+   console.log("created DAO " + daoName + " with id " + daoObj.id + " : " + JSON.stringify(daoObj, null, 2))
+      
+})
+
+
+program
+.command('create_upvote_election <daoName> <ownerAccountName> <minutes>')
+.description('Create upvote election')
+.action(async (daoName, ownerAccountName, minutes) => {
+
+   console.log("create upvote election in " + minutes + " minutes")
+
+   const daoObj = await createUpvoteElection({
+      daoName: daoName, 
+      ownerAccountName: ownerAccountName,
+      minutes: minutes
+   })
+      
+})
 
 
  
