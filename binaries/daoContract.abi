@@ -259,6 +259,24 @@
             ]
         },
         {
+            "name": "addedge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "from",
+                    "type": "uint64"
+                },
+                {
+                    "name": "to",
+                    "type": "uint64"
+                },
+                {
+                    "name": "edge_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "addenroller",
             "base": "",
             "fields": [
@@ -269,6 +287,24 @@
                 {
                     "name": "enroller_account",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "addtest",
+            "base": "",
+            "fields": [
+                {
+                    "name": "execute_time",
+                    "type": "time_point_sec"
+                },
+                {
+                    "name": "number",
+                    "type": "uint64"
+                },
+                {
+                    "name": "text",
+                    "type": "string"
                 }
             ]
         },
@@ -411,6 +447,16 @@
             ]
         },
         {
+            "name": "cancelupvelc",
+            "base": "",
+            "fields": [
+                {
+                    "name": "election_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "cancmsigpay",
             "base": "",
             "fields": [
@@ -425,11 +471,43 @@
             ]
         },
         {
+            "name": "castupvote",
+            "base": "",
+            "fields": [
+                {
+                    "name": "round_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "group_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "voter",
+                    "type": "name"
+                },
+                {
+                    "name": "voted_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "claimnextper",
             "base": "",
             "fields": [
                 {
                     "name": "assignment_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "cleandao",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
                     "type": "uint64"
                 }
             ]
@@ -487,6 +565,16 @@
             ]
         },
         {
+            "name": "createcalen",
+            "base": "",
+            "fields": [
+                {
+                    "name": "is_default",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
             "name": "createdao",
             "base": "",
             "fields": [
@@ -525,12 +613,50 @@
             ]
         },
         {
+            "name": "createroot",
+            "base": "",
+            "fields": [
+                {
+                    "name": "notes",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "createtokens",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "tokens_info",
+                    "type": "ContentGroups"
+                }
+            ]
+        },
+        {
             "name": "createtrsy",
             "base": "",
             "fields": [
                 {
                     "name": "dao_id",
                     "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "createupvelc",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "election_config",
+                    "type": "ContentGroups"
                 }
             ]
         },
@@ -545,12 +671,88 @@
             "fields": []
         },
         {
+            "name": "deferred_actions_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "execute_time",
+                    "type": "time_point_sec"
+                },
+                {
+                    "name": "auth",
+                    "type": "permission_level[]"
+                },
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "action_name",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "delasset",
+            "base": "",
+            "fields": [
+                {
+                    "name": "asset_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "deletedaodft",
             "base": "",
             "fields": [
                 {
                     "name": "dao_draft_id",
                     "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "editdoc",
+            "base": "",
+            "fields": [
+                {
+                    "name": "doc_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "group",
+                    "type": "string"
+                },
+                {
+                    "name": "key",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "FlexValue"
+                }
+            ]
+        },
+        {
+            "name": "editupvelc",
+            "base": "",
+            "fields": [
+                {
+                    "name": "election_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "election_config",
+                    "type": "ContentGroups"
                 }
             ]
         },
@@ -609,6 +811,11 @@
             ]
         },
         {
+            "name": "executenext",
+            "base": "",
+            "fields": []
+        },
+        {
             "name": "genperiods",
             "base": "",
             "fields": [
@@ -619,6 +826,20 @@
                 {
                     "name": "period_count",
                     "type": "int64"
+                }
+            ]
+        },
+        {
+            "name": "initcalendar",
+            "base": "",
+            "fields": [
+                {
+                    "name": "calendar_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "next_period",
+                    "type": "uint64"
                 }
             ]
         },
@@ -704,11 +925,11 @@
             "base": "",
             "fields": [
                 {
-                    "name": "first",
+                    "name": "key",
                     "type": "string"
                 },
                 {
-                    "name": "second",
+                    "name": "value",
                     "type": "FlexValue"
                 }
             ]
@@ -896,6 +1117,34 @@
             ]
         },
         {
+            "name": "remdoc",
+            "base": "",
+            "fields": [
+                {
+                    "name": "doc_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "remedge",
+            "base": "",
+            "fields": [
+                {
+                    "name": "from_node",
+                    "type": "uint64"
+                },
+                {
+                    "name": "to_node",
+                    "type": "uint64"
+                },
+                {
+                    "name": "edge_name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "remenroller",
             "base": "",
             "fields": [
@@ -936,6 +1185,11 @@
                     "type": "name"
                 }
             ]
+        },
+        {
+            "name": "reset",
+            "base": "",
+            "fields": []
         },
         {
             "name": "setclaimenbld",
@@ -1020,7 +1274,7 @@
             ]
         },
         {
-            "name": "setupbadges",
+            "name": "setupdefs",
             "base": "",
             "fields": [
                 {
@@ -1048,12 +1302,98 @@
             ]
         },
         {
+            "name": "testdtrx",
+            "base": "",
+            "fields": [
+                {
+                    "name": "number",
+                    "type": "uint64"
+                },
+                {
+                    "name": "text",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "testdtrx_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "number",
+                    "type": "uint64"
+                },
+                {
+                    "name": "text",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "uesubmitseed",
+            "base": "",
+            "fields": [
+                {
+                    "name": "dao_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "seed",
+                    "type": "checksum256"
+                },
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "updatemsig",
             "base": "",
             "fields": [
                 {
                     "name": "msig_id",
                     "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "updateupvelc",
+            "base": "",
+            "fields": [
+                {
+                    "name": "election_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "reschedule",
+                    "type": "bool"
+                },
+                {
+                    "name": "force",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "upvotevideo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "group_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "link",
+                    "type": "string"
                 }
             ]
         },
@@ -1124,8 +1464,18 @@
             "ricardian_contract": ""
         },
         {
+            "name": "addedge",
+            "type": "addedge",
+            "ricardian_contract": ""
+        },
+        {
             "name": "addenroller",
             "type": "addenroller",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addtest",
+            "type": "addtest",
             "ricardian_contract": ""
         },
         {
@@ -1146,7 +1496,7 @@
         {
             "name": "apply",
             "type": "apply",
-            "ricardian_contract": "---\nspec_version: \"0.2.0\"\ntitle: Apply\nsummary: 'Apply for Membership'\nicon: https://eos.gyftie.org/statics/logos/mobile.png#54b516210a9fe709b1ccc8c075e16538d51e3664674f707f80630a7e53dbd2e7\n---\n\n{{$action.authorization.[0].actor}} applies"
+            "ricardian_contract": ""
         },
         {
             "name": "applycircle",
@@ -1174,13 +1524,28 @@
             "ricardian_contract": ""
         },
         {
+            "name": "cancelupvelc",
+            "type": "cancelupvelc",
+            "ricardian_contract": ""
+        },
+        {
             "name": "cancmsigpay",
             "type": "cancmsigpay",
             "ricardian_contract": ""
         },
         {
+            "name": "castupvote",
+            "type": "castupvote",
+            "ricardian_contract": ""
+        },
+        {
             "name": "claimnextper",
             "type": "claimnextper",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cleandao",
+            "type": "cleandao",
             "ricardian_contract": ""
         },
         {
@@ -1204,6 +1569,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "createcalen",
+            "type": "createcalen",
+            "ricardian_contract": ""
+        },
+        {
             "name": "createdao",
             "type": "createdao",
             "ricardian_contract": ""
@@ -1219,8 +1589,28 @@
             "ricardian_contract": ""
         },
         {
+            "name": "createroot",
+            "type": "createroot",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createtokens",
+            "type": "createtokens",
+            "ricardian_contract": ""
+        },
+        {
             "name": "createtrsy",
             "type": "createtrsy",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createupvelc",
+            "type": "createupvelc",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delasset",
+            "type": "delasset",
             "ricardian_contract": ""
         },
         {
@@ -1229,9 +1619,19 @@
             "ricardian_contract": ""
         },
         {
+            "name": "editdoc",
+            "type": "editdoc",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "editupvelc",
+            "type": "editupvelc",
+            "ricardian_contract": ""
+        },
+        {
             "name": "enroll",
             "type": "enroll",
-            "ricardian_contract": "---\nspec_version: \"0.2.0\"\ntitle: Enroll\nsummary: 'Enroll a member in the organization'\nicon: https://eos.gyftie.org/statics/logos/mobile.png#54b516210a9fe709b1ccc8c075e16538d51e3664674f707f80630a7e53dbd2e7\n---\n\n{{$action.authorization.[0].actor}} enrolls the existing applicant {{applicant}} with the content {{content}} to Hypha DAO.\""
+            "ricardian_contract": ""
         },
         {
             "name": "enrollcircle",
@@ -1244,8 +1644,18 @@
             "ricardian_contract": ""
         },
         {
+            "name": "executenext",
+            "type": "executenext",
+            "ricardian_contract": ""
+        },
+        {
             "name": "genperiods",
             "type": "genperiods",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "initcalendar",
+            "type": "initcalendar",
             "ricardian_contract": ""
         },
         {
@@ -1319,6 +1729,16 @@
             "ricardian_contract": ""
         },
         {
+            "name": "remdoc",
+            "type": "remdoc",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "remedge",
+            "type": "remedge",
+            "ricardian_contract": ""
+        },
+        {
             "name": "remenroller",
             "type": "remenroller",
             "ricardian_contract": ""
@@ -1331,6 +1751,11 @@
         {
             "name": "remtreasurer",
             "type": "remtreasurer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "reset",
+            "type": "reset",
             "ricardian_contract": ""
         },
         {
@@ -1359,8 +1784,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "setupbadges",
-            "type": "setupbadges",
+            "name": "setupdefs",
+            "type": "setupdefs",
             "ricardian_contract": ""
         },
         {
@@ -1369,8 +1794,28 @@
             "ricardian_contract": ""
         },
         {
+            "name": "testdtrx",
+            "type": "testdtrx",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "uesubmitseed",
+            "type": "uesubmitseed",
+            "ricardian_contract": ""
+        },
+        {
             "name": "updatemsig",
             "type": "updatemsig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updateupvelc",
+            "type": "updateupvelc",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "upvotevideo",
+            "type": "upvotevideo",
             "ricardian_contract": ""
         },
         {
@@ -1393,6 +1838,13 @@
         {
             "name": "daos",
             "type": "NameToID",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "defactions",
+            "type": "deferred_actions_table",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
@@ -1433,6 +1885,13 @@
             "key_types": []
         },
         {
+            "name": "testdtrx",
+            "type": "testdtrx_table",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
             "name": "tokentodao",
             "type": "TokenToDao",
             "index_type": "i64",
@@ -1440,6 +1899,7 @@
             "key_types": []
         }
     ],
+    "kv_tables": {},
     "ricardian_clauses": [],
     "variants": [
         {
