@@ -69,11 +69,28 @@ CONTRACT joinhypha : public contract {
       ACTION createinvite(const uint64_t dao_id, const name dao_name, const string dao_fullname, const name inviter, const checksum256 hashed_secret);
       ACTION redeeminvite(const name account, const checksum256 secret);
 
+      // external tables
+      TABLE MemberToId {
+        uint64_t id;
+        name name;
+
+        uint64_t primary_key() const { return name.value; }
+        uint64_t by_id() const { return id; }
+    };
+    typedef eosio::multi_index<eosio::name("members"), MemberToId,
+                            eosio::indexed_by<eosio::name("bydocid"),
+                            eosio::const_mem_fun<MemberToId, uint64_t, &MemberToId::by_id>>>
+            members_table;
+
     private: 
 
       name paycpu_account = name("paycpu.acct");
       name oracle_account = name("oracle");
       void create_account(name account, string publicKey);
       std::variant<name, uint64_t, asset, std::string> get_kv(const name& key);
+      name getDaoAccountName();
+      uint64_t getMemberID(const name &memberName);
+      bool is_enroller(uint64_t dao_id, const name account);
+
 
 };

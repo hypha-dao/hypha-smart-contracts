@@ -114,7 +114,6 @@ const getLastInvitesRow = async () => await eos.getTableRows({
   limit: 1,
 })
 
-describe('test invite', async assert => {
 
   if (!isLocal()) {
     console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
@@ -150,8 +149,7 @@ describe('test invite', async assert => {
 
   console.log("redeem invite")
 
-
-  //await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
+  await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
 
   const lastInviteAfterRows = getLastInvitesRow()
 
