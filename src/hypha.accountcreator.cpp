@@ -102,7 +102,9 @@ bool joinhypha::is_enroller(uint64_t dao_id, const name account)
 {
    auto memberID = getMemberID(account);
    auto daoContract = getDaoAccountName();
-   return hypha::Edge::exists(daoContract, dao_id, memberID, name("enroller"));
+   
+   return hypha::Edge::exists(daoContract, dao_id, memberID, name("enroller")) || 
+         hypha::Edge::exists(daoContract, dao_id, memberID, name("admin"));
 }
 
 ACTION joinhypha::createinvite(const uint64_t dao_id, const name dao_name, const string dao_fullname, const name inviter, const checksum256 hashed_secret)

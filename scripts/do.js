@@ -232,6 +232,9 @@ program
     await contract.setconfig(oracleuser, { authorization: `${joinhypha}@active` })
     console.log("set paycpu account " + paycpu)
     await contract.setkv("paycpu.acct", ["name", paycpu], { authorization: `${joinhypha}@active` })
+    
+    console.log("set dao contract " + daoContract)
+    await contract.setkv("dao.contract", ["name", daoContract], { authorization: `${joinhypha}@active` })
 
     console.log("activate")
     await contract.activate({ authorization: `${joinhypha}@active` })

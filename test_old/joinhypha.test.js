@@ -149,8 +149,7 @@ const getLastInvitesRow = async () => await eos.getTableRows({
 
   console.log("redeem invite")
 
-
-  //await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
+  await contract.redeeminvite(beneficiaryAccount, secret.secret, { authorization: `${beneficiaryAccount}@active` })
 
   const lastInviteAfterRows = getLastInvitesRow()
 
