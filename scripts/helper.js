@@ -279,8 +279,16 @@ const payForCPUKeys = {
   [networks.eosMainnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
   [networks.eosTestnet]: 'EOS65Ug7bqgMdom1Vu9QPdRu4ie7Yey4VmyoJDvcE4H9vfy8qC8yy',
 }
+const schedulerActiveKeys = {
+  [networks.local]: 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV',
+  [networks.telosMainnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TELOS}`,
+  [networks.telosTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
+  [networks.eosMainnet]: `${process.env.SCHEDULER_PUBLIC_KEY_EOS}`,
+  [networks.eosTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
+}
 
 const payForCPUPublicKey = payForCPUKeys[chainId]
+const schedulerActiveKey = schedulerActiveKeys[chainId]
 
 var permissions = [
 
@@ -397,9 +405,17 @@ daoContract: [
     target: `${accounts.daoContract.account}@active`,
     actor: `${accounts.daoContract.account}@eosio.code`
   }, 
+  {
+    target: `${accounts.daoContract.account}@scheduler`,
+    key: schedulerActiveKey,
+    parent: 'active'
+  }, {
+    target: `${accounts.daoContract.account}@scheduler`,
+    action: 'removedtx'
+  }
   // Not sure about this - we could also use a service account
   // {
-  //   target: `${accounts.daoContract.account}@executenext`,
+  //   target: `${accounts.daoContract.account}@scheduler`,
   //   actor: `${accounts.paycpu.account}@payforcpu`,
   //   parent: 'active',
   //   type: 'createActorPermission'
