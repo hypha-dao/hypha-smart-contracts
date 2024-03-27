@@ -145,7 +145,9 @@ ACTION joinhypha::redeeminvite(const name account, const checksum256 secret)
    const name enroller = invite_itr->inviter;
    const uint64_t dao_id = invite_itr->dao_id;
 
-   check(is_enroller(dao_id, enroller), "Invalid invite link: The inviter is not an enroller for this DAO.");
+   // removing this check for now - we have old invites that need to work
+
+   // check(is_enroller(dao_id, enroller), "Invalid invite link: The inviter is not an enroller for this DAO.");
 
    const name dao_contract = getDaoAccountName();
 
@@ -203,6 +205,6 @@ uint64_t joinhypha::getMemberID(const name &memberName)
    name dao = getDaoAccountName();
    members_table members(dao, dao.value);
    auto itr = members.find(memberName.value);
-   eosio::check(itr != members.end(), "There is no member with name");
+   eosio::check(itr != members.end(), "There is no member with name " + memberName.to_string());
    return itr->id;
 }
