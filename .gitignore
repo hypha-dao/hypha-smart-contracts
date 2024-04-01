@@ -20,3 +20,4 @@ include/document_graph
 src/document_graph
 .DS_Store
 update_binaries.sh
+edges-eos-testnet.json

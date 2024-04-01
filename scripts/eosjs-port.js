@@ -64,6 +64,7 @@ class Eos {
     rpc = new JsonRpc(httpEndpoint, { fetch });
     api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() })
 
+    this.rpc = rpc
     this.api = api
 
     isUnitTest = isLocal ? isLocal() : false
