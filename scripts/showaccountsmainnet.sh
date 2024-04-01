@@ -1,1 +1,0 @@
-EOSIO_NETWORK=telosMainnet node scripts/showaccounts.js
