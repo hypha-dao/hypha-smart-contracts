@@ -21,3 +21,4 @@ src/document_graph
 .DS_Store
 update_binaries.sh
 edges-eos-testnet.json
+edges_telos_mainnet.json
