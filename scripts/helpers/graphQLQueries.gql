@@ -1,0 +1,130 @@
+
+// get a DAO
+
+query MyQuery {
+  getDao(details_daoName_n: "upvotetest1") {
+    docId
+    system_nodeLabel_n
+    details_unusedField_n
+    details_daoType_s
+    system_nodeLabel_s
+    badge {
+      docId
+      details_title_s
+      details_state_s
+    }
+  }
+}
+
+// get delegate badges in the system
+query {
+  queryBadge(filter: { 
+    and: [
+      { has: system_badgeId_i },
+      { details_title_s: {regexp: "/delegate$/i"} }
+    ]
+  }) {
+    docId
+    system_badgeId_i
+    details_title_s
+  }
+}
+
+"data": {
+    "queryBadge": [
+      {
+        "docId": "16",
+        "system_badgeId_i": 8,
+        "details_title_s": "Head Delegate"
+      },
+      {
+        "docId": "21",
+        "system_badgeId_i": 7,
+        "details_title_s": "Chief Delegate"
+      },
+      {
+        "docId": "27",
+        "system_badgeId_i": 6,
+        "details_title_s": "Delegate"
+      }
+    ]
+  },
+
+
+{
+  getDao(details_daoName_n: "upvotetest1") {
+    docId
+    system_nodeLabel_n
+    details_unusedField_n
+    details_daoType_s
+    system_nodeLabel_s
+    details_isWaitingEcosystem_i
+    badge {
+      docId
+      details_title_s
+      details_state_s
+    }
+    member(filter: {has: holdsbadge}) {
+      docId
+      details_member_n
+      holdsbadge {
+        docId
+        details_title_s
+      }
+      assigned {
+        docId
+        details_title_s
+        ballot_expiration_t
+      }
+      assignbadge {
+        docId
+        system_proposer_n
+        details_assignee_n
+        details_badge_i
+        details_title_s
+        system_ballotId_n
+        ballot_expiration_t
+        
+      }
+    }
+  }
+}
+
+
+query daoBadgeAssignments($daoName: String!, $first: Int, $offset: Int) {
+  queryAssignbadge (
+    first: $first
+    offset: $offset
+    order: {
+      desc: createdDate
+    }
+    filter: {
+      details_state_s: {
+        regexp: "/.*(approved|archived).*/i"
+      }
+    }
+  )@cascade(fields:["dao"]) {
+    badge {
+      details_icon_s
+    }
+    details_title_s
+    details_state_s
+    details_description_s
+    details_periodCount_i
+    start {
+      details_startTime_t
+      details_label_s
+    }
+    docId
+    dao(filter:{details_daoName_n:{eq:$daoName}}) {
+      details_daoName_n
+    }
+    ballot_expiration_t
+  } 
+}
+{
+  "daoName": "upvotetest1",
+  "first": 0,
+  "offset": 0
+  
+}

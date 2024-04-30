@@ -31,6 +31,7 @@ const getPayCpuAction = require('./helpers/getPayCpuAction');
 const getCreateDaoData = require('../test_old/helpers/getCreateDaoData');
 const { createUpvoteElectionAction, createTime } = require('./helpers/createUpvoteElectionAction');
 const { min } = require('moment');
+const getLastBlock = require('./helpers/getLastBlock');
 
 const accountsPublicKey = process.env.TELOS_TESTNET_ACCOUNTS_PUBLIC_KEY;
 const accountsPublicKeyEosMainnet = process.env.EOS_MAINNET_ACCOUNTS_PUBLIC_KEY
@@ -902,7 +903,47 @@ program
    })
       
 })
+program
+.command('get_deletages <daoName>')
+.description('get delegates')
+.action(async (daoName) => {
 
+   console.log("get delegates for " + daoName)
+
+   const daoObj = await createUpvoteElection({
+      daoName: daoName, 
+      ownerAccountName: ownerAccountName,
+      minutes: minutes
+   })
+      
+})
+
+program
+.command('getLastBlock')
+.description('get last block')
+.action(async () => {
+
+   console.log("get last block")
+
+   const lastBlock = parseInt(await getLastBlock())
+
+   const info = await eos.getInfo()
+   console.log("info: " + JSON.stringify(info, null, 2));
+   const headBlockNum = info['head_block_num']
+   console.log("Last GraphQL Block: " + lastBlock);
+   console.log("Head Block Number: " + headBlockNum);
+   
+   const chainLastBlock = parseInt(headBlockNum)
+
+   if (chainLastBlock - lastBlock > 5) {
+      console.log("GraphQL is stalled: " + (chainLastBlock - lastBlock) + " behind the chain");
+   } else {
+      console.log("GraphQL is a few blocks behind: " + (chainLastBlock - lastBlock) + " behind the chain");
+   }
+
+   
+      
+})
 
  
    
