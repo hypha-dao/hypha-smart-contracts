@@ -43,12 +43,20 @@ const ownerAccounts = {
 
 const gQLEndpoints = {
   local: "",
-  // telosMainnet: "https://alpha-dhomn.tekit.io/graphql",
   telosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",// NOTE This needs a HEADER with JWT token
   telosTestnet: "https://alpha-stts.tekit.io/graphql",
   eosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql", // NOTE This needs a HEADER with JWT token "X-Dgraph-AccessToken": "ey..."
   eosTestnet: "https://nameless-brook-400226.eu-central-1.aws.cloud.dgraph.io/graphql"
 }
+
+const gQLApiKeyEndpoints = {
+  local: "",
+  telosMainnet: process.env.GRAPHQL_JWT_API_TELOS_MAINNET,
+  telosTestnet: process.env.GRAPHQL_JWT_API_TELOS_TESTNET,
+  eosMainnet: process.env.GRAPHQL_JWT_API_EOS_MAINNET,
+  eosTestnet: process.env.GRAPHQL_JWT_API_EOS_TESTNET
+}
+
 
 const {
   EOSIO_NETWORK,
@@ -580,5 +588,6 @@ module.exports = {
   isTelosTestnet,
   sendTransaction,
   contractPermissions,
-  graphQLEndpoint
+  graphQLEndpoint,
+  gQLApiKeyEndpoints,
 }

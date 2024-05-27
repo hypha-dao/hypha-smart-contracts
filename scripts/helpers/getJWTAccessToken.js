@@ -1,7 +1,8 @@
 const fetch = require('node-fetch');
+const { gQLApiKeyEndpoints } = require('../helper');
 require('dotenv').config()
 
-const graphQlJwtApiUrl = process.env.GRAPHQL_JWT_API_EOS_MAINNET
+const graphQlJwtApiUrl = gQLApiKeyEndpoints[process.env.EOSIO_NETWORK]
 
 // How to: Include the token into headers like this:
 // {
