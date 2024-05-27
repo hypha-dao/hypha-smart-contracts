@@ -2,7 +2,7 @@ const { describe } = require('riteway')
 
 const { eos, names, getTableRows, initContracts } = require('../scripts/helper.js')
 
-const { owner, hyphatoken, tlostoken, tier_vesting, sale, launch_sale, firstuser } = names
+const { owner, hyphatoken, husd_token, tlostoken, tier_vesting, sale, launch_sale, firstuser } = names
 
 
 const getBalanceFloat = async (user) => {
@@ -13,7 +13,7 @@ const getBalanceFloat = async (user) => {
 
 describe('Sale', async assert => {
 
-  const contracts = await initContracts({ hyphatoken, sale })
+  const contracts = await initContracts({ hyphatoken, sale, husd_token })
   
   console.log(`reset sale`)
   await contracts.sale.reset({ authorization: `${sale}@active` })  
@@ -27,6 +27,17 @@ describe('Sale', async assert => {
 
   // console.log(`issue`)
   // await contracts.hyphatoken.issue(owner, '10000000.00 HYPHA', `init`, { authorization: owner+`@active` })
+
+  // try {
+  //   await contracts.husd_token.create(owner, "-1.00 HUSD", { authorization: `${husd_token}@active` })
+  //   console.log(`issue`)
+  //   await contracts.husd_token.issue(owner, '10000000.00 HUSD', `init`, { authorization: owner+`@active` })
+  // } catch (err) {
+  //   // ignore - token exists
+  // }
+  // console.log(`transfer to sale`)
+  // await contracts.husd_token.transfer(owner, firstuser, "10000.00 HUSD", 'unit test', { authorization: `${owner}@active` })
+
 
   console.log(`transfer to sale`)
   await contracts.hyphatoken.transfer(owner, sale, "1000.00 HYPHA", 'unit test', { authorization: `${owner}@active` })
@@ -551,7 +562,7 @@ const getLocksTable = async (lockId) => {
   })
 }
 
-describe.only('launch sale mode - locks', async assert => {
+describe('launch sale mode - locks', async assert => {
 
   const contracts = await initContracts({ tier_vesting, launch_sale, hyphatoken })
   console.log(`reset`)

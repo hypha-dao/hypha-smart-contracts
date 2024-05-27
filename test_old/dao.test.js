@@ -1,6 +1,7 @@
 const { describe } = require('riteway')
 const { eos, names, getTableRows, isLocal, getBalance, sleep } = require('../scripts/helper')
 const getCreateDaoData = require("./helpers/getCreateDaoData")
+const initDhoSettings = require("./helpers/initDhoSettings")
 
 const eosjs = require('eosjs')
 const { Serialize } = eosjs
@@ -18,6 +19,7 @@ const {
    findEdgesByFromNodeAndEdgeName, 
    findFirstDocumentByFromNodeAndEdgeName, 
 } = require('./docGraph');
+const { initAllDHOSettings } = require('./helpers/daoHelpers')
 
 
 /// prints the message from a transaction result object
@@ -31,7 +33,7 @@ const printMessage = (txresult, title = "tx result") => {
 /////////// Main unit test
 ////////////////////////////////////////////////////////////////////////
 
-describe('dap test deferred actions', async assert => {
+describe('dao test deferred actions', async assert => {
 
    if (!isLocal()) {
       console.log("only run unit tests on local - don't reset accounts on mainnet or testnet")
@@ -45,6 +47,8 @@ describe('dap test deferred actions', async assert => {
    // reset contract
    console.log("reset " + daoContract)
    await contract.reset({ authorization: `${daoContract}@active` })
+
+   const { hasDelegateBadge, startPeriodDoc, delegateBadge } = await initAllDHOSettings(contract, daoContract);
 
      // Get the current date and time
   const currentDate = new Date();
