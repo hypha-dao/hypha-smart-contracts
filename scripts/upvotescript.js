@@ -928,7 +928,7 @@ program
    const lastBlock = parseInt(await getLastBlock())
 
    const info = await eos.getInfo()
-   console.log("info: " + JSON.stringify(info, null, 2));
+   // console.log("info: " + JSON.stringify(info, null, 2));
    const headBlockNum = info['head_block_num']
    console.log("Last GraphQL Block: " + lastBlock);
    console.log("Head Block Number: " + headBlockNum);

@@ -20,7 +20,7 @@ const getLastBlock = async () => {
     const numberPattern = /__(\d+)__0__0/;
     const match = cursorData.match(numberPattern);
     if (match) {
-        console.log("Extracted number:", match[1]);
+        // console.log("Extracted number:", match[1]);
         return  match[1]
     } else {
         console.log("No number found");
