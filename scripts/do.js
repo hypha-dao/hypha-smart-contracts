@@ -2,6 +2,8 @@
 
 const program = require('commander')
 const compile = require('./compile')
+const test = require('./test')
+
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows, contractPermissions } = require('./helper')
 const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoContract } = names
 

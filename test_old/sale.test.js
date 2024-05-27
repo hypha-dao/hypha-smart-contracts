@@ -573,7 +573,7 @@ describe.only('launch sale mode - locks', async assert => {
   await contracts.launch_sale.cfglaunch(tier_vesting, { authorization: `${launch_sale}@active` })
 
   const balanceBefore = await getBalanceFloat(firstuser)
-  const vestingBalance = await getBalanceFloat(tier_vesting)
+  const vestingBalance = await getBalanceFloat(tier_vesting) ?? 0
   const saleBalance = await getBalanceFloat(launch_sale)
 
   console.log(`new payment`)
