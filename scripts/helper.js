@@ -29,8 +29,8 @@ const endpoints = {
   telosMainnet: 'https://mainnet.telos.net',
   // telosMainnet: 'https://telos.greymass.com',
   eosMainnet: 'http://eos.greymass.com',
-  // eosTestnet: 'https://jungle4.dfuse.eosnation.io',
-  eosTestnet: 'http://jungle4.eossweden.org',
+  eosTestnet: 'https://jungle4.dfuse.eosnation.io',
+  //eosTestnet: 'http://jungle4.eossweden.org',
 }
 
 const ownerAccounts = {
@@ -44,9 +44,9 @@ const ownerAccounts = {
 const gQLEndpoints = {
   local: "",
   telosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",// NOTE This needs a HEADER with JWT token
-  telosTestnet: "https://alpha-stts.tekit.io/graphql",
+  telosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",
   eosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql", // NOTE This needs a HEADER with JWT token "X-Dgraph-AccessToken": "ey..."
-  eosTestnet: "https://nameless-brook-400226.eu-central-1.aws.cloud.dgraph.io/graphql"
+  eosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql"
 }
 
 const gQLApiKeyEndpoints = {
