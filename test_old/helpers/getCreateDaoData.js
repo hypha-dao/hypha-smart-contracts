@@ -1,5 +1,6 @@
 module.exports = getCreateDaoData = ({
     dao_name,
+    dao_title, // user readable
     onboarder_account,
     voting_duration_sec = 604800,
     period_duration_sec = 604800,
@@ -25,7 +26,7 @@ module.exports = getCreateDaoData = ({
               "label":"dao_title",
               "value":[
                  "string",
-                 "DAO title for ${dao_name}"
+                 "${dao_title}"
               ]
            },
            {

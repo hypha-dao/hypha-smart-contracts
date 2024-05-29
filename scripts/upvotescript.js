@@ -6,7 +6,7 @@
 
 const program = require('commander')
 
-const { eos, names, getTableRows, isLocal, getBalance, sleep } = require('./helper')
+const { eos, names, getTableRows, isLocal, getBalance, sleep, httpEndpoint } = require('./helper')
 
 const { daoContract, owner, firstuser, seconduser, thirduser, voice_token, husd_token, hyphatoken } = names
 var crypto = require('crypto');
@@ -32,6 +32,7 @@ const getCreateDaoData = require('../test_old/helpers/getCreateDaoData');
 const { createUpvoteElectionAction, createTime } = require('./helpers/createUpvoteElectionAction');
 const { min } = require('moment');
 const getLastBlock = require('./helpers/getLastBlock');
+const createEsrWithActions = require('./helpers/createEsrWithActions');
 
 const accountsPublicKey = process.env.TELOS_TESTNET_ACCOUNTS_PUBLIC_KEY;
 const accountsPublicKeyEosMainnet = process.env.EOS_MAINNET_ACCOUNTS_PUBLIC_KEY
@@ -489,6 +490,7 @@ const getDaoEntry = async (daoName) => {
 
 const createDao = async ({
    daoName,
+   daoTitle,
    ownerAccountName
 }) => {
    console.log("create DAO" + daoName)
@@ -496,13 +498,33 @@ const createDao = async ({
    const contract = await eos.contract(daoContract)
    const data = getCreateDaoData({
       dao_name: daoName,
+      dao_title: daoTitle,
       onboarder_account: ownerAccountName
    })
-   await contract.createdao(data, { authorization: `${ownerAccountName}@active` });
 
-   const daoObj = await getDaoEntry(daoName)
-   console.log("DAO id: " + daoObj.id + " Name: " + daoName)
-   return daoObj
+   const action = {
+      "account":"dao.hypha",
+      "name":"createdao",
+      "authorization":[
+         {
+            "actor": ownerAccountName,
+            "permission":"active"
+         }
+      ], "data": {
+         "config": data 
+      }
+   }
+
+   const esr = await createEsrWithActions({actions: [action], endpoint: httpEndpoint})
+
+   console.log("esr: " + JSON.stringify(esr, null, 2))
+
+
+   // Create dao directly - problematic
+   // await contract.createdao(data, { authorization: `${ownerAccountName}@active` });
+   // const daoObj = await getDaoEntry(daoName)
+   // console.log("DAO id: " + daoObj.id + " Name: " + daoName)
+   // return daoObj
 
 }
 
@@ -879,12 +901,12 @@ program
 })
 
 program
-.command('create_dao <daoName> <ownerAccountName>')
+.command('create_dao <daoName> <title> <ownerAccountName>')
 .description('Create a DAO')
-.action(async (daoName, ownerAccountName) => {
+.action(async (daoName, title, ownerAccountName) => {
 
-   const daoObj = await createDao({daoName: daoName, ownerAccountName: ownerAccountName})
-   console.log("created DAO " + daoName + " with id " + daoObj.id + " : " + JSON.stringify(daoObj, null, 2))
+   const daoObj = await createDao({daoName: daoName, daoTitle: title, ownerAccountName: ownerAccountName})
+   //console.log("created DAO " + daoName + " with id " + daoObj.id + " : " + JSON.stringify(daoObj, null, 2))
       
 })
 

@@ -15,6 +15,7 @@ module.exports = async ({actions, endpoint}) => {
     if (esr.length < 3500) {
       qr = await buildQrCodeFile(esr)
     }
+    
     return {
       esr,
       qr
