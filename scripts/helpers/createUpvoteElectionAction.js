@@ -22,10 +22,10 @@ const createUpvoteElectionAction = ({
     console.log("time: " + timeString)
 
     return {
-        "account": `"${daoContract}"`,
+        "account": daoContract,
         "name": "createupvelc",
         "authorization": [{
-            "actor": `"${daoOwnerAccount}"`,
+            "actor": daoOwnerAccount,
             "permission": "active"
         }
         ],

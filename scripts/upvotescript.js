@@ -777,7 +777,7 @@ program
 
 program
 .command('start_upvote <electionId>')
-.description('Create N accounts')
+.description('Start upvote election')
 .action(async (electionId) => {
    console.log("starting election " + electionId)
    await startElection({
@@ -806,7 +806,7 @@ program
       //const rGroup = roundGroups[1] // debug
       const groupId = rGroup["docId"]
       const roundGroupsMembers = rGroup["ueRdMember"]
-      const winnerId = roundGroupsMembers[0]["docId"] // winner is member on index 2
+      const winnerId = roundGroupsMembers[0]["docId"] // winner is member on index 0
       for (const member of roundGroupsMembers) {
 
          const memberId = member["docId"]
@@ -926,17 +926,13 @@ program
       
 })
 program
-.command('get_deletages <daoName>')
+.command('get_delegates <daoName>')
 .description('get delegates')
 .action(async (daoName) => {
 
    console.log("get delegates for " + daoName)
 
-   const daoObj = await createUpvoteElection({
-      daoName: daoName, 
-      ownerAccountName: ownerAccountName,
-      minutes: minutes
-   })
+   
       
 })
 
