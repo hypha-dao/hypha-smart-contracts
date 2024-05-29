@@ -23,7 +23,7 @@ const getToken = async () => {
 const fetchGraphQLQuery = async (query, endpointUrl = graphQLEndpoint) => {
 
     const jwtToken = await getToken()
-    //console.log("got token " + jwtToken)
+    console.log("got token " + jwtToken)
 
     var myHeaders = new Headers();
     myHeaders.append("Accept-Encoding", "gzip, deflate, br");

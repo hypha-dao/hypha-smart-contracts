@@ -3,11 +3,13 @@
 const program = require('commander')
 const compile = require('./compile')
 const test = require('./test')
+const fs = require('fs');
+const path = require('path');
 
 const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAccountNames, isTestnet, getTableRows, contractPermissions } = require('./helper')
 const { joinhypha, oracleuser, tier_vesting, launch_sale, paycpu, daoContract } = names
 
-const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
+const { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha, createMultisigProposal, createESRCodeApprove } = require('./propose_deploy')
 const deploy = require('./deploy.command')
 const { deployAllContracts, updatePermissions, resetByName,
   changeOwnerAndActivePermission,
@@ -16,9 +18,11 @@ const { deployAllContracts, updatePermissions, resetByName,
   removeAllActorPermissions,
   listPermissions,
   updatePermissionsList,
-  deployAllAccounts
+  deployAllAccounts,
+  source
 } = require('./deploy')
-const { getEosDateString, checkTimeToExecute } = require('./helpers/deferredTransactions')
+const { getEosDateString, checkTimeToExecute } = require('./helpers/deferredTransactions');
+const { proposeMsig } = require('./msig');
 
 
 const getContractLocation = (contract) => {
@@ -412,6 +416,54 @@ program
   })
 
 
+  program
+  .command('deploy_dao_contract <proposer> <contractAccount> <wasmFile>')
+  .description('Create msig to deploy dao contract')
+  .action(async function (proposer, contractAccount, wasmFile) {
+
+    // Resolve the absolute path of the WASM file
+    const absoluteWasmFilePath = path.resolve(process.cwd(), wasmFile);
+    console.log(`+  path ${absoluteWasmFilePath}`);
+
+    // Check if the file exists
+    if (!fs.existsSync(absoluteWasmFilePath)) {
+        console.error(`Error: File ${absoluteWasmFilePath} does not exist.`);
+        process.exit(1);
+    }
+    
+    console.log("path " + absoluteWasmFilePath)
+    const codeBinary = fs.readFileSync(absoluteWasmFilePath)
+  
+    console.log("wasm code of length " + codeBinary.length)
+        
+    console.log("contract account " + contractAccount)
+
+    const actions = [
+      {
+        "account": "eosio",
+        "name": "setcode",
+        "authorization": [
+          {
+            "actor": "dao.hypha",
+            "permission": "active"
+          }
+        ],
+        "data": {
+          account: contractAccount,
+          code: codeBinary.toString('hex'),
+          vmtype: 0,
+          vmversion: 0,
+        }
+      }
+    ]
+
+    const res = await proposeMsig(proposer, "setcode1", contractAccount, actions)
+    const open = (await import('open')).default;
+
+     open(res.esr);
+  
+    
+  })
 
 program.parse(process.argv)
 

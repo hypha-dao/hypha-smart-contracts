@@ -8,6 +8,7 @@ const { SigningRequest } = require('eosio-signing-request')
 const { source } = require('./deploy')
 const { accounts, eos } = require('./helper')
 const { proposeMsig } = require('./msig')
+const createEsrWithActions = require('./helpers/createEsrWithActions')
 
 const authPlaceholder = "............1"
 const GuardianAccountName = "cg.seeds"
@@ -549,7 +550,7 @@ const createMultisigProposalESR = async (proposalName, proposerAccount, actions,
 
   console.log("msig proposal: "+JSON.stringify(propActions, null,2))
 
-  const proposeEsr = await createESRWithActions({actions: propActions, title: "Create proposal " + proposalName})
+  const proposeEsr = await createEsrWithActions({actions: propActions, title: "Create proposal " + proposalName})
 
   return proposeEsr
 }
@@ -573,7 +574,7 @@ const createESRCodeApprove = async ({proposerAccount, proposalName, msigAccount 
     }]
   }]
 
-  return createESRWithActions({actions: approveActions, title: "APPROVE proposal "+proposalName})
+  return createEsrWithActions({actions: approveActions, title: "APPROVE proposal "+proposalName})
 }
 
 const createESRCodeExec = async ({proposerAccount, proposalName, msigAccount = "msig.seeds"}) => {
@@ -592,7 +593,7 @@ const createESRCodeExec = async ({proposerAccount, proposalName, msigAccount = "
     }]
   }]
 
-  return createESRWithActions({actions: execActions, title: "Execute proposal "+proposalName})
+  return createEsrWithActions({actions: execActions, title: "Execute proposal "+proposalName})
 }
 
 const createESRCodeCancel = async ({proposerAccount, proposalName, msigAccount = "msig.seeds"}) => {
@@ -610,7 +611,7 @@ const createESRCodeCancel = async ({proposerAccount, proposalName, msigAccount =
     }]
   }]
 
-  return createESRWithActions({actions: execActions, title: "Cancel proposal "+proposalName})
+  return createEsrWithActions({actions: execActions, title: "Cancel proposal "+proposalName})
 }
 
 const createESRCodeTransfer = async ({recepient, amount, memo}) => {
@@ -630,35 +631,8 @@ const createESRCodeTransfer = async ({recepient, amount, memo}) => {
     }]
   }]
 
-  return createESRWithActions({actions: actions})
+  return createEsrWithActions({actions: actions})
 }
 
-
-const createESRWithActions = async ({actions, title = "Generating ESR Code"}) => {
-
-  console.log("========= " + title + " ===========")
-  
-  const esr_uri = "https://api-esr.hypha.earth/qr"
-  const body = {
-    actions
-  }
-
-  //console.log("actions: "+JSON.stringify(body, null, 2))
-
-  const rawResponse = await fetch(esr_uri, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const parsedResponse = await rawResponse.json();
-
-  //console.log("parsed response "+JSON.stringify(parsedResponse))
-
-  return parsedResponse
-}
 
 module.exports = { proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha }

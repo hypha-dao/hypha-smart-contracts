@@ -7,6 +7,7 @@ const { Serialize } = eosjs
 const { SigningRequest } = require('eosio-signing-request')
 const { source } = require('./deploy')
 const { accounts, eos } = require('./helper')
+const createEsrWithActions = require('./helpers/createEsrWithActions')
 
 const authPlaceholder = "............1"
 
@@ -103,7 +104,10 @@ const proposeMsig = async (proposerAccount, proposalName, contract, actions, per
 
   console.log("ESR for Propose: " + JSON.stringify(proposeESR, null, 2))
 
-  const url = `https://eosauthority.com/msig/${proposerAccount}/${proposalName}?network=telos`
+  // https://explorer.telos.net/proposal/irr4ee // weird - no proposer??
+  // url: `https://mongo.hypha.earth/multisig/${proposerAccount}/${proposalName}`
+
+  const url = `https://mongo.hypha.earth/multisig/${proposerAccount}/${proposalName}`
 
   console.log("Proposal URL: " + url)
 
@@ -119,6 +123,7 @@ const proposeMsig = async (proposerAccount, proposalName, contract, actions, per
 
   console.log("ESR for Cancel: " + JSON.stringify(cancelESR, null, 2))
 
+  return proposeESR
 }
 
 const getConstitutionalGuardians = async (permission_name = "active") => {
@@ -134,8 +139,12 @@ const getConstitutionalGuardians = async (permission_name = "active") => {
 
 const getApprovers = async (account, permission_name = "active") => {
   const { permissions } = await eos.getAccount(account)
+  // console.log("perm " + JSON.stringify(activePerm, null, 2))
 
   const activePerm = permissions.filter(item => item.perm_name == permission_name)
+
+// console.log("active " + JSON.stringify(activePerm, null, 2))
+
   const result = activePerm[0].required_auth.accounts
     .filter(item => item.permission.actor != account)
     .map(item => item.permission)
@@ -194,7 +203,7 @@ const createMultisigPropose = async (proposerAccount, proposalName, contract, ac
       data: proposeInput
     }]
     
-    return createESRWithActions({actions: propActions})
+    return createEsrWithActions({actions: propActions})
 
 }
 
@@ -217,7 +226,7 @@ const createESRCodeApprove = async ({proposerAccount, proposalName}) => {
     }]
   }]
 
-  return createESRWithActions({actions: approveActions})
+  return createEsrWithActions({actions: approveActions})
 }
 
 const createESRCodeExec = async ({proposerAccount, proposalName}) => {
@@ -236,7 +245,7 @@ const createESRCodeExec = async ({proposerAccount, proposalName}) => {
     }]
   }]
 
-  return createESRWithActions({actions: execActions})
+  return createEsrWithActions({actions: execActions})
 }
 
 const createESRCodeCancel = async ({proposerAccount, proposalName}) => {
@@ -255,34 +264,8 @@ const createESRCodeCancel = async ({proposerAccount, proposalName}) => {
     }]
   }]
 
-  return createESRWithActions({actions: execActions})
+  return createEsrWithActions({actions: execActions})
 }
 
-const createESRWithActions = async ({actions}) => {
 
-  console.log("========= Generating ESR Code ===========")
-  
-  const esr_uri = "https://api-esr.hypha.earth/qr"
-  const body = {
-    actions
-  }
-
-  //console.log("actions: "+JSON.stringify(body, null, 2))
-
-  const rawResponse = await fetch(esr_uri, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  const parsedResponse = await rawResponse.json();
-
-  //console.log("parsed response "+JSON.stringify(parsedResponse))
-
-  return parsedResponse
-}
-
-module.exports = { proposeMsig, migrateTokens, createESRWithActions, setSettingsAction }
+module.exports = { proposeMsig, migrateTokens, setSettingsAction }

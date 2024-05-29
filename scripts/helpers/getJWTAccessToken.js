@@ -13,6 +13,8 @@ const getJWTAccessToken = async () => {
         method: 'GET',
         redirect: 'follow'
       };
+
+      console.log("getting token from " + graphQlJwtApiUrl)
       
     const res = await fetch(graphQlJwtApiUrl, requestOptions)
       
@@ -20,7 +22,7 @@ const getJWTAccessToken = async () => {
     
     const accessJWT = json.accessJWT
 
-    // console.log("ACCESS: " + accessJWT)
+    console.log("ACCESS: " + accessJWT)
 
     return accessJWT
 }
