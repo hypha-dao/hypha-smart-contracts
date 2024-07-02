@@ -3,7 +3,6 @@ const { eos, names, getTableRows, initContracts, sha256, fromHexString, isLocal,
 
 const { joinhypha, firstuser, seconduser, thirduser, paycpu, daoContract } = names
 var crypto = require('crypto');
-const { over } = require('ramda');
 
 const randomAccountName = () => {
   let length = 12

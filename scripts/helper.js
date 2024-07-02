@@ -175,9 +175,9 @@ const accountsMetadata = (network) => {
       daoContract: account('dao.hypha', 'dao'),
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
+      hyphatoken: account('hypha.hypha'),
 
       // we don't need these here
-      hyphatoken: account(' '),
       voice_token: account(' '),
 
 
