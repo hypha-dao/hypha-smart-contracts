@@ -40,9 +40,9 @@ const getContractLocation = (contract) => {
     }
   } else if (contract == 'hyphatoken') {
     return {
-      source: `./src/seeds.startoken.cpp`,
+      source: `./src/token.cpp`,
       include: "",
-      contractSourceName: "startoken"
+      contractSourceName: "token"
     }
   } else if (contract == 'husd_token') {
     return {

@@ -150,8 +150,6 @@ const compile = async ({ contract, source, include = "", contractSourceName }) =
 }
 
 const buildFileMap = {
-  'hyphatoken.abi': 'hypha.token.abi',
-  'hyphatoken.wasm': 'hypha.token.wasm',
   'login.abi': 'login.abi',
   'login.wasm': 'login.wasm',
   'joinhypha.abi': 'hypha.joinhypha.abi',
@@ -185,8 +183,8 @@ function copyFiles(sourceDir, destinationDir, fileMap) {
       const sourcePath = path.join(sourceDir, file);
       const destinationFile = fileMap[file]
       if (!destinationFile) {
-        console.log('incomplete map missing ' + file + ' map: ' + fileMap)
-        console.log('ignored')
+        // console.log('incomplete map missing ' + file + ' map: ' + fileMap)
+        // console.log('ignored')
         return
         //throw 'incomplete map'
       }
