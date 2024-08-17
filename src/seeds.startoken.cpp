@@ -93,6 +93,34 @@ void startoken::burn( const name& from, const asset& quantity )
   });
 }
 
+// admin function to delete stale or dead balance
+void startoken::delbalance( const name& from, const asset& quantity )
+{
+  require_auth(get_self());
+
+  auto sym = quantity.symbol;
+  check(sym.is_valid(), "stars: invalid symbol name");
+
+  stats statstable(get_self(), sym.code().raw());
+  auto sitr = statstable.find(sym.code().raw());
+
+    // Inline code from sub_balance
+    accounts from_acnts(get_self(), from.value);
+
+    const auto& from_itr = from_acnts.find(quantity.symbol.code().raw());
+    check(from_itr != from_acnts.end(), "stars: no balance object found for " + from.to_string());
+    check(from_itr->balance.amount >= quantity.amount, "stars: overdrawn balance");
+
+    from_acnts.modify(from_itr, get_self(), [&](auto& a) {
+        a.balance -= quantity;
+    });
+
+  statstable.modify(sitr, get_self(), [&](auto& stats) {
+    stats.supply -= quantity;
+  });
+}
+
+
 void startoken::transfer( const name&    from,
                       const name&    to,
                       const asset&   quantity,

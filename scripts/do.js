@@ -87,7 +87,7 @@ const deployAction = async (contract) => {
     if (errStr.includes("contract is already running this version of code")) {
       console.log(`${contract} code was already deployed`)
     } else {
-      console.log("error deploying ", contract)
+      console.log("error deploying: " + contract)
       console.log(err)
     }
   }

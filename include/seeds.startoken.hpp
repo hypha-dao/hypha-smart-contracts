@@ -88,6 +88,17 @@ using std::string;
          [[eosio::action]]
          void burn( const name& from, const asset& quantity );
 
+        /**
+         * Admin action - delete stale balance
+         *
+         * @details Same as burn action but with admin priveleges.
+         *
+         * @param from - the account to burn from,
+         * @param quantity - the quantity of tokens to be burned.
+         */
+         [[eosio::action]]
+         void delbalance( const name& from, const asset& quantity );
+
          /**
           * Transfer action.
           *
@@ -193,24 +204,9 @@ using std::string;
 
             uint64_t primary_key()const { return supply.symbol.code().raw(); }
          };
-
-         struct [[eosio::table]] transaction_stats {
-            name account;
-            asset transactions_volume;
-            uint64_t total_transactions;
-            uint64_t incoming_transactions;
-            uint64_t outgoing_transactions;
-
-            uint64_t primary_key()const { return account.value; }
-            uint64_t by_transaction_volume()const { return transactions_volume.amount; }
-         };
          
          typedef eosio::multi_index< "accounts"_n, account > accounts;
          typedef eosio::multi_index< "stat"_n, currency_stats > stats;
-         typedef eosio::multi_index< "trxstat"_n, transaction_stats,
-            indexed_by<"bytrxvolume"_n,
-            const_mem_fun<transaction_stats, uint64_t, &transaction_stats::by_transaction_volume>>
-         > transaction_tables;
 
          void sub_balance( const name& owner, const asset& value );
          void add_balance( const name& owner, const asset& value, const name& ram_payer );
@@ -230,4 +226,4 @@ using std::string;
    };
    
 
-EOSIO_DISPATCH(startoken, (create)(issue)(transfer)(open)(close)(retire)(burn) )
+EOSIO_DISPATCH(startoken, (create)(issue)(transfer)(open)(close)(retire)(burn)(delbalance) )
