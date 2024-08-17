@@ -104,9 +104,18 @@ void startoken::delbalance( const name& from, const asset& quantity )
   stats statstable(get_self(), sym.code().raw());
   auto sitr = statstable.find(sym.code().raw());
 
-  sub_balance(from, quantity);
+    // Inline code from sub_balance
+    accounts from_acnts(get_self(), from.value);
 
-  statstable.modify(sitr, from, [&](auto& stats) {
+    const auto& from_itr = from_acnts.find(quantity.symbol.code().raw());
+    check(from_itr != from_acnts.end(), "stars: no balance object found for " + from.to_string());
+    check(from_itr->balance.amount >= quantity.amount, "stars: overdrawn balance");
+
+    from_acnts.modify(from_itr, get_self(), [&](auto& a) {
+        a.balance -= quantity;
+    });
+
+  statstable.modify(sitr, get_self(), [&](auto& stats) {
     stats.supply -= quantity;
   });
 }
