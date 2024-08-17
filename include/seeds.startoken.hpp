@@ -88,6 +88,17 @@ using std::string;
          [[eosio::action]]
          void burn( const name& from, const asset& quantity );
 
+        /**
+         * Admin action - delete stale balance
+         *
+         * @details Same as burn action but with admin priveleges.
+         *
+         * @param from - the account to burn from,
+         * @param quantity - the quantity of tokens to be burned.
+         */
+         [[eosio::action]]
+         void delbalance( const name& from, const asset& quantity );
+
          /**
           * Transfer action.
           *

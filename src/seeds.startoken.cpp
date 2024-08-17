@@ -93,6 +93,25 @@ void startoken::burn( const name& from, const asset& quantity )
   });
 }
 
+// admin function to delete stale or dead balance
+void startoken::delbalance( const name& from, const asset& quantity )
+{
+  require_auth(get_self());
+
+  auto sym = quantity.symbol;
+  check(sym.is_valid(), "stars: invalid symbol name");
+
+  stats statstable(get_self(), sym.code().raw());
+  auto sitr = statstable.find(sym.code().raw());
+
+  sub_balance(from, quantity);
+
+  statstable.modify(sitr, from, [&](auto& stats) {
+    stats.supply -= quantity;
+  });
+}
+
+
 void startoken::transfer( const name&    from,
                       const name&    to,
                       const asset&   quantity,

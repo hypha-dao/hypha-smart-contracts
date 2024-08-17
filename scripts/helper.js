@@ -7,6 +7,9 @@ const R = require('ramda')
 const dockerLocalChainID = 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f'
 const eosioLocalChainID = '8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f'
 
+// use cleos for mainnet deploy - safer
+const useCleos = true
+
 const networks = {
   local: eosioLocalChainID,
   telosTestnet: '1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f',
@@ -176,6 +179,7 @@ const accountsMetadata = (network) => {
       tier_vesting: account('vestng.hypha', 'tier_vesting'),
       staking: account('stake.hypha', 'staking'),
       hyphatoken: account('hypha.hypha'),
+      husd_token: contract('husd.hypha', 'husd_token'),
 
       // we don't need these here
       voice_token: account(' '),
@@ -590,4 +594,5 @@ module.exports = {
   contractPermissions,
   graphQLEndpoint,
   gQLApiKeyEndpoints,
+  useCleos
 }
