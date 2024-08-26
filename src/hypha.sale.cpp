@@ -426,6 +426,25 @@ ACTION sale::incprice() {
   update_price();
 }
 
+ACTION sale::setprice(asset hypha_usd) {
+  require_auth(get_self());
+
+  price_table p = price.get();
+  auto ritr = rounds.find(p.current_round_id);
+  check(ritr != rounds.end(), "price table has invalid round id or sale has ended");
+
+  print(std::to_string(p.current_round_id)+ " XX" );
+
+  while(ritr != rounds.end()) {
+    rounds.modify(ritr, _self, [&](auto& item) {
+      item.hypha_usd = hypha_usd;
+    });
+    ritr++;
+  }
+
+  update_price();
+}
+
 ACTION sale::priceupdate() {
   require_auth(get_self());
   price_history_update();
