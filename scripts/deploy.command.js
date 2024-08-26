@@ -17,7 +17,13 @@ const deployWithCleos = async ({ account, contractDir, codeFile, abiFile, endPoi
         return;
       }
       if (stderr) {
-        console.error(`cleos stderr: ${stderr}`); 
+        if (`${stderr}`.startsWith("Reading WASM from")) {
+          console.error(`cleos: ${stderr}`); 
+        } else {
+          console.error(`cleos stderr: ${stderr}`); 
+          reject(error);
+          return;
+        }
       }
       console.log(`cleos done.`);
       resolve(stdout);

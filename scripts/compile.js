@@ -19,11 +19,32 @@ const command = ({ contract, source, include, dir, contractSourceName }) => {
   let inc = include == "" ? "./include" : include
 
   contractSourceName = contractSourceName ?? contract
+  console.log("XX compiling ... " + contractSourceName)
 
   const testingFlag = isLocal() ? " -DLOCAL_TEST" : ""
   const testnetFlag = isTelosTestnet() ? " -DIS_TELOS_TESTNET" : ""
 if (process.env.COMPILER === 'local') {
-  if (contractSourceName == "upvote") {
+  if (contractSourceName == "voice_token") {
+    const args = contractSourceName + testingFlag + testnetFlag
+    // TODO - grab additional source files and additional import locations using the contract name
+    // list impportDirectories = ["include", "./document-graph/include", ...]
+    // list sourcefiles = ["./src/upvote_election/election_round.cpp", "./src/upvote_election/graph.cpp", ...]
+    // then generate the command from that
+    console.log("compiling voice token... " + args)
+
+    const contractName = "voice.hypha"
+
+    const sourceFiles = [
+      "./src/voice/decay.cpp",
+      "./src/voice/voice.cpp",
+    ]
+
+    cmd = `eosio-cpp -abigen -I ./include/voice -I ./include/voice/tables -contract ${contractName} -o ./artifacts/voice_token.wasm ${sourceFiles.join(" ")}`
+
+    console.log("command: " + cmd)
+
+
+  } else if (contractSourceName == "upvote") {
     const args = contractSourceName + testingFlag + testnetFlag
     // TODO - grab additional source files and additional import locations using the contract name
     // list impportDirectories = ["include", "./document-graph/include", ...]
@@ -84,10 +105,10 @@ if (process.env.COMPILER === 'local') {
 const compile = async ({ contract, source, include = "", contractSourceName }) => {
   // make sure source exists
 
-  const contractFound = await existsAsync(source)
-  if (!contractFound) {
-    throw new Error('Contract not found: ' + contract + ' No source file: ' + source);
-  }
+  // const contractFound = await existsAsync(source)
+  // if (!contractFound) {
+  //   throw new Error('Contract not found: ' + contract + ' No source file: ' + source);
+  // }
 
   const dir = process.cwd() + "/"
   // check directory
