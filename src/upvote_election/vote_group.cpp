@@ -82,7 +82,7 @@ void VoteGroup::castVotes(ElectionRound& round, std::vector<uint64_t> members)
     for (auto& edge : prevVotes) {
         auto memId = edge.getToNode();
         auto voteEntry = elctn_t.get(memId, "Member entry doesn't exists");
-        elctn_t.modify(voteEntry, eosio::same_payer, [&](upvote::ElectionVote& vote){
+        elctn_t.modify(voteEntry, get_self(), [&](upvote::ElectionVote& vote){
             vote.total_amount -= power;
         });
         edge.erase();
@@ -98,7 +98,7 @@ void VoteGroup::castVotes(ElectionRound& round, std::vector<uint64_t> members)
         auto voteIt = elctn_t.find(memId);
 
         if (voteIt != elctn_t.end()) {
-            elctn_t.modify(voteIt, eosio::same_payer, [&](upvote::ElectionVote& vote){
+            elctn_t.modify(voteIt, get_self(), [&](upvote::ElectionVote& vote){
                 vote.total_amount += power;
             });
         }

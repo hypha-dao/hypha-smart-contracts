@@ -48,7 +48,7 @@ void token::issue( const name& to, const asset& quantity, const string& memo )
       check( quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
     }
 
-    statstable.modify( st, same_payer, [&]( auto& s ) {
+    statstable.modify( st, get_self(), [&]( auto& s ) {
        s.supply += quantity;
     });
 
@@ -72,7 +72,7 @@ void token::retire( const asset& quantity, const string& memo )
 
     check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
 
-    statstable.modify( st, same_payer, [&]( auto& s ) {
+    statstable.modify( st, get_self(), [&]( auto& s ) {
        s.supply -= quantity;
     });
 
@@ -111,7 +111,7 @@ void token::sub_balance( const name& owner, const asset& value ) {
    const auto& from = from_acnts.get( value.symbol.code().raw(), "no balance object found" );
    check( from.balance.amount >= value.amount, "overdrawn balance" );
 
-   from_acnts.modify( from, owner, [&]( auto& a ) {
+   from_acnts.modify( from, get_self(), [&]( auto& a ) {
          a.balance -= value;
       });
 }
@@ -125,7 +125,7 @@ void token::add_balance( const name& owner, const asset& value, const name& ram_
         a.balance = value;
       });
    } else {
-      to_acnts.modify( to, same_payer, [&]( auto& a ) {
+      to_acnts.modify( to, get_self(), [&]( auto& a ) {
         a.balance += value;
       });
    }
@@ -174,7 +174,7 @@ void token::changeissuer(const symbol_code& sym_code, const name& new_issuer) {
     check(st.supply.amount == 0, "cannot change issuer when there are tokens in circulation");
 
     // Change the issuer
-    statstable.modify(st, same_payer, [&](auto& s) {
+    statstable.modify(st, get_self(), [&](auto& s) {
         s.issuer = new_issuer;
     });
 }

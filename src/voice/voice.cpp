@@ -109,7 +109,7 @@ namespace hypha {
             "token of specified symbol and tenant does not exist"
         );
 
-        statByKey.modify( statIt, same_payer, [&]( currency_statsv2& s ) {
+        statByKey.modify( statIt, get_self(), [&]( currency_statsv2& s ) {
             s.supply -= accIt->balance;
         });
 
@@ -174,7 +174,7 @@ namespace hypha {
             check( quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
         }
 
-        statstable.modify( st, same_payer, [&]( auto& s ) {
+        statstable.modify( st, get_self(), [&]( auto& s ) {
             s.supply += quantity;
         });
 
@@ -254,7 +254,7 @@ namespace hypha {
         auto existing = index.find( currency_statsv2::build_key(tenant, symbol.code()) );
         check( existing != index.end(), "token with symbol and tenant does not exist, create token before editing it" );
 
-        index.modify(existing, same_payer, [&](currency_statsv2& stat) {
+        index.modify(existing, get_self(), [&](currency_statsv2& stat) {
             stat.decay_period = new_decay_period;
             stat.decay_per_period_x10M = new_decay_per_periox_x10m;
         });
@@ -268,7 +268,7 @@ namespace hypha {
         const auto& from = index.get( accountv2::build_key(tenant, value.symbol.code()), "no balance object found" );
         check( from.balance.amount >= value.amount, "overdrawn balance" );
 
-        from_acnts.modify( from, owner, [&]( auto& a ) {
+        from_acnts.modify( from, get_self(), [&]( auto& a ) {
             a.balance -= value;
         });
     }
@@ -287,7 +287,7 @@ namespace hypha {
                 a.last_decay_period = this->get_current_time();
             });
         } else {
-            index.modify( to, same_payer, [&]( auto& a ) {
+            index.modify( to, get_self(), [&]( auto& a ) {
                 a.balance += value;
             });
         }
@@ -307,7 +307,7 @@ namespace hypha {
         check( quantity.is_valid(), "invalid quantity" );
         check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
 
-        statstable.modify( st, same_payer, [&]( auto& s ) {
+        statstable.modify( st, get_self(), [&]( auto& s ) {
             s.supply += quantity;
         });
     }

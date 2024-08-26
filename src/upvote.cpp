@@ -206,7 +206,7 @@ uint64_t upvote::getUniqueTxId() {
         });
     } else {
         current_id = counter_itr->count;
-        counters.modify(counter_itr, same_payer, [&](auto& c) {
+        counters.modify(counter_itr, get_self(), [&](auto& c) {
             c.count += 1;
         });
     }
