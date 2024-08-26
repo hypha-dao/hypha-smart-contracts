@@ -121,7 +121,7 @@ void token::add_balance( const name& owner, const asset& value, const name& ram_
    accounts to_acnts( get_self(), owner.value );
    auto to = to_acnts.find( value.symbol.code().raw() );
    if( to == to_acnts.end() ) {
-      to_acnts.emplace( ram_payer, [&]( auto& a ){
+      to_acnts.emplace( get_self(), [&]( auto& a ){
         a.balance = value;
       });
    } else {
@@ -145,7 +145,7 @@ void token::open( const name& owner, const symbol& symbol, const name& ram_payer
    accounts acnts( get_self(), owner.value );
    auto it = acnts.find( sym_code_raw );
    if( it == acnts.end() ) {
-      acnts.emplace( ram_payer, [&]( auto& a ){
+      acnts.emplace( get_self(), [&]( auto& a ){
         a.balance = asset{0, symbol};
       });
    }

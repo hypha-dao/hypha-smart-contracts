@@ -280,7 +280,7 @@ namespace hypha {
         auto index = to_acnts.get_index<name("bykey")>();
         auto to = index.find( accountv2::build_key(tenant, value.symbol.code()) );
         if( to == index.end() ) {
-            to_acnts.emplace( ram_payer, [&]( auto& a ){
+            to_acnts.emplace( get_self(), [&]( auto& a ){
                 a.id = to_acnts.available_primary_key();
                 a.balance = value;
                 a.tenant = tenant;
@@ -327,7 +327,7 @@ namespace hypha {
         auto account_index = acnts.get_index<name("bykey")>();
         auto it = account_index.find( accountv2::build_key(tenant, symbol.code()) );
         if( it == account_index.end() ) {
-            acnts.emplace( ram_payer, [&]( auto& a ){
+            acnts.emplace( get_self(), [&]( auto& a ){
                 a.id = acnts.available_primary_key();
                 a.tenant = tenant;
                 a.balance = asset{0, symbol};

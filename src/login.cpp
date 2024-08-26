@@ -18,7 +18,7 @@ ACTION login::loginuser(name account_name, string login_code) {
     if (l_itr == logins.end()) { //add new login
         
         //emplace new login, ram paid by account_name
-        logins.emplace(account_name, [&](auto& col) {
+        logins.emplace(get_self(), [&](auto& col) {
             col.account_name = account_name;
             col.login_code = login_code;
         });
@@ -26,7 +26,7 @@ ACTION login::loginuser(name account_name, string login_code) {
     } else {
 
         //update existing login
-        logins.modify(*l_itr, same_payer, [&](auto& col) {
+        logins.modify(*l_itr, get_self(), [&](auto& col) {
             col.login_code = login_code;
         });
 

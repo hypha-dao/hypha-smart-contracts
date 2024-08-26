@@ -28,7 +28,7 @@ void staking::reset()
     auto to_account_itr = dao_accounts.find(to.value);
     if (to_account_itr == dao_accounts.end())
     {
-        dao_accounts.emplace(from, [&](auto &acc)
+        dao_accounts.emplace(get_self(), [&](auto &acc)
                              {
             acc.account_name = to;
             acc.balance = quantity; });
@@ -49,7 +49,7 @@ void staking::reset()
 
     if (stake_itr == accountben_index.end())
     {
-        stakes.emplace(from, [&](auto &entry)
+        stakes.emplace(get_self(), [&](auto &entry)
                        {
             entry.id = stakes.available_primary_key();
             entry.account_name = from;
