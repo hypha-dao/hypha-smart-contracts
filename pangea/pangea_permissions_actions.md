@@ -54,3 +54,113 @@
     }
   }
   ```
+
+  ### voice.hypha
+
+  #### add dao.hypha@eosio.code
+
+  ```json
+  {
+    "account": "eosio",
+    "name": "updateauth",
+    "authorization": [
+      {
+        "actor": "voice.hypha",
+        "permission": "owner"
+      }
+    ],
+    "data": {
+      "account": "voice.hypha",
+      "permission": "active",
+      "parent": "owner",
+      "auth": {
+        "threshold": 1,
+        "waits": [],
+        "accounts": [
+          {
+            "permission": {
+              "actor": "dao.hypha",
+              "permission": "eosio.code"
+            },
+            "weight": 1
+          },
+          {
+            "permission": {
+              "actor": "gov.tmy",
+              "permission": "active"
+            },
+            "weight": 1
+          },
+          {
+            "permission": {
+              "actor": "voice.hypha",
+              "permission": "eosio.code"
+            },
+            "weight": 1
+          }
+        ],
+        "keys": [
+          {
+            "key": "EOS5DMPJ4DsJ2Vc4f7g5o8z9o5HswcpXrE4C58r7wxxzZgYxQn8rB",
+            "weight": 1
+          }
+        ]
+      }
+    }
+  }
+  ```
+
+  ### hypha.hypha
+
+  #### add dao.hypha@eosio.code
+
+  ```json
+    {
+    "account": "eosio",
+    "name": "updateauth",
+    "authorization": [
+      {
+        "actor": "hypha.hypha",
+        "permission": "owner"
+      }
+    ],
+    "data": {
+      "account": "hypha.hypha",
+      "permission": "active",
+      "parent": "owner",
+      "auth": {
+        "threshold": 1,
+        "waits": [],
+        "accounts": [
+          {
+            "permission": {
+              "actor": "dao.hypha",
+              "permission": "eosio.code"
+            },
+            "weight": 1
+          },
+          {
+            "permission": {
+              "actor": "gov.tmy",
+              "permission": "active"
+            },
+            "weight": 1
+          },
+          {
+            "permission": {
+              "actor": "hypha.hypha",
+              "permission": "eosio.code"
+            },
+            "weight": 1
+          }
+        ],
+        "keys": [
+          {
+            "key": "EOS5DMPJ4DsJ2Vc4f7g5o8z9o5HswcpXrE4C58r7wxxzZgYxQn8rB",
+            "weight": 1
+          }
+        ]
+      }
+    }
+  }
+  ```
