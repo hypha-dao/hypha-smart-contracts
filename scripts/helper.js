@@ -415,7 +415,12 @@ const contractPermissions = {
       actor: `${accounts.daoContract.account}@eosio.code`,
     }
   ],
-
+  husd_token: [
+    {
+      target: `${accounts.hyphatoken.account}@active`,
+      actor: `${accounts.daoContract.account}@eosio.code`,
+    }
+  ],
   voice_token: [
     {
       target: `${accounts.voice_token.account}@active`,
