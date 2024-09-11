@@ -312,6 +312,9 @@ const schedulerActiveKeys = {
   [networks.telosTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
   [networks.eosMainnet]: `${process.env.SCHEDULER_PUBLIC_KEY_EOS}`,
   [networks.eosTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
+  [networks.pangeaTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
+  [networks.pangeaMainnet]: `${process.env.SCHEDULER_PUBLIC_KEY_PANGEA}`,
+
 }
 
 const payForCPUPublicKey = payForCPUKeys[chainId]

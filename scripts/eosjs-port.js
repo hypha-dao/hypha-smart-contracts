@@ -247,6 +247,7 @@ class Eos {
     trxConfig = { blocksBehind:3, expireSeconds:30, ...trxConfig }
     let result
     try {
+      console.log("Executing Actions on EOS: " + JSON.stringify(trx, null, 2))
       result = await api.transact(trx, trxConfig)
     } catch (err) {
       const errStr = '' + err

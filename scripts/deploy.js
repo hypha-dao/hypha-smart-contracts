@@ -1,8 +1,11 @@
 const fs = require('fs')
 const path = require('path')
 const R = require('ramda')
-const { eos, isLocal, getBalance, accounts, contractPermissions, sleep } = require('./helper')
+const { eos, isLocal, getBalance, accounts, contractPermissions, sleep, httpEndpoint } = require('./helper')
 const createAccount = require('./createAccount')
+const linkAuthAction = require('./actions/linkAuthAction')
+const execCleos = require('./helpers/execCleos')
+const execUpdateAuth = require('./helpers/execUpdateAuth')
 
 const debug = process.env.DEBUG || false
 
@@ -123,10 +126,10 @@ const createActorPermission = async (account, role, parentRole = 'active', actor
   try {
     const { permissions } = await eos.getAccount(account)
 
-    const perm = permissions.find(p => p.perm_name === role)
+    const thePermission = permissions.find(p => p.perm_name === role)
 
-    if (perm) {
-      const { parent, required_auth } = perm
+    if (thePermission) {
+      const { parent, required_auth } = thePermission
       const { accounts } = required_auth
   
       if (accounts.find(item => item.actor === actor && item.permission == actorRole)) {
@@ -164,12 +167,21 @@ const createActorPermission = async (account, role, parentRole = 'active', actor
 
 const allowAction = async (account, role, action) => {
   try {
-    await eos.linkauth({
-      account,
-      code: account,
-      type: action,
-      requirement: role
-    }, { authorization: `${account}@owner` })
+    const act = linkAuthAction({
+        account,
+        code: account,
+        type: action,
+        requirement: role
+      }, { actor: `${account}`, permission: "owner" })
+    
+      await execCleos([act], httpEndpoint)
+
+    // await eos.linkauth({
+    //   account,
+    //   code: account,
+    //   type: action,
+    //   requirement: role
+    // }, { authorization: `${account}@owner` })
     console.log(`linkauth of ${account}@${action} for ${role}`)
   } catch (err) {
     let errString = `failed allow action\n* error: ` + err + `\n`
@@ -182,6 +194,7 @@ const allowAction = async (account, role, action) => {
 }
 
 const addActorPermission = async (target, targetRole, actor, actorRole) => {
+  console.log("addActorPermission")
   try {
     const { parent, required_auth: { threshold, waits, keys, accounts } } =
       (await eos.getAccount(target))
@@ -216,8 +229,8 @@ const addActorPermission = async (target, targetRole, actor, actorRole) => {
         ]
       }
     }
-
-    await eos.updateauth(permissions, { authorization: `${target}@owner` })
+    await execUpdateAuth(permissions, { authorization: `${target}@owner` })
+    // await eos.updateauth(permissions, { authorization: `${target}@owner` })
     console.log(`+ permission created on ${target}@${targetRole} for ${actor}@${actorRole}`)
   } catch (err) {
     console.error(`failed permission update on ${target} for ${actor}\n* error: ` + err + `\n`)
