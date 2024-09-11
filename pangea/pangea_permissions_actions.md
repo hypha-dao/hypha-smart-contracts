@@ -221,7 +221,7 @@
 
   ### husd.hypha
 
-  #### add dao.hypha auth
+  #### add dao.hypha@eosio.code
 
   ```json
   {
