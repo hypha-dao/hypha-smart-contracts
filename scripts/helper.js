@@ -16,6 +16,8 @@ const networks = {
   telosMainnet: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
   eosMainnet: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
   eosTestnet: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+  pangeaTestnet: '8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f',
+  pangeaMainnet: '66d565f72ac08f8321a3036e2d92eea7f96ddc90599bdbfc2d025d810c74c248',
 }
 
 const networkDisplayName = {
@@ -24,6 +26,9 @@ const networkDisplayName = {
   telosMainnet: 'Telos Mainnet',
   eosMainnet: 'EOS Mainnet',
   eosTestnet: 'EOS Testnet Jungle 4',
+  pangeaTestnet: 'Pangea Testnet',
+  pangeaMainnet: 'Pangea Mainnet',
+
 }
 
 const endpoints = {
@@ -33,7 +38,8 @@ const endpoints = {
   // telosMainnet: 'https://telos.greymass.com',
   eosMainnet: 'http://eos.greymass.com',
   eosTestnet: 'https://jungle4.dfuse.eosnation.io',
-  //eosTestnet: 'http://jungle4.eossweden.org',
+  pangeaTestnet: 'https://test.pangea.eosusa.io',
+  pangeaMainnet: 'https://pangea.eosusa.io',
 }
 
 const ownerAccounts = {
@@ -42,6 +48,9 @@ const ownerAccounts = {
   telosMainnet: 'hypha',
   eosMainnet: 'hypha',
   eosTestnet: 'hyphadaotest',
+  pangeaTestnet: 'owner', // Note we don't have owner accounts
+  pangeaMainnet: 'owner', // Note we don't have owner accounts
+
 }
 
 const gQLEndpoints = {
@@ -49,7 +58,10 @@ const gQLEndpoints = {
   telosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",// NOTE This needs a HEADER with JWT token
   telosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",
   eosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql", // NOTE This needs a HEADER with JWT token "X-Dgraph-AccessToken": "ey..."
-  eosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql"
+  eosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",
+  // pangeaTestnet: '', 
+  // pangeaMainnet: '',
+
 }
 
 const gQLApiKeyEndpoints = {
@@ -57,7 +69,10 @@ const gQLApiKeyEndpoints = {
   telosMainnet: process.env.GRAPHQL_JWT_API_TELOS_MAINNET,
   telosTestnet: process.env.GRAPHQL_JWT_API_TELOS_TESTNET,
   eosMainnet: process.env.GRAPHQL_JWT_API_EOS_MAINNET,
-  eosTestnet: process.env.GRAPHQL_JWT_API_EOS_TESTNET
+  eosTestnet: process.env.GRAPHQL_JWT_API_EOS_TESTNET,
+  // pangeaTestnet: '', 
+  // pangeaMainnet: '',
+
 }
 
 
