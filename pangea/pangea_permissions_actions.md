@@ -2,7 +2,7 @@
 
 ## Permissions Actions
 
-### dao.hypha permissions - add scheduler, linkauth
+### dao.hypha permissions
 
 #### 1 Add scheduler permission
 
