@@ -224,17 +224,17 @@
   #### add dao.hypha@eosio.code
 
   ```json
-  {
+    {
     "account": "eosio",
     "name": "updateauth",
     "authorization": [
       {
-        "actor": "hypha.hypha",
+        "actor": "husd.hypha",
         "permission": "owner"
       }
     ],
     "data": {
-      "account": "hypha.hypha",
+      "account": "husd.hypha",
       "permission": "active",
       "parent": "owner",
       "auth": {
@@ -257,7 +257,7 @@
           },
           {
             "permission": {
-              "actor": "hypha.hypha",
+              "actor": "husd.hypha",
               "permission": "eosio.code"
             },
             "weight": 1
@@ -271,5 +271,5 @@
         ]
       }
     }
-  } 
+  }
   ```
