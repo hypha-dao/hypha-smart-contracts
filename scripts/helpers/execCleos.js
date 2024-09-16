@@ -19,7 +19,6 @@ const { exec } = require('child_process');
 const execCleos = async (actions = [], endPoint) => {
 
     console.log("cleos exec on " + endPoint + ": " + JSON.stringify(actions, null, 2))
-
     // Convert actions array to JSON string
     const actionsJson = JSON.stringify(actions);
 

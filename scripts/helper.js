@@ -488,6 +488,9 @@ const keyProviders = {
     process.env.TELOS_TESTNET_DAO_CONTRACT_KEY,
     process.env.TELOS_TESTNET_ACCOUNTS_KEY,
   ],
+  [networks.pangeaTestnet]: [
+    process.env.PANGEA_TESTNET_PRIVATE_KEY,
+  ],
   [networks.eosMainnet]: [
     process.env.EOS_MAINNET_ACTIVE_KEY,
     process.env.EOS_MAINNET_ACCOUNTS_KEY,

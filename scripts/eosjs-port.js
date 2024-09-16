@@ -6,12 +6,16 @@ const { Exception } = require('handlebars')
 const { option } = require('commander')
 const { transactionHeader } = require('eosjs/dist/eosjs-serialize')
 const ecc = require('eosjs-ecc')
+const execCleos = require('./helpers/execCleos')
+const { httpEndpoint } = require('./helper')
 
 const { Api, JsonRpc, Serialize } = eosjs
 
 let rpc
 let api
 let isUnitTest
+let endpointURL
+let globalCleosMode = true
 
 function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -67,7 +71,10 @@ class Eos {
     this.rpc = rpc
     this.api = api
 
+
     isUnitTest = isLocal ? isLocal() : false
+    
+    endpointURL = httpEndpoint
 
     //console.log("EOS - is unit test: " + isUnitTest)
   }
@@ -133,10 +140,19 @@ class Eos {
         }
 
         let res
+        
+        console.log("XXX exec acttios " + JSON.stringify(actions, null, 2))
+        console.log("cleos mode: " + globalCleosMode)
+
         try {
-          res = await api.transact({
-            actions
-          }, trxConfig)
+          if (globalCleosMode) {
+            execCleos(actions, endpointURL);
+          } else {
+            res = await api.transact({
+              actions
+            }, trxConfig)  
+          }
+          
         }
         catch (err) {
           const errStr = ''+err
@@ -144,10 +160,14 @@ class Eos {
           if (errStr.toLowerCase().includes('deadline exceeded')) {
             await sleep(3000)
             console.log('retrying...')
-            res = await api.transact({
-              actions
-            }, trxConfig)
-          } else {
+            if (globalCleosMode) {
+              execCleos(actions, endpointURL);
+            } else {
+              res = await api.transact({
+                actions
+              }, trxConfig)  
+            }
+            } else {
             console.log("Error on actions: "+JSON.stringify(actions))
             throw err
           }
@@ -248,7 +268,14 @@ class Eos {
     let result
     try {
       console.log("Executing Actions on EOS: " + JSON.stringify(trx, null, 2))
-      result = await api.transact(trx, trxConfig)
+
+      if (globalCleosMode) {
+        result = execCleos(actions, endpointURL);
+      } else {
+        result = await api.transact({
+          actions
+        }, trxConfig)  
+      }
     } catch (err) {
       const errStr = '' + err
       if (errStr.toLowerCase().includes('exceeded by') && numTries > 0) {
