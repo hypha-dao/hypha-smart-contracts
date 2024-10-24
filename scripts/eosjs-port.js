@@ -140,8 +140,7 @@ class Eos {
         }
 
         let res
-        
-        console.log("XXX exec acttios " + JSON.stringify(actions, null, 2))
+        globalCleosMode = true
         console.log("cleos mode: " + globalCleosMode)
 
         try {

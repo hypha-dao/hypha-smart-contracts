@@ -416,7 +416,7 @@ program
   })
 
 
-  program
+program
   .command('deploy_dao_contract <proposer> <contractAccount> <wasmFile>')
   .description('Create msig to deploy dao contract')
   .action(async function (proposer, contractAccount, wasmFile) {
