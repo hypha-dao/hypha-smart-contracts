@@ -28,18 +28,18 @@ void staking::reset()
     auto to_account_itr = dao_accounts.find(to.value);
     if (to_account_itr == dao_accounts.end())
     {
-        dao_accounts.emplace(from, [&](auto &acc)
+        dao_accounts.emplace(get_self(), [&](auto &acc)
                              {
             acc.account_name = to;
             acc.balance = quantity; });
     }
     else
     {
-        dao_accounts.modify(to_account_itr, from, [&](auto &acc)
+        dao_accounts.modify(to_account_itr, get_self(), [&](auto &acc)
                             { acc.balance += quantity; });
     }
 
-    accounts.modify(from_account_itr, from, [&](auto &acc)
+    accounts.modify(from_account_itr, get_self(), [&](auto &acc)
                     {
         acc.balance -= quantity; });
 
@@ -49,7 +49,7 @@ void staking::reset()
 
     if (stake_itr == accountben_index.end())
     {
-        stakes.emplace(from, [&](auto &entry)
+        stakes.emplace(get_self(), [&](auto &entry)
                        {
             entry.id = stakes.available_primary_key();
             entry.account_name = from;
@@ -58,7 +58,7 @@ void staking::reset()
     }
     else
     {
-        accountben_index.modify(stake_itr, from, [&](auto &entry)
+        accountben_index.modify(stake_itr, get_self(), [&](auto &entry)
                       { entry.quantity += quantity; });
     }
 }
@@ -89,16 +89,16 @@ void staking::reset()
     if (stake_itr->quantity.amount == quantity.amount) {
         accountben_index.erase(stake_itr);
     } else {
-        accountben_index.modify(stake_itr, from, [&](auto &entry)
+        accountben_index.modify(stake_itr, get_self(), [&](auto &entry)
                     { entry.quantity -= quantity; });
     }
 
-    dao_accounts.modify(to_account_itr, from, [&](auto &acc)
+    dao_accounts.modify(to_account_itr, get_self(), [&](auto &acc)
                         {
         check(acc.balance >= quantity, "Insufficient balance");
         acc.balance -= quantity; });
 
-    accounts.modify(from_account_itr, from, [&](auto &acc)
+    accounts.modify(from_account_itr, get_self(), [&](auto &acc)
                     { acc.balance += quantity; });
 }
 
@@ -144,7 +144,7 @@ void staking::refund(name account) {
     check(account_itr->balance.amount > 0, "No balance to refund");
 
     asset balance_to_refund = account_itr->balance;
-    accounts.modify(account_itr, account, [&](auto &acc) {
+    accounts.modify(account_itr, get_self(), [&](auto &acc) {
         acc.balance = asset(0, balance_to_refund.symbol);
     });
 

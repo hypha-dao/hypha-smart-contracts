@@ -115,7 +115,7 @@ ACTION joinhypha::createinvite(const uint64_t dao_id, const name dao_name, const
 
    // Create a new invite entry
    invite_table invites(get_self(), get_self().value);
-   invites.emplace(inviter, [&](auto &row)
+   invites.emplace(get_self(), [&](auto &row)
                    {
       row.invite_id = invites.available_primary_key();
       row.dao_id = dao_id;

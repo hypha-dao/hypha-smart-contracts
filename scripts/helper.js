@@ -16,6 +16,8 @@ const networks = {
   telosMainnet: '4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11',
   eosMainnet: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906',
   eosTestnet: '73e4385a2708e6d7048834fbc1079f2fabb17b3c125b146af438971e90716c4d',
+  pangeaTestnet: '8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f',
+  pangeaMainnet: '66d565f72ac08f8321a3036e2d92eea7f96ddc90599bdbfc2d025d810c74c248',
 }
 
 const networkDisplayName = {
@@ -24,6 +26,9 @@ const networkDisplayName = {
   telosMainnet: 'Telos Mainnet',
   eosMainnet: 'EOS Mainnet',
   eosTestnet: 'EOS Testnet Jungle 4',
+  pangeaTestnet: 'Pangea Testnet',
+  pangeaMainnet: 'Pangea Mainnet',
+
 }
 
 const endpoints = {
@@ -33,7 +38,8 @@ const endpoints = {
   // telosMainnet: 'https://telos.greymass.com',
   eosMainnet: 'http://eos.greymass.com',
   eosTestnet: 'https://jungle4.dfuse.eosnation.io',
-  //eosTestnet: 'http://jungle4.eossweden.org',
+  pangeaTestnet: 'https://test.pangea.eosusa.io',
+  pangeaMainnet: 'https://pangea.eosusa.io',
 }
 
 const ownerAccounts = {
@@ -42,6 +48,9 @@ const ownerAccounts = {
   telosMainnet: 'hypha',
   eosMainnet: 'hypha',
   eosTestnet: 'hyphadaotest',
+  pangeaTestnet: 'owner', // Note we don't have owner accounts
+  pangeaMainnet: 'owner', // Note we don't have owner accounts
+
 }
 
 const gQLEndpoints = {
@@ -49,7 +58,10 @@ const gQLEndpoints = {
   telosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",// NOTE This needs a HEADER with JWT token
   telosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",
   eosMainnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql", // NOTE This needs a HEADER with JWT token "X-Dgraph-AccessToken": "ey..."
-  eosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql"
+  eosTestnet: "https://hypha.us-east-1.aws.cloud.dgraph.io/graphql",
+  // pangeaTestnet: '', 
+  // pangeaMainnet: '',
+
 }
 
 const gQLApiKeyEndpoints = {
@@ -57,7 +69,10 @@ const gQLApiKeyEndpoints = {
   telosMainnet: process.env.GRAPHQL_JWT_API_TELOS_MAINNET,
   telosTestnet: process.env.GRAPHQL_JWT_API_TELOS_TESTNET,
   eosMainnet: process.env.GRAPHQL_JWT_API_EOS_MAINNET,
-  eosTestnet: process.env.GRAPHQL_JWT_API_EOS_TESTNET
+  eosTestnet: process.env.GRAPHQL_JWT_API_EOS_TESTNET,
+  // pangeaTestnet: '', 
+  // pangeaMainnet: '',
+
 }
 
 
@@ -81,6 +96,10 @@ const publicKeys = {
   [networks.telosTestnet]: ['EOS8MHrY9xo9HZP4LvZcWEpzMVv1cqSLxiN2QMVNy8naSi1xWZH29', 'EOS8C9tXuPMkmB6EA7vDgGtzA99k1BN6UxjkGisC1QKpQ6YV7MFqm'],
   [networks.eosMainnet]: [],
   [networks.eosTestnet]: ['EOS8dTpsSqM7r8TpaK4j5GasMgzocK4qKeKtsa1cYaWcWAth3EVxi', 'EOS8dTpsSqM7r8TpaK4j5GasMgzocK4qKeKtsa1cYaWcWAth3EVxi'],
+  // not real keys...
+  [networks.pangeaTestnet]: ['EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV'],
+  // not real keys...
+  [networks.pangeaMainnet]: ['EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV', 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV'],
 }
 const [ownerPublicKey, activePublicKey] = publicKeys[chainId]
 
@@ -230,7 +249,7 @@ const accountsMetadata = (network) => {
       launch_sale: account(' '),
       hyphatoken: account(' '),
       voice_token: account(' '),
-      
+
     }
   } else if (network == networks.eosTestnet) {
     return {
@@ -251,6 +270,24 @@ const accountsMetadata = (network) => {
       voice_token: account(' '),
 
     }
+  } else if (network == networks.pangeaMainnet) {
+    return {
+      oracleuser: account('hyphaoracle1'),
+      voice_token: contract('voice.hypha', 'voice_token'),
+      husd_token: contract('husd.hypha', 'husd_token'),
+      hyphatoken: contract('hypha.hypha', 'hyphatoken'),
+
+      // we don't deploy sale contract on EOS, but defining it here
+      sale: account(' '),
+      login: contract('login.hypha', 'login'),
+      joinhypha: contract('join.hypha', 'joinhypha'),
+      paycpu: account(' '),
+      daoContract: account('dao.hypha', 'dao'),
+      tier_vesting: account(' '),
+      staking: account(' '),
+      launch_sale: account(' '),
+    }
+
   } else {
     throw new Error(`${network} deployment not supported`)
   }
@@ -297,6 +334,9 @@ const schedulerActiveKeys = {
   [networks.telosTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
   [networks.eosMainnet]: `${process.env.SCHEDULER_PUBLIC_KEY_EOS}`,
   [networks.eosTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
+  [networks.pangeaTestnet]: `${process.env.SCHEDULER_PUBLIC_KEY_TESTNETS}`,
+  [networks.pangeaMainnet]: `${process.env.SCHEDULER_PUBLIC_KEY_PANGEA}`,
+
 }
 
 const payForCPUPublicKey = payForCPUKeys[chainId]
@@ -365,11 +405,11 @@ const contractPermissions = {
       actor: `${accounts.joinhypha.account}@eosio.code`,
       parent: 'active',
       type: 'createActorPermission'
-    },{
+    }, {
       target: `${accounts.paycpu.account}@newacct`,
       action: 'newacct'
-    }, 
-    
+    },
+
   ],
 
   tier_vesting: [
@@ -397,7 +437,12 @@ const contractPermissions = {
       actor: `${accounts.daoContract.account}@eosio.code`,
     }
   ],
-
+  husd_token: [
+    {
+      target: `${accounts.husd_token.account}@active`,
+      actor: `${accounts.daoContract.account}@eosio.code`,
+    }
+  ],
   voice_token: [
     {
       target: `${accounts.voice_token.account}@active`,
@@ -410,32 +455,32 @@ const contractPermissions = {
     //   target: `${accounts.voice_token.account}@active`,
     //   actor: `${accounts.daoContract.account}@active`,
     // }
-],
+  ],
 
-daoContract: [
-  {
-    target: `${accounts.daoContract.account}@active`,
-    actor: `${accounts.daoContract.account}@eosio.code`
-  }, 
-  {
-    target: `${accounts.daoContract.account}@scheduler`,
-    key: schedulerActiveKey,
-    parent: 'active'
-  }, {
-    target: `${accounts.daoContract.account}@scheduler`,
-    action: 'removedtx'
-  }
-  // Not sure about this - we could also use a service account
-  // {
-  //   target: `${accounts.daoContract.account}@scheduler`,
-  //   actor: `${accounts.paycpu.account}@payforcpu`,
-  //   parent: 'active',
-  //   type: 'createActorPermission'
-  // }, {
-  //   target: `${accounts.daoContract.account}@executenext`,
-  //   action: 'executenext'
-  // }
-],
+  daoContract: [
+    {
+      target: `${accounts.daoContract.account}@active`,
+      actor: `${accounts.daoContract.account}@eosio.code`
+    },
+    {
+      target: `${accounts.daoContract.account}@scheduler`,
+      key: schedulerActiveKey,
+      parent: 'active'
+    }, {
+      target: `${accounts.daoContract.account}@scheduler`,
+      action: 'removedtx'
+    }
+    // Not sure about this - we could also use a service account
+    // {
+    //   target: `${accounts.daoContract.account}@scheduler`,
+    //   actor: `${accounts.paycpu.account}@payforcpu`,
+    //   parent: 'active',
+    //   type: 'createActorPermission'
+    // }, {
+    //   target: `${accounts.daoContract.account}@executenext`,
+    //   action: 'executenext'
+    // }
+  ],
 
 }
 
@@ -449,8 +494,8 @@ const isLocalNet = chainId == networks.local
 // forward deployments are done with cleos or msig - only with protected wallets  
 const keyProviders = {
   [networks.local]: [
-    process.env.LOCAL_PRIVATE_KEY, 
-    process.env.LOCAL_PRIVATE_KEY, 
+    process.env.LOCAL_PRIVATE_KEY,
+    process.env.LOCAL_PRIVATE_KEY,
     process.env.APPLICATION_KEY
   ],
   [networks.telosMainnet]: [
@@ -464,6 +509,12 @@ const keyProviders = {
     process.env.TELOS_TESTNET_DAO_CREATOR_KEY,
     process.env.TELOS_TESTNET_DAO_CONTRACT_KEY,
     process.env.TELOS_TESTNET_ACCOUNTS_KEY,
+  ],
+  [networks.pangeaTestnet]: [
+    process.env.PANGEA_TESTNET_PRIVATE_KEY,
+  ],
+  [networks.pangeaMainnet]: [
+    process.env.PANGEA_TESTNET_PRIVATE_KEY,
   ],
   [networks.eosMainnet]: [
     process.env.EOS_MAINNET_ACTIVE_KEY,

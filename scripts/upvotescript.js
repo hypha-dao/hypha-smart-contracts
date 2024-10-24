@@ -925,16 +925,45 @@ program
    })
       
 })
+
+
 program
-.command('get_delegates <daoName>')
-.description('get delegates')
-.action(async (daoName) => {
-
-   console.log("get delegates for " + daoName)
-
-   
-      
+.command('init_root')
+.description('initialize root')
+.action(async () => {
+   console.log("setting root " + process.env.EOSIO_NETWORK)
+   const contract = await eos.contract(daoContract)
+   await contract.createroot('root', { authorization: `${daoContract}@active` });
+   console.log("Done.")
 })
+
+program
+.command('init_settings')
+.description('set root')
+.action(async () => {
+
+   console.log("init settings " + process.env.EOSIO_NETWORK)
+   const contract = await eos.contract(daoContract)
+
+   await initializeDHO()
+
+   console.log("Done.")
+
+})
+
+program
+.command('init_calendar')
+.description('init calendar')
+.action(async () => {
+
+   const contract = await eos.contract(daoContract)
+   console.log("create calendar ")
+   await contract.createcalen(true, { authorization: `${daoContract}@active` })
+
+   console.log("Done.")
+
+})
+
 
 program
 .command('getLastBlock')

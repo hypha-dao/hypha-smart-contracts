@@ -59,7 +59,7 @@ void paycpu::check_new_member(const eosio::name& account_name) {
     eosio::check(member_itr->used < freeAllowance, "The 'used' count has reached the limit of 3.");
 
     // If all checks pass, increase the 'used' count by 1
-    members_table.modify(member_itr, account_name, [&](auto& member) {
+    members_table.modify(member_itr, get_self(), [&](auto& member) {
         member.used += 1;
     });
 }
