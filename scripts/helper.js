@@ -249,6 +249,7 @@ const accountsMetadata = (network) => {
       launch_sale: account(' '),
       hyphatoken: account(' '),
       voice_token: account(' '),
+      husd_token: account(' '),
 
     }
   } else if (network == networks.eosTestnet) {
@@ -268,6 +269,7 @@ const accountsMetadata = (network) => {
       launch_sale: account(' '),
       hyphatoken: account(' '),
       voice_token: account(' '),
+      husd_token: account(' '),
 
     }
   } else if (network == networks.pangeaMainnet) {
