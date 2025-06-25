@@ -20,7 +20,7 @@ const Types = {
 }
 
 const setSetting = async (contract, setting, value) => {
-   console.log("setting " + setting + " to: "+ value + " on " + daoContract)
+   console.log("setting " + setting + " to: " + value + " on " + daoContract)
 
    const data = {
       key: setting,
@@ -36,15 +36,15 @@ const setSetting = async (contract, setting, value) => {
 
 const initializeDHO = async () => {
 
-   if (!voice_token || voice_token == "") throw "no voice token set" 
-   if (!hyphatoken) throw "no hypha token set" 
-   if (!husd_token) throw "no HUSD token set" 
+   if (!voice_token || voice_token == "") throw "no voice token set"
+   if (!hyphatoken) throw "no hypha token set"
+   if (!husd_token) throw "no HUSD token set"
 
    console.log("init global DHO Settings with voice_token " + voice_token)
    console.log("init global DHO Settings with hyphatoken " + hyphatoken)
    console.log("init global DHO Settings with husd_token " + husd_token)
 
-   const govContractSetting = [Types.Name,""+voice_token];
+   const govContractSetting = [Types.Name, "" + voice_token];
 
    console.log("init global DHO Settings with husd_token " + JSON.stringify(govContractSetting, null, 2))
 
@@ -52,9 +52,9 @@ const initializeDHO = async () => {
 
    result = await setSetting(contract, 'governance_token_contract', govContractSetting);
 
-   result = await setSetting(contract, 'reward_token_contract', [Types.Name, ""+hyphatoken]);
+   result = await setSetting(contract, 'reward_token_contract', [Types.Name, "" + hyphatoken]);
 
-   result = await setSetting(contract, 'peg_token_contract', [Types.Name, ""+husd_token]);
+   result = await setSetting(contract, 'peg_token_contract', [Types.Name, "" + husd_token]);
 
    result = await setSetting(contract, 'treasury_contract', [Types.Name, 'mttrsryhypha']);
 
@@ -161,15 +161,51 @@ program
 
    })
 
-   program
+
+// we have 2 calendars 
+// 56410 => owned by 29983 (Hypha DAO)
+// and 
+// 56411 => owned by 53332 (Some other DAO)
+
+// we have 2 daos
+// 29983
+// 33904
+
+
+// 
+// "dao": [
+//    {
+//      "docId": "29983",
+//      "owns": [
+//        {
+//          "docId": "56410"
+//        }
+//      ]
+//    },
+// {
+//    "docId": "53332",
+//    "owns": [
+//      {
+//        "docId": "56411"
+//      }
+//    ]
+//  },
+
+
+program
    .command('add_periods')
    .description('add periods')
    .action(async () => {
 
       const contract = await eos.contract(daoContract)
       console.log("adding 10 periods")
-      graphQLEndpoint
-      await contract.genperiods(daoId, 10, { authorization: `${daoContract}@active` })
+      const daoId = 29983; // Hypha DAO
+      // const daoId = 53332; // Some other DAO
+      // greymass servers can handle 52 periods at a time - weaker servers only 10 or so. 
+      // so use the big powerful servers ;) 
+      // but, I think there's actually some sort of limit on the contract itself so YMMV
+
+      await contract.genperiods(daoId, 30, { authorization: `${daoContract}@active` })
 
       console.log("Done.")
 

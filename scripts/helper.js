@@ -34,8 +34,8 @@ const networkDisplayName = {
 const endpoints = {
   local: 'http://127.0.0.1:8888',
   telosTestnet: 'https://testnet.telos.net',
-  telosMainnet: 'https://mainnet.telos.net',
-  // telosMainnet: 'https://telos.greymass.com',
+  // telosMainnet: 'https://mainnet.telos.net',
+  telosMainnet: 'https://telos.greymass.com',
   eosMainnet: 'http://eos.greymass.com',
   eosTestnet: 'https://jungle4.dfuse.eosnation.io',
   pangeaTestnet: 'https://test.pangea.eosusa.io',
